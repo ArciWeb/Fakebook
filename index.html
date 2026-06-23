@@ -105,23 +105,17 @@
         .see-more-btn { background: none; border: none; color: var(--fb-blue); font-weight: 600; cursor: pointer; padding: 0; font-size: 0.95rem; margin-left: 5px; }
         .see-more-btn:hover { text-decoration: underline; }
 
-        /* PlaceHolder pre AI Fotku */
-        .fb-photo-placeholder {
-            background-color: #ddd; 
-            border-radius: 8px; 
-            margin: 12px 0; 
-            overflow: hidden; 
-            position: relative; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            aspect-ratio: 16 / 9; 
-            color: #555; 
-            text-align: center; 
-            padding: 20px;
-            font-weight: 800;
-            font-size: 1.2rem;
-            border: 2px solid #ccc;
+        /* Generovaná AI fotka */
+        .fb-photo {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 12px 0;
+            border: 1px solid #ced0d4;
+            display: block;
+            background-color: #f0f2f5;
+            min-height: 200px;
+            object-fit: cover;
         }
 
         /* FB interakčná lišta */
@@ -185,7 +179,6 @@
         .badge.pro { background-color: #e1f7ec; color: #31a24c; }
         .badge.con { background-color: #ffeef6; color: #f02849; }
         .badge.user { background-color: #e8f5fe; color: var(--fb-blue); }
-        .error-message { color: var(--accent-red); background-color: #ffeef6; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 0.85rem; display: none; }
     </style>
 </head>
 <body>
@@ -236,9 +229,7 @@
                 <div class="profile-large-avatar">U</div>
                 <div class="profile-name">Váš Profil</div>
             </div>
-            <div class="profile-pinned-posts" id="profile-pinned-grid">
-                
-            </div>
+            <div class="profile-pinned-posts" id="profile-pinned-grid"></div>
         </div>
     </div>
 
@@ -258,8 +249,8 @@
     <div class="modal-overlay" id="post-modal">
         <div class="modal-content">
             <h3>Vytvoriť príspevok</h3>
-            <p>Váš príbeh spustí mediálnu búrku troch článkov.</p>
-            <textarea id="scenario-input" placeholder="Napr.: FIFA zamietla sťažnosť Kosova a definitívne pridelila body SR. Proti rozhodnutiu vypukli masívne protesty..."></textarea>
+            <p>Váš príbeh spustí mediálnu búrku troch článkov s generovanými fotkami.</p>
+            <textarea id="scenario-input" placeholder="Napr.: FIFA zamietla sťažnosť Kosova a definitívne pridelila body SR..."></textarea>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closePostModal()">Zrušiť</button>
                 <button class="btn btn-primary" onclick="triggerPostGeneration()">Uverejniť</button>
@@ -269,7 +260,7 @@
 
     <div class="loading-overlay" id="loading-spinner">
         <div class="spinner"></div>
-        <div style="font-weight: 800; font-size:1.1rem; color:#050505;">Generujem mediálnu búrku...</div>
+        <div style="font-weight: 800; font-size:1.1rem; color:#050505;">Generujem mediálnu búrku a fotky...</div>
     </div>
 
     <script>
@@ -278,14 +269,14 @@
         const MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct";
 
         let appSlots = []; 
-        let pinnedPosts = []; // For the profile page
+        let pinnedPosts = []; 
 
         function getSavedApiKey() { return localStorage.getItem('whatif_groq_api_key') || ''; }
 
         function initApp() {
             updateLoginStatusUI();
-            const savedData = localStorage.getItem('whatif_multiverse_slots_v2'); 
-            const savedPinned = localStorage.getItem('whatif_pinned_posts');
+            const savedData = localStorage.getItem('whatif_multiverse_slots_v3'); 
+            const savedPinned = localStorage.getItem('whatif_pinned_posts_v3');
             if (savedData) {
                 appSlots = JSON.parse(savedData);
             } else {
@@ -338,8 +329,8 @@
         }
 
         function saveToLocalStorage() {
-            localStorage.setItem('whatif_multiverse_slots_v2', JSON.stringify(appSlots));
-            localStorage.setItem('whatif_pinned_posts', JSON.stringify(pinnedPosts));
+            localStorage.setItem('whatif_multiverse_slots_v3', JSON.stringify(appSlots));
+            localStorage.setItem('whatif_pinned_posts_v3', JSON.stringify(pinnedPosts));
         }
 
         function showFeed() {
@@ -391,8 +382,12 @@
             const avColor = generateColorFromString(post.author_name);
             
             let photoHtml = '';
-            if (post.type === 'article' && post.photo_desc) { 
-                photoHtml = `<div class="fb-photo-placeholder">AI FOTKA: ${post.photo_desc}</div>`;
+            if (post.type === 'article' && post.photo_desc) {
+                // Použitie bezplatnej služby Pollinations.ai pre generovanie obrázkov na základe promptu
+                const seed = Math.floor(Math.random() * 100000); // aby sa obrázok necacheoval nesprávne
+                const encodedPrompt = encodeURIComponent(post.photo_desc + " highly detailed, realistic, high quality");
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=450&nologo=true&seed=${seed}`;
+                photoHtml = `<img src="${imageUrl}" class="fb-photo" alt="AI Generated Image" loading="lazy" onerror="this.style.display='none'">`;
             }
             
             let middleContentHtml = '';
@@ -572,17 +567,20 @@
                 unlockedSlots.forEach((s, idx) => { historyContext += `- Kapitola ${idx + 1}: "${s.data.scenario}"\n`; });
             }
 
+            // Upravený prompt na prísne vyžiadanie ANGLICKÉHO promptu pre fotku
             const systemPrompt = `Si komplexný generátor pluralitného internetu pre model ${MODEL_NAME}, bežiaci na platforme Fakebook.
 Používateľ zadá udalosť (zlomový bod reality). Na základe nej a predošlého vývoja sveta MUSÍŠ vygenerovať pole príspevkov ("posts"), ktoré zachytia celú situáciu z troch rôznych uhlov pohľadu spoločnosti.
 
 Vygeneruj PRESNE 3 články, bez zbytočných rečí. 
 
 Kombinácia 3 článkov:
-1. Článok 1 ("type": "article"): Seriózne spravodajstvo (mainstream_news), dlhý text (3 odseky), pole "photo_desc" (podrobný opis AI-vygenerovanej fotky).
-2. Článok 2 ("type": "article"): Progresívna/spoločenská kritika (woke_critique), dlhý text (3 odseky), pole "photo_desc" (podrobný opis AI-vygenerovanej fotky).
-3. Článok 3 ("type": "article"): Alternatívne médium hovoriace o skrytých elitách (conspiracy), dlhý text (3 odseky), pole "photo_desc" (podrobný opis AI-vygenerovanej fotky).
+1. Článok 1 ("type": "article"): Seriózne spravodajstvo (mainstream_news), dlhý text.
+2. Článok 2 ("type": "article"): Progresívna/spoločenská kritika (woke_critique), dlhý text.
+3. Článok 3 ("type": "article"): Alternatívne médium hovoriace o skrytých elitách (conspiracy), dlhý text.
 
-Ku KAŽDÉMU článku pridaj presne 6 unikátnych komentárov s "id", wobei at least 2 reply to previous. Autoren musí zodpovedať danej cieľovke.
+DÔLEŽITÉ PRE FOTKY: V poli "photo_desc" MUSÍŠ vygenerovať veľmi podrobný prompt pre generátor obrázkov VÝHRADNE V ANGLIČTINE. Popíš presnú scénu, ľudí, emócie a štýl (napr. "A photorealistic image of a politician at a press conference, dramatic lighting, news photography").
+
+Ku KAŽDÉMU článku pridaj presne 6 unikátnych komentárov.
 
 ${historyContext}
 
@@ -596,10 +594,9 @@ Odpovedaj výhradne v čistom JSON.
       "author_name": "Hlavné Správy 24",
       "title": "Titulok...",
       "content": ["Odsek 1", "Odsek 2", "Odsek 3"],
-      "photo_desc": "Podrobný opis AI fotky pre mainstream spravodajstvo, napr. seriózna fotka politika za rečníckym pultom.",
+      "photo_desc": "A realistic photo of a large protest in the city center, people holding flags, rainy weather, high resolution, news style",
       "comments": [ { "id": "c1", "username": "Fero1", "stance": "proponent", "text": "Super!", "parentId": null } ]
-    },
-    ...
+    }
   ]
 }`;
 
@@ -652,13 +649,21 @@ Odpovedaj výhradne v čistom JSON.
             const area = document.getElementById('article-content-area');
             const avColor = generateColorFromString(post.author_name);
 
+            let photoHtml = '';
+            if (post.photo_desc) {
+                const seed = Math.floor(Math.random() * 100000);
+                const encodedPrompt = encodeURIComponent(post.photo_desc + " highly detailed, realistic, high quality");
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=450&nologo=true&seed=${seed}`;
+                photoHtml = `<img src="${imageUrl}" class="fb-photo" alt="AI Generated Image">`;
+            }
+
             area.className = 'post-card'; 
             area.innerHTML = `
                 <div class="post-header">
                     <div class="avatar" style="background-color: ${avColor}">${post.author_name.charAt(0).toUpperCase()}</div>
                     <div class="author-info"><span class="author-name">${post.author_name}</span><span class="author-time">Kompletný záznam · Kontext impulzu: "${appSlots[slotIdx].data.scenario}"</span></div>
                 </div>
-                ${post.photo_desc ? `<div class="fb-photo-placeholder">AI FOTKA: ${post.photo_desc}</div>` : ''}
+                ${photoHtml}
                 <h2>${post.title}</h2>
                 ${post.content ? post.content.map(p => `<p class="post-text">${p}</p>`).join('') : '<p class="post-text">Nenašiel sa obsah článku.</p>'}
             `;
@@ -734,7 +739,8 @@ Odpovedaj výhradne v čistom JSON.
                 const jsonRes = await response.json();
                 let rawText = jsonRes.choices[0].message.content.trim();
                 if (rawText.startsWith("```json")) rawText = rawText.substring(7);
-                if (rawText.endsWith("```")) rawText = rawText.substring(0, rawText.length - 3);
+                if (rawText.endsWith("
+```")) rawText = rawText.substring(0, rawText.length - 3);
 
                 const parsedReplies = JSON.parse(rawText.trim());
                 parsedReplies.replies.forEach((rep, idx) => {
