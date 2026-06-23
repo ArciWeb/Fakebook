@@ -107,9 +107,12 @@
         
         .post-image { width: 100%; display: block; max-height: 500px; object-fit: cover; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background-color: #f0f2f5; }
         
+        .post-stats { display: flex; justify-content: space-between; padding: 10px 16px; color: var(--text-muted); font-size: 0.9rem; }
+        
         .fb-actions-bar { display: flex; justify-content: space-between; margin: 0 16px; padding: 4px 0; border-top: 1px solid #ced0d4; border-bottom: 1px solid #ced0d4; }
         .fb-action-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 0.9rem; padding: 6px 0; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .fb-action-btn:hover { background-color: #f2f3f5; }
+        .fb-action-btn.liked { color: var(--fb-blue); }
 
         .post-comments-area { padding: 12px 16px; }
         .view-more-comments-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-bottom: 8px; display: inline-block; }
@@ -117,16 +120,17 @@
 
         .comment-item { display: flex; gap: 8px; margin-bottom: 12px; }
         .comment-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.8rem; flex-shrink: 0; }
-        .comment-bubble { background-color: var(--bg-input); padding: 8px 12px; border-radius: 18px; max-width: 90%; }
+        .comment-bubble { background-color: var(--bg-input); padding: 8px 12px; border-radius: 18px; max-width: 100%; display: inline-block;}
         .comment-user { font-weight: 600; font-size: 0.85rem; color: #050505; }
         .comment-text { font-size: 0.9rem; color: #050505; margin-top: 2px; }
+        .comment-actions { font-size: 0.75rem; margin-left: 12px; margin-top: 4px; display: flex; gap: 12px; color: var(--text-muted); font-weight: 600; }
 
         .article-view { display: none; }
         .btn-back-fb { background-color: transparent; border: none; color: var(--text-dark); font-size: 1rem; font-weight: 600; cursor: pointer; padding: 12px 16px; display: flex; align-items: center; gap: 8px;}
         .btn-back-fb:hover { background-color: var(--bg-input); border-radius: 8px; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background-color: var(--bg-card); border-radius: 8px; max-width: 500px; width: 100%; padding: 20px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); position: relative; }
+        .modal-content { background-color: var(--bg-card); border-radius: 8px; max-width: 500px; width: 100%; padding: 20px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto;}
         
         .close-modal-btn { position: absolute; right: 15px; top: 15px; font-size: 48px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 1; padding: 0; }
         .close-modal-btn:hover { color: var(--text-dark); }
@@ -262,6 +266,11 @@
             <div class="modal-actions" style="margin-bottom: 16px;">
                 <button class="btn btn-primary" onclick="saveApiKey()">Uložiť kľúč</button>
             </div>
+            
+            <div id="slots-container" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <h4 style="margin-top:0; margin-bottom:12px; font-size:1.1rem;">Sloty uloženia</h4>
+                </div>
+
             <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
             <button class="btn btn-danger" onclick="deleteAllData()">Vymazať všetky články a údaje</button>
         </div>
@@ -299,11 +308,25 @@
         const API_URL = "https://corsproxy.io/?" + encodeURIComponent(BASE_API_URL);
         const MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct";
 
+        // Obrovsky pool mien a priezvisk pre algoritmus
+        const NAMES_POOL = ["Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", "Janka", "Mária", "Zuzana", "Katarína", "Lucia", "Lenka", "Monika", "Petra", "Veronika", "Martina", "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid"];
+        const SURNAMES_POOL = ["Skrutka", "Motyka", "Podlaha", "Chobot", "Kladivo", "Tehla", "Kábel", "Lopata", "Žiarovka", "Dvere", "Okno", "Kefa", "Metla", "Hrniec", "Pokrievka", "Zemiak", "Cibuľa", "Mrkva", "Stôl", "Stolička", "Zásuvka", "Vankúš", "Perina", "Koberec", "Zrkadlo", "Pneumatika", "Výfuk", "Volant", "Sedadlo", "Kapor", "Pstruh", "Slanina", "Klobása", "Párok", "Horčica", "Kečup", "Chlieb", "Rožok", "Múka"];
+
         let feedData = [];
         let sharedPosts = [];
         let currentUsername = "Používateľ";
 
         function getSavedApiKey() { return localStorage.getItem('fb_api_key') || ''; }
+
+        function getRandomNames(count) {
+            let res = [];
+            for(let i=0; i<count; i++) {
+                let n = NAMES_POOL[Math.floor(Math.random()*NAMES_POOL.length)];
+                let s = SURNAMES_POOL[Math.floor(Math.random()*SURNAMES_POOL.length)];
+                res.push(`${n} ${s}`);
+            }
+            return res;
+        }
 
         function populateSelectOptions() {
             const hoursSel = document.getElementById('shift-hours');
@@ -360,6 +383,21 @@
                 }
             }
             
+            // Doplnenie likes a ids pre existujuce starsie data
+            feedData.forEach(slot => {
+                if(slot.posts) {
+                    slot.posts.forEach(post => {
+                        if(post.likes === undefined) post.likes = Math.floor(Math.random() * 800) + 12;
+                        if(post.comments) {
+                            post.comments.forEach(c => {
+                                if(!c.id) c.id = Math.random().toString(36).substr(2, 9);
+                                if(!c.replies) c.replies = [];
+                            });
+                        }
+                    });
+                }
+            });
+
             updateUserAvatarsUI();
             renderGrid();
         }
@@ -411,10 +449,54 @@
             }
         }
 
+        function renderSlots() {
+            let html = '';
+            for(let i=1; i<=4; i++) {
+                let sName = localStorage.getItem(`fb_slot_${i}_name`) || `Slot ${i}`;
+                html += `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-input); padding: 8px 12px; margin-bottom: 8px; border-radius: 6px;">
+                    <input type="text" id="slot-name-${i}" value="${sName}" style="flex:1; border:none; background:transparent; font-weight:600; font-size:0.95rem; outline:none;" onchange="saveSlotName(${i})">
+                    <div style="display:flex; gap: 8px;">
+                        <button class="nav-btn" style="width:36px; height:36px; font-size:1rem;" title="Uložiť všetko" onclick="saveToSlot(${i})">💾</button>
+                        <button class="nav-btn" style="width:36px; height:36px; font-size:1rem;" title="Načítať" onclick="loadFromSlot(${i})">📂</button>
+                    </div>
+                </div>`;
+            }
+            document.getElementById('slots-container').innerHTML = `<h4 style="margin-top:0; margin-bottom:12px; font-size:1.1rem;">Uložené profily (Sloty)</h4>` + html;
+        }
+
+        function saveSlotName(i) {
+            let val = document.getElementById(`slot-name-${i}`).value;
+            localStorage.setItem(`fb_slot_${i}_name`, val);
+        }
+
+        function saveToSlot(i) {
+            if(!confirm(`Naozaj chcete uložiť aktuálny stav plochy do slotu ${i}?`)) return;
+            localStorage.setItem(`fb_slot_${i}_feed`, JSON.stringify(feedData));
+            localStorage.setItem(`fb_slot_${i}_shared`, JSON.stringify(sharedPosts));
+            localStorage.setItem(`fb_slot_${i}_time`, localStorage.getItem('fb_global_time') || '0');
+            alert(`Stav bol úspešne uložený do slotu ${i}.`);
+        }
+
+        function loadFromSlot(i) {
+            if(!confirm(`Naozaj chcete načítať stav zo slotu ${i}? Súčasný neuložený postup sa vymaže.`)) return;
+            let f = localStorage.getItem(`fb_slot_${i}_feed`);
+            let s = localStorage.getItem(`fb_slot_${i}_shared`);
+            let t = localStorage.getItem(`fb_slot_${i}_time`);
+            if(f) feedData = JSON.parse(f);
+            if(s) sharedPosts = JSON.parse(s);
+            if(t) localStorage.setItem('fb_global_time', t);
+            saveToLocalStorage();
+            renderGrid();
+            closeApiModal();
+            alert(`Slot ${i} bol načítaný.`);
+        }
+
         function openApiModal() {
             document.getElementById('api-modal').style.display = 'flex';
             document.getElementById('api-key-input').value = getSavedApiKey();
             updateLoginStatusUI();
+            renderSlots();
         }
         function closeApiModal() { document.getElementById('api-modal').style.display = 'none'; }
 
@@ -537,6 +619,12 @@
             if (!isVisible) el.style.display = 'block';
         }
 
+        function showPrompt(sIdx) {
+            if (feedData[sIdx]) {
+                alert("Môj pôvodný prompt/status:\n\n" + feedData[sIdx].scenario);
+            }
+        }
+
         function deletePost(sIdx, pIdx) {
             if (feedData[sIdx] && feedData[sIdx].posts) {
                 feedData[sIdx].posts.splice(pIdx, 1);
@@ -556,6 +644,16 @@
             }
         }
 
+        function likePost(sIdx, pIdx) {
+            let post = feedData[sIdx].posts[pIdx];
+            if(post.hasLiked) return; 
+            post.likes = (post.likes || 0) + 1;
+            post.hasLiked = true;
+            saveToLocalStorage();
+            renderGrid();
+            if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
+        }
+
         async function replacePost(sIdx, pIdx) {
             if (!getSavedApiKey() || !feedData[sIdx]) return;
             const scenario = feedData[sIdx].scenario;
@@ -568,7 +666,7 @@
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
             if(opt) opt.style.display = 'none';
 
-            const sysPrompt = `Vráť JSON s 1 novým DLHÝM a VTIPNÝM príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým (type: article). Vytvor aj image_url. Komentujúci musia mať normálne meno a vtipné priezvisko (napr. Peter Podlaha). Výstup musí byť striktne iba JSON objekt.`;
+            const sysPrompt = `Vráť JSON s 1 novým DLHÝM a VTIPNÝM príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým (type: article). Vytvor aj image_url. Komentujúci musia mať normálne krstné meno a vtipné priezvisko. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Výstup musí byť striktne iba JSON objekt.`;
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -585,7 +683,15 @@
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
                 
                 if(parsed && parsed.posts && parsed.posts.length > 0) {
-                    feedData[sIdx].posts[pIdx] = parsed.posts[0];
+                    let newPost = parsed.posts[0];
+                    newPost.likes = Math.floor(Math.random() * 800) + 12;
+                    if(newPost.comments) {
+                        newPost.comments.forEach(c => {
+                            if(!c.id) c.id = Math.random().toString(36).substr(2, 9);
+                            if(!c.replies) c.replies = [];
+                        });
+                    }
+                    feedData[sIdx].posts[pIdx] = newPost;
                     saveToLocalStorage();
                     renderGrid();
                 } else {
@@ -610,7 +716,7 @@
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
             if(opt) opt.style.display = 'none';
 
-            const sysPrompt = `Vytvor 1 až 3 náhodné vtipné a sarkastické komentáre v slovenčine k tomuto článku a na túto tému. Názov článku: "${post.title}". Komentujúci musia mať normálne krstné meno a vtipné priezvisko (napr. Milan Skrutka, Janka Motyková). Výstup musí byť výhradne čistý JSON objekt obsahujúci pole objektov "comments", kde každý má "username" a "text". Tvar: { "comments": [ {"username": "Meno Priezvisko", "text": "obsah komentára"} ] }`;
+            const sysPrompt = `Vytvor 1 až 3 náhodné dlhšie vtipné a sarkastické komentáre k tomuto článku. Názov článku: "${post.title}". Komentujúci musia mať normálne krstné meno a vtipné podstatné meno ako priezvisko. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Výstup musí byť čistý JSON: { "comments": [ {"username": "Meno Priezvisko", "text": "dlhší obsah komentára"} ] }`;
             
             try {
                 const response = await fetch(API_URL, {
@@ -629,7 +735,11 @@
 
                 if (parsed && Array.isArray(parsed.comments)) {
                     if (!post.comments) post.comments = [];
-                    post.comments.push(...parsed.comments);
+                    parsed.comments.forEach(c => {
+                        c.id = Math.random().toString(36).substr(2, 9);
+                        c.replies = [];
+                        post.comments.push(c);
+                    });
                     saveToLocalStorage();
                     
                     if (document.getElementById('view-article').style.display === 'block') {
@@ -659,9 +769,10 @@
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
             if(opt) opt.style.display = 'none';
 
-            const sysPrompt = `Vytvor 1 nový DLHÝ, KOMPLEXNÝ a VTIPNÝ príspevok/článok o tej istej téme/udalosti: "${scenario}". Tento článok však MUSÍ mať úplne iný text článku (aspoň 4 odseky), iného autora a inú fotku než predchádzajúce príspevky k tejto udalosti, no stále o tom istom. Typ: "article". Očakávané atribúty objektu príspevku: author_name, title, content (pole odsekov), image_url, comments (pole s username a text). 
-            Vytvor aj image_url s novým random seed alebo novým popisom: buď "https://image.pollinations.ai/prompt/{detailny_anglicky_popis_obrazka}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodne_slovo}/800/400".
-            Výstup vráť ako čistý JSON objekt obsahujúci pole s jedným príspevkom: { "posts": [ { ... } ] }`;
+            const sysPrompt = `Vytvor 1 nový DLHÝ, KOMPLEXNÝ a VTIPNÝ príspevok/článok o tej istej téme/udalosti: "${scenario}". Tento článok MUSÍ mať úplne iný text (aspoň 4 odseky), iného autora a inú fotku než predtým. Očakávané atribúty: author_name, title, content (pole odsekov), image_url, comments (pole s username a text). 
+            Pre image_url použi náhodný seed: "https://image.pollinations.ai/prompt/{anglicky_popis}?width=800&height=400&nologo=true".
+            Inšpiruj sa pre autorov a komentujúcich z poolu mien: ${getRandomNames(15).join(', ')}.
+            Výstup: čisto JSON objekt { "posts": [ { ... } ] }`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -686,6 +797,13 @@
                 }
 
                 if (extractedPost) {
+                    extractedPost.likes = Math.floor(Math.random() * 800) + 12;
+                    if(extractedPost.comments) {
+                        extractedPost.comments.forEach(c => {
+                            if(!c.id) c.id = Math.random().toString(36).substr(2, 9);
+                            if(!c.replies) c.replies = [];
+                        });
+                    }
                     feedData[sIdx].posts.push(extractedPost);
                     saveToLocalStorage();
                     renderGrid();
@@ -702,13 +820,170 @@
         function toggleInline(id) {
             const hiddenSpan = document.getElementById(`hidden-text-${id}`);
             const btn = document.getElementById(`more-btn-${id}`);
+            const dots = document.getElementById(`dots-${id}`);
             if(hiddenSpan.style.display === 'none') {
                 hiddenSpan.style.display = 'inline';
+                if(dots) dots.style.display = 'none';
                 btn.innerText = 'Zobraziť menej';
             } else {
                 hiddenSpan.style.display = 'none';
+                if(dots) dots.style.display = 'inline';
                 btn.innerText = 'Zobraziť viac';
             }
+        }
+
+        function countComments(comments) {
+            if(!comments) return 0;
+            let count = 0;
+            comments.forEach(c => {
+                count += 1;
+                if(c.replies) count += countComments(c.replies);
+            });
+            return count;
+        }
+
+        function findCommentById(comments, id) {
+            for(let i=0; i<comments.length; i++) {
+                if(comments[i].id === id) return {parent: comments, index: i, comment: comments[i]};
+                if(comments[i].replies) {
+                    let found = findCommentById(comments[i].replies, id);
+                    if(found) return found;
+                }
+            }
+            return null;
+        }
+
+        function deleteComment(sIdx, pIdx, id) {
+            if(!confirm('Naozaj chcete vymazať tento komentár?')) return;
+            let post = feedData[sIdx].posts[pIdx];
+            let found = findCommentById(post.comments, id);
+            if(found) {
+                found.parent.splice(found.index, 1);
+                saveToLocalStorage();
+                renderGrid();
+                if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
+            }
+        }
+
+        function showReplyInput(id) {
+            let box = document.getElementById(`reply-box-${id}`);
+            if(box) box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function submitReply(sIdx, pIdx, id, replyToName) {
+            let input = document.getElementById(`reply-input-${id}`);
+            let text = input.value.trim();
+            if(!text) return;
+            let post = feedData[sIdx].posts[pIdx];
+            let found = findCommentById(post.comments, id);
+            if(found) {
+                if(!found.comment.replies) found.comment.replies = [];
+                let newReply = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    username: currentUsername,
+                    text: `<span style="color:var(--fb-blue); font-weight:600;">${replyToName}</span> ${text}`,
+                    replies: []
+                };
+                found.comment.replies.push(newReply);
+                saveToLocalStorage();
+                renderGrid();
+                if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
+            }
+        }
+
+        async function generateAIReply(sIdx, pIdx, commentId, commentText, replyToName) {
+            const post = feedData[sIdx].posts[pIdx];
+            const sysPrompt = `Si sarkastický používateľ sociálnej siete. Odpovedáš na komentár: "${commentText}". Tvoje meno musí byť vybrané z tohto zoznamu: ${getRandomNames(10).join(', ')}. Vráť čisto len JSON objekt: { "username": "Meno Priezvisko", "text": "tvoja inteligentná vtipná odpoveď na komentár" }`;
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: MODEL_NAME,
+                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: "Napíš odpoveď na komentár." } ],
+                        response_format: { type: "json_object" },
+                        temperature: 0.8
+                    })
+                });
+                const jsonRes = await response.json();
+                const parsed = tryParseJSON(jsonRes.choices[0].message.content);
+                
+                if (parsed && parsed.username && parsed.text) {
+                    let found = findCommentById(post.comments, commentId);
+                    if(found) {
+                        found.comment.replies.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            username: parsed.username,
+                            text: `<span style="color:var(--fb-blue); font-weight:600;">${replyToName}</span> ${parsed.text}`,
+                            replies: []
+                        });
+                        saveToLocalStorage();
+                        renderGrid();
+                        if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
+                    }
+                }
+            } catch(e) {
+                console.error("AI reply generation failed");
+            }
+        }
+
+        async function addManualComment(sIdx, pIdx) {
+            let input = document.getElementById(`new-comment-${sIdx}-${pIdx}`);
+            let text = input.value.trim();
+            if(!text) return;
+            let post = feedData[sIdx].posts[pIdx];
+            if(!post.comments) post.comments = [];
+            
+            let newCommentId = Math.random().toString(36).substr(2, 9);
+            let userComment = {
+                id: newCommentId,
+                username: currentUsername,
+                text: text,
+                replies: []
+            };
+            post.comments.push(userComment);
+            input.value = '';
+            saveToLocalStorage();
+            renderGrid();
+            if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
+
+            if(getSavedApiKey()) {
+                generateAIReply(sIdx, pIdx, newCommentId, text, currentUsername);
+            }
+        }
+
+        function renderComments(commentsArray, sIdx, pIdx, parentId = null) {
+            let html = '';
+            if(!commentsArray) return html;
+            commentsArray.forEach((c) => {
+                if(!c.id) c.id = Math.random().toString(36).substr(2, 9);
+                if(!c.replies) c.replies = [];
+                const cColor = generateColor(c.username);
+                html += `
+                <div class="comment-item" style="${parentId ? 'margin-left: 36px; margin-top: 12px; position:relative;' : ''}" id="comment-${c.id}">
+                    ${parentId ? '<div style="position:absolute; left:-24px; top: -10px; width:16px; height:24px; border-left:2px solid var(--border-color); border-bottom:2px solid var(--border-color); border-bottom-left-radius: 8px;"></div>' : ''}
+                    <div class="comment-avatar" style="background-color:${cColor}">${c.username.charAt(0).toUpperCase()}</div>
+                    <div style="flex: 1;">
+                        <div class="comment-bubble">
+                            <div class="comment-user">${c.username}</div>
+                            <div class="comment-text">${c.text || ''}</div>
+                        </div>
+                        <div class="comment-actions">
+                            <span style="cursor:pointer;" onclick="showReplyInput('${c.id}')">Odpovedať</span>
+                            <span style="cursor:pointer;" onclick="deleteComment('${sIdx}', '${pIdx}', '${c.id}')">Vymazať</span>
+                        </div>
+                        <div id="reply-box-${c.id}" style="display:none; margin-top: 8px; display: flex; gap: 8px;">
+                            <input type="text" id="reply-input-${c.id}" placeholder="Odpovedať ${c.username}..." style="flex:1; border-radius: 16px; border: 1px solid var(--border-color); padding: 4px 12px; outline: none; background: var(--bg-input); font-size: 0.85rem;">
+                            <button onclick="submitReply('${sIdx}', '${pIdx}', '${c.id}', '${c.username}')" style="background: none; border: none; color: var(--fb-blue); font-weight: bold; cursor:pointer; font-size:0.85rem;">Odoslať</button>
+                        </div>
+                        <div id="replies-${c.id}">
+                            ${renderComments(c.replies, sIdx, pIdx, c.id)}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            return html;
         }
 
         function renderGrid() {
@@ -742,26 +1017,13 @@
                     const uId = `txt-${sIdx}-${pIdx}`;
 
                     if(fullText.length > 150) {
-                        visibleText = fullText.substring(0, 150) + "... ";
+                        visibleText = fullText.substring(0, 150);
                         hiddenText = fullText.substring(150);
-                        moreBtnHtml = `<span id="hidden-text-${uId}" style="display:none;">${hiddenText}</span> <button id="more-btn-${uId}" class="inline-more-btn" onclick="toggleInline('${uId}')">Zobraziť viac</button>`;
+                        moreBtnHtml = `<span id="dots-${uId}">...</span> <span id="hidden-text-${uId}" style="display:none;">${hiddenText}</span> <button id="more-btn-${uId}" class="inline-more-btn" onclick="toggleInline('${uId}')">Zobraziť viac</button>`;
                     }
 
-                    let commentsHtml = '';
-                    if(post.comments && Array.isArray(post.comments)) {
-                        post.comments.slice(0, 3).forEach(c => {
-                            if(!c || !c.username) return;
-                            const cColor = generateColor(c.username);
-                            commentsHtml += `
-                                <div class="comment-item">
-                                    <div class="comment-avatar" style="background-color:${cColor}">${c.username.charAt(0)}</div>
-                                    <div class="comment-bubble">
-                                        <div class="comment-user">${c.username}</div>
-                                        <div class="comment-text">${c.text || ''}</div>
-                                    </div>
-                                </div>`;
-                        });
-                    }
+                    let commentsHtml = renderComments(post.comments ? post.comments.slice(0, 3) : [], sIdx, pIdx);
+                    let numComments = countComments(post.comments);
 
                     const copyrightHtml = post.image_url && post.image_url.includes('pollinations') 
                         ? `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: AI Generated</div>`
@@ -784,6 +1046,7 @@
                                     <button onclick="addRandomComments(${sIdx}, ${pIdx})">💬 Pridať komentár</button>
                                     <button onclick="generateAlternativePost(${sIdx}, ${pIdx})">📰 Generovať ďalší článok</button>
                                     <button onclick="replacePost(${sIdx}, ${pIdx})">Vygenerovať náhradu</button>
+                                    <button onclick="showPrompt(${sIdx})">📝 Zobraziť prompt</button>
                                     <button onclick="deletePost(${sIdx}, ${pIdx})" style="color:var(--text-muted)">Vymazať článok</button>
                                 </div>
                             </div>
@@ -794,13 +1057,26 @@
                         </div>
                         ${post.image_url ? `<img src="${post.image_url}" class="post-image" alt="Article image">` : ''}
                         ${copyrightHtml}
+                        
+                        <div class="post-stats">
+                            <span>👍 <span id="like-count-${sIdx}-${pIdx}">${post.likes}</span></span>
+                            <span>${numComments} komentárov</span>
+                        </div>
+
                         <div class="fb-actions-bar">
-                            <button class="fb-action-btn">👍 Páči sa mi to</button>
+                            <button class="fb-action-btn ${post.hasLiked ? 'liked' : ''}" onclick="likePost(${sIdx}, ${pIdx})">👍 Páči sa mi to</button>
                             <button class="fb-action-btn" onclick="openPost(${sIdx}, ${pIdx})">💬 Komentovať</button>
                             <button class="fb-action-btn" onclick="sharePost(${sIdx}, ${pIdx})">🔁 Zdieľať</button>
                         </div>
                         <div class="post-comments-area">
                             ${commentsHtml}
+                            ${post.comments && post.comments.length > 3 ? `<div class="view-more-comments-label" onclick="openPost(${sIdx}, ${pIdx})">Zobraziť ďalšie komentáre</div>` : ''}
+                            
+                            <div style="display: flex; gap: 8px; margin-top: 12px; align-items: center;">
+                                <div class="comment-avatar" style="background-color: var(--fb-blue)">${currentUsername.charAt(0).toUpperCase()}</div>
+                                <input type="text" id="new-comment-${sIdx}-${pIdx}" placeholder="Napíšte komentár..." style="flex:1; border-radius: 16px; border: 1px solid var(--border-color); padding: 8px 12px; outline: none; background: var(--bg-input); font-size: 0.9rem;">
+                                <button onclick="addManualComment(${sIdx}, ${pIdx})" style="background: none; border: none; color: var(--fb-blue); font-weight: bold; cursor:pointer;">Odoslať</button>
+                            </div>
                         </div>
                     `;
                     container.appendChild(card);
@@ -831,21 +1107,8 @@
             if (ageMinutes < 0) ageMinutes = 0;
             const ageStr = formatAge(ageMinutes);
 
-            let commentsFullHtml = '';
-            if(post.comments && Array.isArray(post.comments)) {
-                post.comments.forEach(c => {
-                    if(!c || !c.username) return;
-                    const cColor = generateColor(c.username);
-                    commentsFullHtml += `
-                        <div class="comment-item">
-                            <div class="comment-avatar" style="background-color:${cColor}">${c.username.charAt(0)}</div>
-                            <div class="comment-bubble">
-                                <div class="comment-user">${c.username}</div>
-                                <div class="comment-text">${c.text || ''}</div>
-                            </div>
-                        </div>`;
-                });
-            }
+            let commentsFullHtml = renderComments(post.comments, sIdx, pIdx);
+            let numComments = countComments(post.comments);
 
             area.className = 'post-card';
             area.style.marginBottom = '0';
@@ -877,14 +1140,25 @@
                 </div>
                 ${post.image_url ? `<img src="${post.image_url}" class="post-image" alt="Article image">` : ''}
                 ${copyrightHtml}
+                
+                <div class="post-stats">
+                    <span>👍 <span id="like-count-${sIdx}-${pIdx}-article">${post.likes}</span></span>
+                    <span>${numComments} komentárov</span>
+                </div>
+
                 <div class="fb-actions-bar">
-                    <button class="fb-action-btn">👍 Páči sa mi to</button>
+                    <button class="fb-action-btn ${post.hasLiked ? 'liked' : ''}" onclick="likePost(${sIdx}, ${pIdx})">👍 Páči sa mi to</button>
                     <button class="fb-action-btn">💬 Komentovať</button>
                     <button class="fb-action-btn" onclick="sharePost(${sIdx}, ${pIdx})">🔁 Zdieľať</button>
                 </div>
                 <div class="post-comments-area">
                     <h4 style="margin:0 0 12px 0; font-size:1rem;">Komentáre</h4>
                     ${commentsFullHtml}
+                    <div style="display: flex; gap: 8px; margin-top: 16px; align-items: center; border-top: 1px solid var(--border-color); padding-top:12px;">
+                        <div class="comment-avatar" style="background-color: var(--fb-blue)">${currentUsername.charAt(0).toUpperCase()}</div>
+                        <input type="text" id="new-comment-${sIdx}-${pIdx}-article" placeholder="Napíšte komentár..." style="flex:1; border-radius: 16px; border: 1px solid var(--border-color); padding: 8px 12px; outline: none; background: var(--bg-input); font-size: 0.9rem;">
+                        <button onclick="document.getElementById('new-comment-${sIdx}-${pIdx}').value = document.getElementById('new-comment-${sIdx}-${pIdx}-article').value; addManualComment(${sIdx}, ${pIdx});" style="background: none; border: none; color: var(--fb-blue); font-weight: bold; cursor:pointer;">Odoslať</button>
+                    </div>
                 </div>
             `;
         }
@@ -898,16 +1172,16 @@
             const errorDisplay = document.getElementById('api-error-display');
             const loaderText = document.getElementById('loading-text-status');
             
-            if(loaderText) loaderText.innerText = "Publikujem prísrevy...";
+            if(loaderText) loaderText.innerText = "Publikujem príspevky...";
             spinner.style.display = 'flex';
             errorDisplay.style.display = 'none';
             
             const previousScenarios = feedData.map(f => f.scenario).join(" | ");
             const contextInstruction = previousScenarios ? ` Udalosti nadväzujú na tieto minulé diania, spomeň ich ak je to vtipné a relevantné: ${previousScenarios}.` : "";
 
-            const systemPrompt = `Vytvor pole 3 DLHÝCH, KOMPLEXNÝCH a EXTRÉMNE VTIPNÝCH článkov reagujúcich na udalosť ("posts"). Typ musí byť vždy "article". Každý článok musí mať atribúty: author_name, title, content (pole odsekov - aspoň 4-5 dlhých odsekov), image_url, comments (pole objektov s username a text, aspoň 3 komentáre). 
-            Komentujúci musia mať normálne krstné meno a vtipné podstatné meno ako priezvisko (napr. Erika Chobotová, Juraj Skrinka, Peter Podlaha).
-            image_url musí byť vytvorené takto: náhodne zvoľ buď URL v tvare "https://image.pollinations.ai/prompt/{detailny_anglicky_popis_obrazka_k_teme_s_nahodnym_cislom_na_konci}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodne_vygenerovane_slovo_${Date.now()}}/800/400" aby sa fotky neopakovali.${contextInstruction} Výstup vráť výhradne ako čistý validný JSON objekt obsahujúci pole posts.`;
+            const systemPrompt = `Vytvor pole 3 DLHÝCH, KOMPLEXNÝCH a EXTRÉMNE VTIPNÝCH článkov reagujúcich na udalosť ("posts"). Typ musí byť vždy "article". Každý článok musí mať atribúty: author_name, title, content (pole odsekov - aspoň 4-5 dlhých odsekov), image_url, comments (pole objektov s username a text, aspoň 3 dlhšie komentáre). 
+            Komentujúci a autori musia mať normálne krstné meno a vtipné podstatné meno ako priezvisko. Inšpiruj sa z tohto poolu mien: ${getRandomNames(15).join(', ')}.
+            image_url musí byť vytvorené takto: náhodne zvoľ buď URL v tvare "https://image.pollinations.ai/prompt/{detailny_anglicky_popis}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodne_slovo_${Date.now()}}/800/400" aby sa fotky neopakovali.${contextInstruction} Výstup vráť výhradne ako čistý validný JSON objekt obsahujúci pole posts.`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -931,6 +1205,16 @@
                 }
 
                 spinner.style.display = 'none';
+
+                parsedData.posts.forEach(post => {
+                    post.likes = Math.floor(Math.random() * 800) + 12;
+                    if(post.comments) {
+                        post.comments.forEach(c => {
+                            c.id = Math.random().toString(36).substr(2, 9);
+                            c.replies = [];
+                        });
+                    }
+                });
 
                 const hShift = parseInt(document.getElementById('shift-hours').value) || 0;
                 const dShift = parseInt(document.getElementById('shift-days').value) || 0;
