@@ -133,6 +133,14 @@
         .modal-content h3 { margin-top: 0; font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
         .modal-content textarea, .modal-content input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--border-color); background-color: var(--bg-card); border-radius: 6px; font-size: 1rem; outline: none; font-family: inherit; margin-bottom: 16px; }
         .modal-content textarea { height: 120px; resize: none; }
+        
+        .time-setter-container { margin-bottom: 16px; background-color: var(--bg-input); padding: 12px; border-radius: 6px; }
+        .time-setter-title { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+        .time-setter-row { display: flex; gap: 10px; }
+        .time-select-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .time-select-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-dark); }
+        .time-select-group select { padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: white; font-size: 0.9rem; outline: none; }
+
         .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
         .btn { padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem; border: none; }
@@ -191,6 +199,28 @@
             <button class="close-modal-btn" onclick="closeCreateModal()">&times;</button>
             <h3>Vytvoriť príspevok</h3>
             <textarea id="scenario-input" placeholder="Napíšte čo máte na mysli... (Zadajte udalosť)"></textarea>
+            
+            <div class="time-setter-container">
+                <div class="time-setter-title">O koľko sa posunie čas od predchádzajúcich udalostí?</div>
+                <div class="time-setter-row">
+                    <div class="time-select-group">
+                        <label for="shift-hours">Hodiny</label>
+                        <select id="shift-hours">
+                            </select>
+                    </div>
+                    <div class="time-select-group">
+                        <label for="shift-days">Dni</label>
+                        <select id="shift-days">
+                            </select>
+                    </div>
+                    <div class="time-select-group">
+                        <label for="shift-weeks">Týždne</label>
+                        <select id="shift-weeks">
+                            </select>
+                    </div>
+                </div>
+            </div>
+
             <div class="error-message" id="api-error-display"></div>
             <button class="btn btn-primary" style="width: 100%;" onclick="triggerGeneration()">Publikovať</button>
         </div>
@@ -233,8 +263,25 @@
 
         function getSavedApiKey() { return localStorage.getItem('fb_api_key') || ''; }
 
+        function populateSelectOptions() {
+            const hoursSel = document.getElementById('shift-hours');
+            const daysSel = document.getElementById('shift-days');
+            const weeksSel = document.getElementById('shift-weeks');
+            
+            hoursSel.innerHTML = '';
+            daysSel.innerHTML = '';
+            weeksSel.innerHTML = '';
+
+            for(let i = 0; i <= 9; i++) {
+                hoursSel.innerHTML += `<option value="${i}">${i}</option>`;
+                daysSel.innerHTML += `<option value="${i}">${i}</option>`;
+                weeksSel.innerHTML += `<option value="${i}">${i}</option>`;
+            }
+        }
+
         function initApp() {
             updateLoginStatusUI();
+            populateSelectOptions();
             const savedData = localStorage.getItem('fb_feed_data');
             const savedShared = localStorage.getItem('fb_shared_posts');
             if (savedData) feedData = JSON.parse(savedData);
@@ -286,6 +333,9 @@
             if (!getSavedApiKey()) { openApiModal(); return; }
             document.getElementById('create-modal').style.display = 'flex';
             document.getElementById('scenario-input').value = '';
+            document.getElementById('shift-hours').value = '0';
+            document.getElementById('shift-days').value = '0';
+            document.getElementById('shift-weeks').value = '0';
             document.getElementById('api-error-display').style.display = 'none';
         }
         function closeCreateModal() { document.getElementById('create-modal').style.display = 'none'; }
@@ -320,25 +370,12 @@
             localStorage.setItem('fb_shared_posts', JSON.stringify(sharedPosts));
         }
 
-        function parseTimeShift(str) {
-            str = str.toLowerCase().trim();
-            if (!str) return 0;
-            const match = str.match(/(\d+)\s*(hod|den|deň|dni|dní|dňom|tyz|týž|mes)/);
-            if (!match) return 0;
-            const val = parseInt(match[1]);
-            const unit = match[2];
-            if (unit.startsWith('hod')) return val * 60;
-            if (unit.startsWith('d')) return val * 1440;
-            if (unit.startsWith('t')) return val * 10080;
-            if (unit.startsWith('m')) return val * 43200;
-            return 0;
-        }
-
         function formatAge(ageInMinutes) {
             if (ageInMinutes < 60) return "Práve teraz";
             if (ageInMinutes < 1440) {
                 const h = Math.floor(ageInMinutes / 60);
                 if (h === 1) return "Pred 1 hodinou";
+                if (h >= 2 && h <= 4) return "Pred " + h + " hodinami";
                 return "Pred " + h + " hodinami";
             }
             if (ageInMinutes < 10080) {
@@ -349,6 +386,7 @@
             if (ageInMinutes < 43200) {
                 const w = Math.floor(ageInMinutes / 10080);
                 if (w === 1) return "Pred 1 týždňom";
+                if (w >= 2 && w <= 4) return "Pred " + w + " týždňami";
                 return "Pred " + w + " týždňami";
             }
             const m = Math.floor(ageInMinutes / 43200);
@@ -384,7 +422,7 @@
             spinner.style.display = 'flex';
             document.getElementById(`options-${sIdx}-${pIdx}`).style.display = 'none';
 
-            const sysPrompt = `Vráť JSON s 1 novým DLHÝM a VTIPNÝM príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým (type: article). Vytvor aj image_url. Komentujúci musia mať normálne meno a vtipné priezvisko (napr. Peter Podlaha).`;
+            const sysPrompt = `Vráť JSON s 1 novým DLHÝM a VTIPNÝM príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým (type: article). Vytvor aj image_url. Komentujúci musia habt normálne meno a vtipné priezvisko (napr. Peter Podlaha).`;
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -618,8 +656,12 @@
                 const parsedData = JSON.parse(rawText.trim());
                 spinner.style.display = 'none';
 
-                let shiftInput = prompt("Články úspešne vygenerované! O koľko sa posunul čas od predchádzajúcich udalostí? (napr. 2 hodiny, 3 dni, 2 týždne). Ak nechcete posunúť, nechajte prázdne.");
-                let addedMinutes = parseTimeShift(shiftInput || "");
+                // Vypočítanie posunu času zo Select boxov
+                const hShift = parseInt(document.getElementById('shift-hours').value) || 0;
+                const dShift = parseInt(document.getElementById('shift-days').value) || 0;
+                const wShift = parseInt(document.getElementById('shift-weeks').value) || 0;
+                
+                const addedMinutes = (hShift * 60) + (dShift * 1440) + (wShift * 10080);
                 
                 let currentGlobalTime = parseInt(localStorage.getItem('fb_global_time') || '0');
                 currentGlobalTime += addedMinutes;
@@ -627,7 +669,7 @@
 
                 feedData.push({
                     scenario: promptInput,
-                    timestamp: currentGlobalTime,
+                    timestamp: currentGlobalTime, // Nový článok dostáva najnovší čas (Práve teraz)
                     posts: parsedData.posts
                 });
 
