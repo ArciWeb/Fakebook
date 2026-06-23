@@ -301,9 +301,8 @@
     <script>
         const BASE_API_URL = "https://api.groq.com/openai/v1/chat/completions";
         const API_URL = "https://corsproxy.io/?" + encodeURIComponent(BASE_API_URL);
-        const MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct"; // Používaj platný Groq model, napr. "llama3-70b-8192"
+        const MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct"; 
 
-        // ROZŠÍRENÝ POOL
         const NAMES_POOL = [
             "Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", 
             "Janka", "Mária", "Zuzana", "Katarína", "Lucia", "Lenka", "Monika", "Petra", "Veronika", "Martina", 
@@ -357,7 +356,8 @@
                 if (cleanText.includes("```json")) {
                     cleanText = cleanText.split("```json")[1].split("```")[0];
                 } else if (cleanText.includes("```")) {
-                    cleanText = cleanText.split("```")[1].split("```")[0];
+                    cleanText = cleanText.split("
+```")[1].split("```")[0];
                 }
                 return JSON.parse(cleanText.trim());
             } catch (e) {
@@ -633,7 +633,7 @@
             return null;
         }
 
-        // TROLL AI REAKCIA NA KOMENTÁR
+        // VYLEPŠENÁ TROLL AI REAKCIA (Unikátne Persony a 50/50 Hádka)
         async function triggerAICommentReply(sIdx, pIdx, commentId) {
             if (!getSavedApiKey() || !feedData[sIdx] || !feedData[sIdx].posts[pIdx]) return;
             
@@ -643,13 +643,29 @@
 
             const spinner = document.getElementById('loading-spinner');
             const loaderText = document.getElementById('loading-text-status');
-            if(loaderText) loaderText.innerText = "Troll píše odpoveď...";
+            if(loaderText) loaderText.innerText = "Niekto práve píše odpoveď...";
             spinner.style.display = 'flex';
 
             const commentText = found.comment.text;
             const authorName = found.comment.username;
 
-            const sysPrompt = `Si extrémne hlúpy, agresívny troll a konšpirátor na sociálnej sieti. Odpovedáš na tento komentár od užívateľa ${authorName}: "${commentText}". Tvoje meno musí byť vybrané z tohto zoznamu: ${getRandomNames(5).join(', ')}. Tvoja odpoveď musí byť EXTRÉMNE vtipná, plná hádok, absurdná, protirečivá, občas s gramatickými chybami. Výstup vráť čisto len ako JSON: { "username": "Meno Priezvisko", "text": "tvoja drsná trollovacia odpoveď" }`;
+            // Náhodný výber rôznych druhov ľudí na internete, aby to bolo unikátne
+            const personas = [
+                "Agresívny boomer z krčmy, ktorý nadáva na všetko nové", 
+                "Premúdrelý konšpirátor, čo si myslí že svet riadia jašteri", 
+                "Pasívne agresívna mamička, ktorá všetko vie najlepšie a používa veľa smajlíkov", 
+                "Gramatický pedant, ktorý uráža ľudí za preklepy", 
+                "Hysterický občan, čo všade ťahá politiku", 
+                "Úplne zmätený dôchodca, ktorý si mýli Facebook s Googlom a píše odveci", 
+                "Drzý teenager používajúci divný slang", 
+                "Cynický a drzý hejter, ktorý len zosmiešňuje ostatných"
+            ];
+            const randomPersona = personas[Math.floor(Math.random() * personas.length)];
+
+            const sysPrompt = `Si bežný človek na sociálnej sieti. Tvoja aktuálna rola a osobnosť: ${randomPersona}. 
+            Odpovedáš na komentár od užívateľa ${authorName}: "${commentText}". 
+            Tvoje meno musí byť vybrané z tohto zoznamu: ${getRandomNames(5).join(', ')}. 
+            Tvoja odpoveď musí byť UNIKÁTNA, nepredvídateľná, vtipná, uštipačná, občas odveci alebo plná hádok presne podľa tvojej roly. NEOPAKUJ neustále tie isté frázy. Výstup vráť čisto len ako JSON: { "username": "Meno Priezvisko", "text": "tvoja drsná odpoveď" }`;
             
             try {
                 const response = await fetch(API_URL, {
@@ -657,9 +673,9 @@
                     headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         model: MODEL_NAME,
-                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: "Odpovedz ako troll." } ],
+                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: "Odpovedz ako táto persona." } ],
                         response_format: { type: "json_object" },
-                        temperature: 0.9
+                        temperature: 0.95 // Zvýšená teplota pre vyššiu unikátnosť
                     })
                 });
                 
@@ -668,12 +684,49 @@
                 
                 if (parsed && parsed.username && parsed.text) {
                     if(!found.comment.replies) found.comment.replies = [];
+                    
+                    let newTrollReplyId = Math.random().toString(36).substr(2, 9);
                     found.comment.replies.push({
-                        id: Math.random().toString(36).substr(2, 9),
+                        id: newTrollReplyId,
                         username: parsed.username,
                         text: `<span style="color:var(--fb-blue); font-weight:600;">${authorName}</span> ${parsed.text}`,
                         replies: []
                     });
+
+                    // 50/50 ŠANCA NA SPÄTNÚ HÁDKU OD PÔVODNÉHO AUTORA
+                    if (Math.random() > 0.5) {
+                        if(loaderText) loaderText.innerText = "Pôvodný autor sa začal hádať späť...";
+                        
+                        const sysPrompt2 = `Si používateľ na Facebooku menom "${authorName}". Niekto s menom "${parsed.username}" ťa práve vyprovokoval alebo ti drzo odpovedal na tvoj pôvodný komentár.
+                        Tvoj pôvodný komentár bol: "${commentText}".
+                        Jeho provokačná odpoveď na teba bola: "${parsed.text}".
+                        Odpovedz mu okamžite späť! Hádaj sa, bráň sa, prekrúcaj fakty, používaj iróniu alebo ho brutálne zotri. Nech to znie ako ozajstná toxická prestrelka na internete.
+                        Výstup vráť čisto len ako JSON: { "text": "tvoja defenzívna alebo útočná odpoveď" }`;
+                        
+                        try {
+                            const response2 = await fetch(API_URL, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    model: MODEL_NAME,
+                                    messages: [ { role: "system", content: sysPrompt2 }, { role: "user", content: "Odpovedz mu späť." } ],
+                                    response_format: { type: "json_object" },
+                                    temperature: 0.95
+                                })
+                            });
+                            const jsonRes2 = await response2.json();
+                            const parsed2 = tryParseJSON(jsonRes2.choices[0].message.content);
+                            if (parsed2 && parsed2.text) {
+                                found.comment.replies.push({
+                                    id: Math.random().toString(36).substr(2, 9),
+                                    username: authorName,
+                                    text: `<span style="color:var(--fb-blue); font-weight:600;">${parsed.username}</span> ${parsed2.text}`,
+                                    replies: []
+                                });
+                            }
+                        } catch(e) { console.error("Chyba pri hádke späť:", e); }
+                    }
+
                     saveToLocalStorage();
                     renderGrid();
                     if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
@@ -905,13 +958,18 @@
             if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
         }
 
-        function renderComments(commentsArray, sIdx, pIdx, parentId = null) {
+        // isPreview argument zaručí, že sa nezobrazia podkategórie na hlavnom webe
+        function renderComments(commentsArray, sIdx, pIdx, parentId = null, isPreview = false) {
             let html = '';
             if(!commentsArray) return html;
             commentsArray.forEach((c) => {
                 if(!c.id) c.id = Math.random().toString(36).substr(2, 9);
                 if(!c.replies) c.replies = [];
                 const cColor = generateColor(c.username);
+                
+                // Ak sme na feede (preview), skryjeme odpovede, inak ich vyrenderujeme
+                let repliesHtml = (isPreview || c.replies.length === 0) ? '' : `<div id="replies-${c.id}">${renderComments(c.replies, sIdx, pIdx, c.id, false)}</div>`;
+
                 html += `
                 <div class="comment-item" style="${parentId ? 'margin-left: 36px; margin-top: 12px; position:relative;' : ''}" id="comment-${c.id}">
                     ${parentId ? '<div style="position:absolute; left:-24px; top: -10px; width:16px; height:24px; border-left:2px solid var(--border-color); border-bottom:2px solid var(--border-color); border-bottom-left-radius: 8px;"></div>' : ''}
@@ -930,9 +988,7 @@
                             <input type="text" id="reply-input-${c.id}" placeholder="Odpovedať ${c.username}..." style="flex:1; border-radius: 16px; border: 1px solid var(--border-color); padding: 4px 12px; outline: none; background: var(--bg-input); font-size: 0.85rem;">
                             <button onclick="submitReply('${sIdx}', '${pIdx}', '${c.id}', '${c.username}')" style="background: none; border: none; color: var(--fb-blue); font-weight: bold; cursor:pointer; font-size:0.85rem;">Odoslať</button>
                         </div>
-                        <div id="replies-${c.id}">
-                            ${renderComments(c.replies, sIdx, pIdx, c.id)}
-                        </div>
+                        ${repliesHtml}
                     </div>
                 </div>`;
             });
@@ -972,7 +1028,16 @@
                         moreBtnHtml = `<span id="dots-${uId}">...</span> <span id="hidden-text-${uId}" style="display:none;">${hiddenText}</span> <button id="more-btn-${uId}" class="inline-more-btn" onclick="toggleInline('${uId}')">Zobraziť viac</button>`;
                     }
 
-                    let commentsHtml = renderComments(post.comments ? post.comments.slice(0, 3) : [], sIdx, pIdx);
+                    // VYBERÚ SA 3 NÁHODNÉ KOMENTÁRE PRE FEED NÁHĽAD
+                    let previewComments = [];
+                    if (post.comments && post.comments.length > 0) {
+                        let topLevelCopy = [...post.comments];
+                        topLevelCopy.sort(() => 0.5 - Math.random());
+                        previewComments = topLevelCopy.slice(0, 3);
+                    }
+                    
+                    // isPreview = true -> nezobrazia sa vlákna s odpoveďami na stene
+                    let commentsHtml = renderComments(previewComments, sIdx, pIdx, null, true);
                     let numComments = countComments(post.comments);
 
                     card.innerHTML = `
@@ -1015,7 +1080,7 @@
                         </div>
                         <div class="post-comments-area">
                             ${commentsHtml}
-                            ${post.comments && post.comments.length > 3 ? `<div class="view-more-comments-label" onclick="openPost(${sIdx}, ${pIdx})">Zobraziť ďalšie komentáre (${numComments})</div>` : ''}
+                            ${post.comments && post.comments.length > 3 ? `<div class="view-more-comments-label" onclick="openPost(${sIdx}, ${pIdx})">Zobraziť všetky komentáre (${numComments})</div>` : ''}
                             
                             <div style="display: flex; gap: 8px; margin-top: 12px; align-items: center;">
                                 <div class="comment-avatar" style="background-color: var(--fb-blue)">${currentUsername.charAt(0).toUpperCase()}</div>
@@ -1052,7 +1117,8 @@
             if (ageMinutes < 0) ageMinutes = 0;
             const ageStr = formatAge(ageMinutes);
 
-            let commentsFullHtml = renderComments(post.comments, sIdx, pIdx);
+            // ZOBRAZIŤ VŠETKY KOMENTÁRE CHRONOLOGICKY (bez isPreview flagu)
+            let commentsFullHtml = renderComments(post.comments, sIdx, pIdx, null, false);
             let numComments = countComments(post.comments);
 
             area.className = 'post-card';
