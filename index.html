@@ -155,7 +155,7 @@
         .btn-primary:hover { background-color: var(--fb-blue-hover); }
         .btn-danger { background-color: #f02849; color: white; margin-top: 10px; width: 100%; }
 
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.9); align-items: center; justify-content: center; flex-direction: column; z-index: 300; }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.9); align-items: center; justify-content: center; flex-direction: column; z-index: 300; text-align: center; padding: 20px;}
         .spinner { border: 4px solid #f3f3f3; width: 40px; height: 40px; border-radius: 50%; border-left-color: var(--fb-blue); animation: spin 1s linear infinite; margin-bottom: 16px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -236,18 +236,15 @@
                 <div class="time-setter-row">
                     <div class="time-select-group">
                         <label for="shift-hours">Hodiny</label>
-                        <select id="shift-hours">
-                            </select>
+                        <select id="shift-hours"></select>
                     </div>
                     <div class="time-select-group">
                         <label for="shift-days">Dni</label>
-                        <select id="shift-days">
-                            </select>
+                        <select id="shift-days"></select>
                     </div>
                     <div class="time-select-group">
                         <label for="shift-weeks">Týždne</label>
-                        <select id="shift-weeks">
-                            </select>
+                        <select id="shift-weeks"></select>
                     </div>
                 </div>
             </div>
@@ -267,9 +264,7 @@
                 <button class="btn btn-primary" onclick="saveApiKey()">Uložiť kľúč</button>
             </div>
             
-            <div id="slots-container" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-                <h4 style="margin-top:0; margin-bottom:12px; font-size:1.1rem;">Sloty uloženia</h4>
-                </div>
+            <div id="slots-container" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;"></div>
 
             <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
             <button class="btn btn-danger" onclick="deleteAllData()">Vymazať všetky články a údaje</button>
@@ -300,17 +295,33 @@
 
     <div class="loading-overlay" id="loading-spinner">
         <div class="spinner"></div>
-        <div id="loading-text-status" style="font-weight: 700; font-size:1.1rem; color:#050505;">Publikujem príspevky...</div>
+        <div id="loading-text-status" style="font-weight: 700; font-size:1.1rem; color:#050505;">Pracujem...</div>
     </div>
 
     <script>
         const BASE_API_URL = "https://api.groq.com/openai/v1/chat/completions";
         const API_URL = "https://corsproxy.io/?" + encodeURIComponent(BASE_API_URL);
-        const MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct";
+        const MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct"; // Používaj platný Groq model, napr. "llama3-70b-8192"
 
-        // Obrovsky pool mien a priezvisk pre algoritmus
-        const NAMES_POOL = ["Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", "Janka", "Mária", "Zuzana", "Katarína", "Lucia", "Lenka", "Monika", "Petra", "Veronika", "Martina", "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid"];
-        const SURNAMES_POOL = ["Skrutka", "Motyka", "Podlaha", "Chobot", "Kladivo", "Tehla", "Kábel", "Lopata", "Žiarovka", "Dvere", "Okno", "Kefa", "Metla", "Hrniec", "Pokrievka", "Zemiak", "Cibuľa", "Mrkva", "Stôl", "Stolička", "Zásuvka", "Vankúš", "Perina", "Koberec", "Zrkadlo", "Pneumatika", "Výfuk", "Volant", "Sedadlo", "Kapor", "Pstruh", "Slanina", "Klobása", "Párok", "Horčica", "Kečup", "Chlieb", "Rožok", "Múka"];
+        // ROZŠÍRENÝ POOL
+        const NAMES_POOL = [
+            "Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", 
+            "Janka", "Mária", "Zuzana", "Katarína", "Lucia", "Lenka", "Monika", "Petra", "Veronika", "Martina", 
+            "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", 
+            "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid",
+            "Dežo", "Gejza", "Koloman", "Vasiľ", "Fero", "Laco", "Jožo", "Maroš", "Slavo", "Bohumil", 
+            "Žigmund", "Pali", "Rišo", "Klaudia", "Ružena", "Gitka", "Božena", "Erika", "Vlasta", "Oľga"
+        ];
+        const SURNAMES_POOL = [
+            "Skrutka", "Motyka", "Podlaha", "Chobot", "Kladivo", "Tehla", "Kábel", "Lopata", "Žiarovka", "Dvere", 
+            "Okno", "Kefa", "Metla", "Hrniec", "Pokrievka", "Zemiak", "Cibuľa", "Mrkva", "Stôl", "Stolička", 
+            "Zásuvka", "Vankúš", "Perina", "Koberec", "Zrkadlo", "Pneumatika", "Výfuk", "Volant", "Sedadlo", 
+            "Kapor", "Pstruh", "Slanina", "Klobása", "Párok", "Horčica", "Kečup", "Chlieb", "Rožok", "Múka",
+            "Traktor", "Kombajn", "Rypadlo", "Sifón", "Radiátor", "Televízor", "Klávesnica", "Kalkulačka", 
+            "Ponožka", "Papuča", "Gatky", "Tielko", "Záchod", "Bidet", "Zátka", "Cihla", "Malta", "Lepidlo", 
+            "Dlaždica", "Kaleráb", "Jaternica", "Oškvarka", "Bôčik", "Majonéza", "Tlačenka", "Tvaroh", 
+            "Bryndza", "Bača", "Valach", "Fujara", "Haluška", "Piroh"
+        ];
 
         let feedData = [];
         let sharedPosts = [];
@@ -333,10 +344,6 @@
             const daysSel = document.getElementById('shift-days');
             const weeksSel = document.getElementById('shift-weeks');
             
-            hoursSel.innerHTML = '';
-            daysSel.innerHTML = '';
-            weeksSel.innerHTML = '';
-
             for(let i = 0; i <= 9; i++) {
                 hoursSel.innerHTML += `<option value="${i}">${i}</option>`;
                 daysSel.innerHTML += `<option value="${i}">${i}</option>`;
@@ -369,21 +376,12 @@
             
             if (savedUser) currentUsername = savedUser;
             if (savedData) {
-                try {
-                    feedData = JSON.parse(savedData);
-                } catch(e) {
-                    feedData = [];
-                }
+                try { feedData = JSON.parse(savedData); } catch(e) { feedData = []; }
             }
             if (savedShared) {
-                try {
-                    sharedPosts = JSON.parse(savedShared);
-                } catch(e) {
-                    sharedPosts = [];
-                }
+                try { sharedPosts = JSON.parse(savedShared); } catch(e) { sharedPosts = []; }
             }
             
-            // Doplnenie likes a ids pre existujuce starsie data
             feedData.forEach(slot => {
                 if(slot.posts) {
                     slot.posts.forEach(post => {
@@ -407,16 +405,10 @@
             const avColor = generateColor(currentUsername);
             
             const mainAv = document.getElementById('current-user-avatar');
-            if(mainAv) {
-                mainAv.innerText = initial;
-                mainAv.style.backgroundColor = avColor;
-            }
+            if(mainAv) { mainAv.innerText = initial; mainAv.style.backgroundColor = avColor; }
             
             const profAv = document.getElementById('profile-avatar-large');
-            if(profAv) {
-                profAv.innerText = initial;
-                profAv.style.backgroundColor = avColor;
-            }
+            if(profAv) { profAv.innerText = initial; profAv.style.backgroundColor = avColor; }
             
             const dispName = document.getElementById('profile-display-name');
             if(dispName) dispName.innerText = currentUsername;
@@ -549,10 +541,6 @@
                     card.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
                     card.style.border = '1px solid var(--border-color)';
                     
-                    const copyrightHtml = post.image_url && post.image_url.includes('pollinations') 
-                        ? `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: AI Generated</div>`
-                        : `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: Web Archive</div>`;
-
                     card.innerHTML = `
                         <div class="post-header">
                             <div class="post-header-left">
@@ -568,7 +556,6 @@
                             <div class="post-text">${fullText}</div>
                         </div>
                         ${post.image_url ? `<img src="${post.image_url}" class="post-image" alt="Article image">` : ''}
-                        ${copyrightHtml}
                     `;
                     container.appendChild(card);
                 });
@@ -590,26 +577,10 @@
 
         function formatAge(ageInMinutes) {
             if (ageInMinutes < 60) return "Práve teraz";
-            if (ageInMinutes < 1440) {
-                const h = Math.floor(ageInMinutes / 60);
-                if (h === 1) return "Pred 1 hodinou";
-                if (h >= 2 && h <= 4) return "Pred " + h + " hodinami";
-                return "Pred " + h + " hodinami";
-            }
-            if (ageInMinutes < 10080) {
-                const d = Math.floor(ageInMinutes / 1440);
-                if (d === 1) return "Včera";
-                return "Pred " + d + " dňami";
-            }
-            if (ageInMinutes < 43200) {
-                const w = Math.floor(ageInMinutes / 10080);
-                if (w === 1) return "Pred 1 týždňom";
-                if (w >= 2 && w <= 4) return "Pred " + w + " týždňami";
-                return "Pred " + w + " týždňami";
-            }
-            const m = Math.floor(ageInMinutes / 43200);
-            if (m === 1) return "Pred 1 mesiacom";
-            return "Pred " + m + " mesiacmi";
+            if (ageInMinutes < 1440) return `Pred ${Math.floor(ageInMinutes / 60)} hodinami`;
+            if (ageInMinutes < 10080) return `Pred ${Math.floor(ageInMinutes / 1440)} dňami`;
+            if (ageInMinutes < 43200) return `Pred ${Math.floor(ageInMinutes / 10080)} týždňami`;
+            return `Pred ${Math.floor(ageInMinutes / 43200)} mesiacmi`;
         }
 
         function toggleOptions(sIdx, pIdx) {
@@ -620,9 +591,7 @@
         }
 
         function showPrompt(sIdx) {
-            if (feedData[sIdx]) {
-                alert("Môj pôvodný prompt/status:\n\n" + feedData[sIdx].scenario);
-            }
+            if (feedData[sIdx]) alert("Môj pôvodný prompt/status:\n\n" + feedData[sIdx].scenario);
         }
 
         function deletePost(sIdx, pIdx) {
@@ -635,8 +604,7 @@
 
         function sharePost(sIdx, pIdx) {
             if (feedData[sIdx] && feedData[sIdx].posts[pIdx]) {
-                const post = feedData[sIdx].posts[pIdx];
-                sharedPosts.push(post);
+                sharedPosts.push(feedData[sIdx].posts[pIdx]);
                 saveToLocalStorage();
                 alert("Článok bol pripnutý na váš profil.");
                 const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
@@ -654,6 +622,68 @@
             if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
         }
 
+        function findCommentById(comments, id) {
+            for(let i=0; i<comments.length; i++) {
+                if(comments[i].id === id) return {parent: comments, index: i, comment: comments[i]};
+                if(comments[i].replies) {
+                    let found = findCommentById(comments[i].replies, id);
+                    if(found) return found;
+                }
+            }
+            return null;
+        }
+
+        // TROLL AI REAKCIA NA KOMENTÁR
+        async function triggerAICommentReply(sIdx, pIdx, commentId) {
+            if (!getSavedApiKey() || !feedData[sIdx] || !feedData[sIdx].posts[pIdx]) return;
+            
+            let post = feedData[sIdx].posts[pIdx];
+            let found = findCommentById(post.comments, commentId);
+            if(!found) return;
+
+            const spinner = document.getElementById('loading-spinner');
+            const loaderText = document.getElementById('loading-text-status');
+            if(loaderText) loaderText.innerText = "Troll píše odpoveď...";
+            spinner.style.display = 'flex';
+
+            const commentText = found.comment.text;
+            const authorName = found.comment.username;
+
+            const sysPrompt = `Si extrémne hlúpy, agresívny troll a konšpirátor na sociálnej sieti. Odpovedáš na tento komentár od užívateľa ${authorName}: "${commentText}". Tvoje meno musí byť vybrané z tohto zoznamu: ${getRandomNames(5).join(', ')}. Tvoja odpoveď musí byť EXTRÉMNE vtipná, plná hádok, absurdná, protirečivá, občas s gramatickými chybami. Výstup vráť čisto len ako JSON: { "username": "Meno Priezvisko", "text": "tvoja drsná trollovacia odpoveď" }`;
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: MODEL_NAME,
+                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: "Odpovedz ako troll." } ],
+                        response_format: { type: "json_object" },
+                        temperature: 0.9
+                    })
+                });
+                
+                const jsonRes = await response.json();
+                const parsed = tryParseJSON(jsonRes.choices[0].message.content);
+                
+                if (parsed && parsed.username && parsed.text) {
+                    if(!found.comment.replies) found.comment.replies = [];
+                    found.comment.replies.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        username: parsed.username,
+                        text: `<span style="color:var(--fb-blue); font-weight:600;">${authorName}</span> ${parsed.text}`,
+                        replies: []
+                    });
+                    saveToLocalStorage();
+                    renderGrid();
+                    if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
+                }
+            } catch(e) {
+                alert("AI Troll zlyhal.");
+            }
+            spinner.style.display = 'none';
+        }
+
         async function replacePost(sIdx, pIdx) {
             if (!getSavedApiKey() || !feedData[sIdx]) return;
             const scenario = feedData[sIdx].scenario;
@@ -666,7 +696,7 @@
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
             if(opt) opt.style.display = 'none';
 
-            const sysPrompt = `Vráť JSON s 1 novým DLHÝM a VTIPNÝM príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým (type: article). Vytvor aj image_url. Komentujúci musia mať normálne krstné meno a vtipné priezvisko. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Výstup musí byť striktne iba JSON objekt.`;
+            const sysPrompt = `Vráť JSON s 1 novým DLHÝM a VTIPNÝM príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým. Komentujúci musia mať normálne krstné meno a vtipné priezvisko. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Vygeneruj 5 až 20 komentárov, musia to byť hádky, hlúpi ľudia, trollovia. Výstup musí byť striktne iba JSON objekt.`;
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -694,12 +724,8 @@
                     feedData[sIdx].posts[pIdx] = newPost;
                     saveToLocalStorage();
                     renderGrid();
-                } else {
-                    alert("Nepodarilo sa vygenerovať správny formát.");
-                }
-            } catch(e) { 
-                alert("Chyba nahradzovania príspevku."); 
-            }
+                } else alert("Nepodarilo sa vygenerovať správny formát.");
+            } catch(e) { alert("Chyba nahradzovania príspevku."); }
             spinner.style.display = 'none';
         }
 
@@ -710,13 +736,13 @@
             const spinner = document.getElementById('loading-spinner');
             const loaderText = document.getElementById('loading-text-status');
             
-            if(loaderText) loaderText.innerText = "Generujem komentáre...";
+            if(loaderText) loaderText.innerText = "Generujem vojnu v komentároch...";
             spinner.style.display = 'flex';
             
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
             if(opt) opt.style.display = 'none';
 
-            const sysPrompt = `Vytvor 1 až 3 náhodné dlhšie vtipné a sarkastické komentáre k tomuto článku. Názov článku: "${post.title}". Komentujúci musia mať normálne krstné meno a vtipné podstatné meno ako priezvisko. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Výstup musí byť čistý JSON: { "comments": [ {"username": "Meno Priezvisko", "text": "dlhší obsah komentára"} ] }`;
+            const sysPrompt = `Vytvor NÁHODNÝ POČET od 5 do 25 komentárov k tomuto článku: "${post.title}". Komentáre musia písať EXTRÉMNE hlúpi ľudia, trollovia, hádajú sa medzi sebou, riešia nezmysly a konšpirácie. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Výstup musí byť čistý JSON: { "comments": [ {"username": "Meno Priezvisko", "text": "obsah komentára"} ] }`;
             
             try {
                 const response = await fetch(API_URL, {
@@ -724,7 +750,7 @@
                     headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         model: MODEL_NAME,
-                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: post.title + " - " + (Array.isArray(post.content) ? post.content.join(" ") : post.content) } ],
+                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: post.title } ],
                         response_format: { type: "json_object" },
                         temperature: 0.85
                     })
@@ -741,24 +767,15 @@
                         post.comments.push(c);
                     });
                     saveToLocalStorage();
-                    
-                    if (document.getElementById('view-article').style.display === 'block') {
-                        openPost(sIdx, pIdx);
-                    } else {
-                        renderGrid();
-                    }
-                } else {
-                    alert("Nepodarilo sa vygenerovať komentáre v správnej štruktúre.");
-                }
-            } catch(e) {
-                alert("Chyba pri generovaní komentárov.");
-            }
+                    if (document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
+                    else renderGrid();
+                } else alert("Nepodarilo sa vygenerovať komentáre.");
+            } catch(e) { alert("Chyba pri generovaní komentárov."); }
             spinner.style.display = 'none';
         }
 
         async function generateAlternativePost(sIdx, pIdx) {
             if (!getSavedApiKey() || !feedData[sIdx]) return;
-            
             const scenario = feedData[sIdx].scenario;
             const spinner = document.getElementById('loading-spinner');
             const loaderText = document.getElementById('loading-text-status');
@@ -769,10 +786,7 @@
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
             if(opt) opt.style.display = 'none';
 
-            const sysPrompt = `Vytvor 1 nový DLHÝ, KOMPLEXNÝ a VTIPNÝ príspevok/článok o tej istej téme/udalosti: "${scenario}". Tento článok MUSÍ mať úplne iný text (aspoň 4 odseky), iného autora a inú fotku než predtým. Očakávané atribúty: author_name, title, content (pole odsekov), image_url, comments (pole s username a text). 
-            Pre image_url použi náhodný seed: "https://image.pollinations.ai/prompt/{anglicky_popis}?width=800&height=400&nologo=true".
-            Inšpiruj sa pre autorov a komentujúcich z poolu mien: ${getRandomNames(15).join(', ')}.
-            Výstup: čisto JSON objekt { "posts": [ { ... } ] }`;
+            const sysPrompt = `Vytvor 1 nový DLHÝ, KOMPLEXNÝ a VTIPNÝ príspevok/článok o tej istej téme: "${scenario}". Očakávané atribúty: author_name, title, content (pole odsekov), image_url, comments (pole s username a text). Vygeneruj aspoň 5-15 komentárov plných hlúpych ľudí, trollov a hádok. Inšpiruj sa pre autorov a komentujúcich z poolu mien: ${getRandomNames(15).join(', ')}. Výstup: čisto JSON objekt { "posts": [ { ... } ] }`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -807,13 +821,8 @@
                     feedData[sIdx].posts.push(extractedPost);
                     saveToLocalStorage();
                     renderGrid();
-                    alert("Na plochu bol úspešne pridaný nový alternatívny článok o tejto téme.");
-                } else {
-                    alert("Chybná štruktúra alternatívneho článku z API.");
-                }
-            } catch(e) {
-                alert("Chyba pri generovaní alternatívneho článku.");
-            }
+                } else alert("Chybná štruktúra alternatívneho článku z API.");
+            } catch(e) { alert("Chyba pri generovaní alternatívneho článku."); }
             spinner.style.display = 'none';
         }
 
@@ -840,17 +849,6 @@
                 if(c.replies) count += countComments(c.replies);
             });
             return count;
-        }
-
-        function findCommentById(comments, id) {
-            for(let i=0; i<comments.length; i++) {
-                if(comments[i].id === id) return {parent: comments, index: i, comment: comments[i]};
-                if(comments[i].replies) {
-                    let found = findCommentById(comments[i].replies, id);
-                    if(found) return found;
-                }
-            }
-            return null;
         }
 
         function deleteComment(sIdx, pIdx, id) {
@@ -891,43 +889,6 @@
             }
         }
 
-        async function generateAIReply(sIdx, pIdx, commentId, commentText, replyToName) {
-            const post = feedData[sIdx].posts[pIdx];
-            const sysPrompt = `Si sarkastický používateľ sociálnej siete. Odpovedáš na komentár: "${commentText}". Tvoje meno musí byť vybrané z tohto zoznamu: ${getRandomNames(10).join(', ')}. Vráť čisto len JSON objekt: { "username": "Meno Priezvisko", "text": "tvoja inteligentná vtipná odpoveď na komentár" }`;
-            
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        model: MODEL_NAME,
-                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: "Napíš odpoveď na komentár." } ],
-                        response_format: { type: "json_object" },
-                        temperature: 0.8
-                    })
-                });
-                const jsonRes = await response.json();
-                const parsed = tryParseJSON(jsonRes.choices[0].message.content);
-                
-                if (parsed && parsed.username && parsed.text) {
-                    let found = findCommentById(post.comments, commentId);
-                    if(found) {
-                        found.comment.replies.push({
-                            id: Math.random().toString(36).substr(2, 9),
-                            username: parsed.username,
-                            text: `<span style="color:var(--fb-blue); font-weight:600;">${replyToName}</span> ${parsed.text}`,
-                            replies: []
-                        });
-                        saveToLocalStorage();
-                        renderGrid();
-                        if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
-                    }
-                }
-            } catch(e) {
-                console.error("AI reply generation failed");
-            }
-        }
-
         async function addManualComment(sIdx, pIdx) {
             let input = document.getElementById(`new-comment-${sIdx}-${pIdx}`);
             let text = input.value.trim();
@@ -936,21 +897,12 @@
             if(!post.comments) post.comments = [];
             
             let newCommentId = Math.random().toString(36).substr(2, 9);
-            let userComment = {
-                id: newCommentId,
-                username: currentUsername,
-                text: text,
-                replies: []
-            };
+            let userComment = { id: newCommentId, username: currentUsername, text: text, replies: [] };
             post.comments.push(userComment);
             input.value = '';
             saveToLocalStorage();
             renderGrid();
             if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
-
-            if(getSavedApiKey()) {
-                generateAIReply(sIdx, pIdx, newCommentId, text, currentUsername);
-            }
         }
 
         function renderComments(commentsArray, sIdx, pIdx, parentId = null) {
@@ -972,6 +924,7 @@
                         <div class="comment-actions">
                             <span style="cursor:pointer;" onclick="showReplyInput('${c.id}')">Odpovedať</span>
                             <span style="cursor:pointer;" onclick="deleteComment('${sIdx}', '${pIdx}', '${c.id}')">Vymazať</span>
+                            <span style="cursor:pointer; color: var(--fb-blue); font-weight: 700;" onclick="triggerAICommentReply('${sIdx}', '${pIdx}', '${c.id}')">🤖 AI Troll Reakcia</span>
                         </div>
                         <div id="reply-box-${c.id}" style="display:none; margin-top: 8px; display: flex; gap: 8px;">
                             <input type="text" id="reply-input-${c.id}" placeholder="Odpovedať ${c.username}..." style="flex:1; border-radius: 16px; border: 1px solid var(--border-color); padding: 4px 12px; outline: none; background: var(--bg-input); font-size: 0.85rem;">
@@ -989,14 +942,11 @@
         function renderGrid() {
             const container = document.getElementById('feed-container');
             container.innerHTML = '';
-            
             if(!feedData || feedData.length === 0) return;
-            
             const currentGlobalTime = parseInt(localStorage.getItem('fb_global_time') || '0');
 
             feedData.slice().reverse().forEach((slot, revIdx) => {
                 const sIdx = feedData.length - 1 - revIdx;
-                
                 if (!slot || !slot.posts || !Array.isArray(slot.posts)) return;
                 
                 let ageMinutes = currentGlobalTime - (slot.timestamp || 0);
@@ -1009,8 +959,8 @@
                     const card = document.createElement('div');
                     card.className = 'post-card';
                     const avColor = generateColor(post.author_name || "Neznámy");
-                    
                     const fullText = Array.isArray(post.content) ? post.content.join(" ") : (post.content || "");
+                    
                     let visibleText = fullText;
                     let hiddenText = "";
                     let moreBtnHtml = "";
@@ -1024,10 +974,6 @@
 
                     let commentsHtml = renderComments(post.comments ? post.comments.slice(0, 3) : [], sIdx, pIdx);
                     let numComments = countComments(post.comments);
-
-                    const copyrightHtml = post.image_url && post.image_url.includes('pollinations') 
-                        ? `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: AI Generated</div>`
-                        : `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: Web Archive</div>`;
 
                     card.innerHTML = `
                         <div class="post-header">
@@ -1043,7 +989,7 @@
                                 <div id="options-${sIdx}-${pIdx}" class="post-dropdown">
                                     <button onclick="openPost(${sIdx}, ${pIdx})">Zobraziť článok</button>
                                     <button onclick="sharePost(${sIdx}, ${pIdx})">Zdieľať článok</button>
-                                    <button onclick="addRandomComments(${sIdx}, ${pIdx})">💬 Pridať komentár</button>
+                                    <button onclick="addRandomComments(${sIdx}, ${pIdx})">💬 Pridať vojnu v komentároch</button>
                                     <button onclick="generateAlternativePost(${sIdx}, ${pIdx})">📰 Generovať ďalší článok</button>
                                     <button onclick="replacePost(${sIdx}, ${pIdx})">Vygenerovať náhradu</button>
                                     <button onclick="showPrompt(${sIdx})">📝 Zobraziť prompt</button>
@@ -1056,7 +1002,6 @@
                             <div class="post-text">${visibleText}${moreBtnHtml}</div>
                         </div>
                         ${post.image_url ? `<img src="${post.image_url}" class="post-image" alt="Article image">` : ''}
-                        ${copyrightHtml}
                         
                         <div class="post-stats">
                             <span>👍 <span id="like-count-${sIdx}-${pIdx}">${post.likes}</span></span>
@@ -1070,7 +1015,7 @@
                         </div>
                         <div class="post-comments-area">
                             ${commentsHtml}
-                            ${post.comments && post.comments.length > 3 ? `<div class="view-more-comments-label" onclick="openPost(${sIdx}, ${pIdx})">Zobraziť ďalšie komentáre</div>` : ''}
+                            ${post.comments && post.comments.length > 3 ? `<div class="view-more-comments-label" onclick="openPost(${sIdx}, ${pIdx})">Zobraziť ďalšie komentáre (${numComments})</div>` : ''}
                             
                             <div style="display: flex; gap: 8px; margin-top: 12px; align-items: center;">
                                 <div class="comment-avatar" style="background-color: var(--fb-blue)">${currentUsername.charAt(0).toUpperCase()}</div>
@@ -1112,17 +1057,10 @@
 
             area.className = 'post-card';
             area.style.marginBottom = '0';
-            
-            const copyrightHtml = post.image_url && post.image_url.includes('pollinations') 
-                ? `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: AI Generated</div>`
-                : `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: Web Archive</div>`;
 
             let paragraphsHtml = '';
-            if (Array.isArray(post.content)) {
-                paragraphsHtml = post.content.map(p => `<p class="post-text">${p}</p>`).join('');
-            } else {
-                paragraphsHtml = `<p class="post-text">${post.content || ''}</p>`;
-            }
+            if (Array.isArray(post.content)) paragraphsHtml = post.content.map(p => `<p class="post-text">${p}</p>`).join('');
+            else paragraphsHtml = `<p class="post-text">${post.content || ''}</p>`;
 
             area.innerHTML = `
                 <div class="post-header">
@@ -1139,7 +1077,6 @@
                     ${paragraphsHtml}
                 </div>
                 ${post.image_url ? `<img src="${post.image_url}" class="post-image" alt="Article image">` : ''}
-                ${copyrightHtml}
                 
                 <div class="post-stats">
                     <span>👍 <span id="like-count-${sIdx}-${pIdx}-article">${post.likes}</span></span>
@@ -1177,11 +1114,12 @@
             errorDisplay.style.display = 'none';
             
             const previousScenarios = feedData.map(f => f.scenario).join(" | ");
-            const contextInstruction = previousScenarios ? ` Udalosti nadväzujú na tieto minulé diania, spomeň ich ak je to vtipné a relevantné: ${previousScenarios}.` : "";
+            const contextInstruction = previousScenarios ? ` Udalosti nadväzujú na minulé diania, spomeň ich ak je to vtipné a relevantné: ${previousScenarios}.` : "";
 
-            const systemPrompt = `Vytvor pole 3 DLHÝCH, KOMPLEXNÝCH a EXTRÉMNE VTIPNÝCH článkov reagujúcich na udalosť ("posts"). Typ musí byť vždy "article". Každý článok musí mať atribúty: author_name, title, content (pole odsekov - aspoň 4-5 dlhých odsekov), image_url, comments (pole objektov s username a text, aspoň 3 dlhšie komentáre). 
-            Komentujúci a autori musia mať normálne krstné meno a vtipné podstatné meno ako priezvisko. Inšpiruj sa z tohto poolu mien: ${getRandomNames(15).join(', ')}.
-            image_url musí byť vytvorené takto: náhodne zvoľ buď URL v tvare "https://image.pollinations.ai/prompt/{detailny_anglicky_popis}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodne_slovo_${Date.now()}}/800/400" aby sa fotky neopakovali.${contextInstruction} Výstup vráť výhradne ako čistý validný JSON objekt obsahujúci pole posts.`;
+            const systemPrompt = `Vytvor pole 3 DLHÝCH a EXTRÉMNE VTIPNÝCH článkov reagujúcich na udalosť ("posts"). Atribúty: author_name, title, content (pole odsekov), image_url, comments (pole objektov s username a text). 
+            DÔLEŽITÉ PRE KOMENTÁRE: Pre každý článok vygeneruj NÁHODNÝ POČET od 5 do 30 komentárov! Musia byť extrémne vtipné, píšu ich hlúpi ľudia, trollovia, hádajú sa, urážajú a tvoria konšpirácie.
+            Meno autora aj komentujúcich vyber z tohto poolu: ${getRandomNames(15).join(', ')}.
+            image_url vyber náhodne buď "https://image.pollinations.ai/prompt/{detailny_anglicky_popis}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodne_slovo_${Date.now()}}/800/400".${contextInstruction} Výstup vráť striktne ako JSON objekt s poľom "posts".`;
 
             try {
                 const response = await fetch(API_URL, {
