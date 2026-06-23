@@ -105,53 +105,24 @@
         .see-more-btn { background: none; border: none; color: var(--fb-blue); font-weight: 600; cursor: pointer; padding: 0; font-size: 0.95rem; margin-left: 5px; }
         .see-more-btn:hover { text-decoration: underline; }
 
-        /* Article Images */
-        .article-image-container {
-            margin: 12px 0;
-            overflow: hidden;
-            border-radius: 8px;
-            aspect-ratio: 16 / 9;
-            position: relative;
+        /* PlaceHolder pre AI Fotku */
+        .fb-photo-placeholder {
+            background-color: #ddd; 
+            border-radius: 8px; 
+            margin: 12px 0; 
+            overflow: hidden; 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            aspect-ratio: 16 / 9; 
+            color: #555; 
+            text-align: center; 
+            padding: 20px;
+            font-weight: 800;
+            font-size: 1.2rem;
+            border: 2px solid #ccc;
         }
-        .article-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .article-image-source {
-            position: absolute; bottom: 8px; right: 12px; font-size: 0.65rem; color: white; background-color: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 4px;
-        }
-
-        /* --- ŠPECIÁLNE STRUKTÚRY PRE VIZUÁLNE POSTY --- */
-        /* 1. Foto Post */
-        .fb-photo-container {
-            background-color: #000; border-radius: 8px; margin: 12px 0; overflow: hidden;
-            position: relative; display: flex; align-items: center; justify-content: center;
-            aspect-ratio: 16 / 9; color: white; text-align: center; padding: 20px;
-            background: linear-gradient(135deg, #3a7bd5, #3a6073);
-        }
-        .fb-photo-text { font-size: 1.3rem; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
-        
-        /* 2. Meme Post */
-        .fb-meme-container {
-            border: 4px solid #000; background-color: #f0f0f0; margin: 12px 0;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            aspect-ratio: 1 / 1; max-width: 100%; border-radius: 4px; overflow: hidden;
-            background: #111; position: relative;
-        }
-        .fb-meme-image-placeholder {
-            flex: 1; width: 100%; display: flex; align-items: center; justify-content: center;
-            font-size: 5rem; background: radial-gradient(circle, #555 0%, #111 70%);
-        }
-        .fb-meme-text {
-            position: absolute; left: 10px; right: 10px; text-align: center;
-            color: white; font-family: 'Impact', 'Arial Black', sans-serif;
-            font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px;
-            -webkit-text-stroke: 1.5px black; text-shadow: 2px 2px 0 #000;
-        }
-        .fb-meme-text.top { top: 15px; }
-        .fb-meme-text.bottom { bottom: 15px; }
 
         /* FB interakčná lišta */
         .fb-actions-bar { display: flex; justify-content: space-between; margin-top: 12px; padding: 4px 0; border-top: 1px solid #e4e6eb; border-bottom: 1px solid #e4e6eb; }
@@ -287,7 +258,7 @@
     <div class="modal-overlay" id="post-modal">
         <div class="modal-content">
             <h3>Vytvoriť príspevok</h3>
-            <p>Váš príbeh spustí mediálnu búrku 5 vecí.</p>
+            <p>Váš príbeh spustí mediálnu búrku troch článkov.</p>
             <textarea id="scenario-input" placeholder="Napr.: FIFA zamietla sťažnosť Kosova a definitívne pridelila body SR. Proti rozhodnutiu vypukli masívne protesty..."></textarea>
             <div class="modal-actions">
                 <button class="btn btn-secondary" onclick="closePostModal()">Zrušiť</button>
@@ -306,23 +277,19 @@
         const API_URL = "https://corsproxy.io/?" + encodeURIComponent(BASE_API_URL);
         const MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct";
 
-        let currentActiveSlot = null; // We still use this to keep track of where the generated items should go, even without locked slots.
-
+        let appSlots = []; 
         let pinnedPosts = []; // For the profile page
 
         function getSavedApiKey() { return localStorage.getItem('whatif_groq_api_key') || ''; }
 
         function initApp() {
             updateLoginStatusUI();
-            const savedData = localStorage.getItem('whatif_multiverse_slots_v2'); // New key for data format
+            const savedData = localStorage.getItem('whatif_multiverse_slots_v2'); 
             const savedPinned = localStorage.getItem('whatif_pinned_posts');
             if (savedData) {
                 appSlots = JSON.parse(savedData);
-                // Ensure at least 5 slots exist
-                while (appSlots.length < 5) appSlots.push({ locked: false, data: { posts: [] } });
             } else {
-                appSlots = [];
-                for (let i = 0; i < 5; i++) { appSlots.push({ locked: false, data: { posts: [] } }); }
+                appSlots = []; 
                 saveToLocalStorage();
             }
             if (savedPinned) { pinnedPosts = JSON.parse(savedPinned); }
@@ -388,13 +355,10 @@
             renderPinnedPosts();
         }
 
-        let currentActiveViewPost = { slotIdx: null, postIdx: null }; // for unrolling comments in the feed card
-
         function renderFeed() {
             const container = document.getElementById('feed-grid');
             container.innerHTML = '';
 
-            // Render posts in reverse order (newest on top)
             for (let i = appSlots.length - 1; i >= 0; i--) {
                 if (!appSlots[i].data.posts || appSlots[i].data.posts.length === 0) continue;
                 
@@ -414,7 +378,7 @@
                 return;
             }
             pinnedPosts.forEach((post, index) => {
-                const card = createPostCard(post, null, index, true); // true for pinned post card
+                const card = createPostCard(post, null, index, true); 
                 container.appendChild(card);
             });
         }
@@ -426,11 +390,11 @@
             
             const avColor = generateColorFromString(post.author_name);
             
-            // Photo description above article
-            let photoDescHtml = '';
-            if (post.type === 'article' && post.photo_desc) { photoDescHtml = `<p class="post-text" style="font-style:italic; color:var(--text-muted); margin-bottom:10px;">Opis priloženej fotografie: ${post.photo_desc}</p>`; }
+            let photoHtml = '';
+            if (post.type === 'article' && post.photo_desc) { 
+                photoHtml = `<div class="fb-photo-placeholder">AI FOTKA: ${post.photo_desc}</div>`;
+            }
             
-            // Middle Content
             let middleContentHtml = '';
             if (post.type === 'article') {
                 const preview = post.content ? post.content[0] : '';
@@ -439,30 +403,23 @@
                     <h3>${post.title}</h3>
                     <div class="post-text rolled-in-content">${preview}...</div>
                     ${fullTextHtml}`;
-            } else if (post.type === 'photo_post') {
-                middleContentHtml = `<div class="fb-photo-container"><div class="fb-photo-text">"${post.content}"</div></div>`;
-            } else if (post.type === 'meme') {
-                middleContentHtml = `<div class="fb-meme-container"><div class="fb-meme-text top">${post.meme_top || ''}</div><div class="fb-meme-image-placeholder">${post.meme_emoji || ''}</div><div class="fb-meme-text bottom">${post.meme_bottom || ''}</div></div>`;
             }
 
-            // Dropdown Actions
             let dropdownActionsHtml = '';
             if (!isPinned) {
                 dropdownActionsHtml = `
                     <button onclick="openPostFullPage(${slotIndex}, ${postIndex})">Zobraziť článok</button>
                     <button onclick="pinPost(${slotIndex}, ${postIndex})">Zdieľať článok</button>
                     <button onclick="deletePost(${slotIndex}, ${postIndex})">Vymazať článok</button>
-                    <button onclick="regeneratePost(${slotIndex}, ${postIndex})">Vygenerovať náhradu</button>`;
+                    <button onclick="regeneratePost(${slotIndex}, ${postIndex})">Uverejniť ďalšiu kapitolu správ</button>`;
             } else { dropdownActionsHtml = `<button onclick="unpinPost(${postIndex})">Zrušiť zdieľanie</button>`; }
 
-            // Unroll button text
             let seeMoreBtnHtml = '';
             if (post.type === 'article') {
                 seeMoreBtnHtml = `<button class="see-more-btn" onclick="togglePostRoll(${slotIndex}, ${postIndex})">Zobraziť viac</button>`;
             }
-            if (!post.content) seeMoreBtnHtml = ''; // No content to unroll
+            if (!post.content) seeMoreBtnHtml = ''; 
 
-            // Comments Preview (initial 2)
             let commPreviewHtml = '';
             if (post.comments) {
                 post.comments.slice(0, 2).forEach(c => {
@@ -478,13 +435,12 @@
                     <button class="post-dropdown-trigger" onclick="togglePostDropdown(${slotIndex}, ${postIndex})">⋮</button>
                     <div class="post-dropdown-menu" id="dropdown-${slotIndex}-${postIndex}">${dropdownActionsHtml}</div>
                 </div>
-                ${photoDescHtml}
+                ${photoHtml}
                 ${middleContentHtml}
                 <div class="post-text rolled-in-content">${seeMoreBtnHtml}</div>
                 <div class="fb-actions-bar"><button class="fb-action-btn">👍 Páči sa mi to</button><button class="fb-action-btn" onclick="togglePostRoll(${slotIndex}, ${postIndex})">💬 Komentovať</button><button class="fb-action-btn">🔁 Zdieľať</button></div>
                 <div class="post-comments-area" id="comments-area-${slotIndex}-${postIndex}"><div class="comments-content">${commPreviewHtml}</div><div class="full-comments-list"></div></div>
             `;
-            // Add style for rolled out/in content
             if (post.type === 'article') {
                 card.querySelectorAll('.rolled-out-content').forEach(el => el.style.display = 'none');
                 card.querySelector('.comments-content').style.display = 'block';
@@ -496,12 +452,10 @@
 
         function togglePostDropdown(slotIndex, postIdx) {
             const dropdown = document.getElementById(`dropdown-${slotIndex}-${postIdx}`);
-            // close other dropdowns
             document.querySelectorAll('.post-dropdown-menu').forEach(d => { if (d.id !== dropdown.id) d.style.display = 'none'; });
             dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
         }
 
-        // Close dropdown when clicking outside
         window.onclick = function(event) {
             if (!event.target.matches('.post-dropdown-trigger')) {
                 document.querySelectorAll('.post-dropdown-menu').forEach(d => d.style.display = 'none');
@@ -512,7 +466,7 @@
             const postCard = document.getElementById(`post-${slotIndex}-${postIdx}`);
             if (!postCard) return;
             const post = appSlots[slotIndex].data.posts[postIdx];
-            if (!post || !post.content) return; // Non-articles cannot unroll text
+            if (!post || !post.content) return; 
 
             const rolledIn = postCard.querySelector('.rolled-in-content');
             const rolledOut = postCard.querySelectorAll('.rolled-out-content');
@@ -537,7 +491,6 @@
                 commentsArea.style.display = 'block';
                 if (btn) btn.innerText = 'Zobraziť menej';
                 
-                // Render full comments if unrolling
                 renderFullCommentsInFeed(slotIndex, postIdx, fullCommentsList);
                 fullCommentsList.style.display = 'block';
                 commentsContent.style.display = 'none';
@@ -549,7 +502,7 @@
             container.innerHTML = '';
             if (!post.comments || post.comments.length === 0) { container.innerHTML = '<p style="color:var(--text-muted); font-size:0.88rem;">Zatiaľ žiadne komentáre.</p>'; return; }
             
-            const visibleComments = post.comments.slice(0, 10); // Show max 10 comments initial view in feed
+            const visibleComments = post.comments.slice(0, 10); 
             visibleComments.forEach(c => {
                 const node = createCommentNode(c, visibleComments);
                 container.appendChild(node);
@@ -572,35 +525,27 @@
         // --- Post Actions ---
 
         function pinPost(slotIndex, postIdx) {
-            const post = JSON.parse(JSON.stringify(appSlots[slotIndex].data.posts[postIdx])); // clone
+            const post = JSON.parse(JSON.stringify(appSlots[slotIndex].data.posts[postIdx])); 
             if (pinnedPosts.some(p => p.id === post.id)) { alert("Tento príspevok už je pripnutý."); return; }
             pinnedPosts.push(post);
             saveToLocalStorage();
             alert("Článok pripnutý na profil.");
-            showFeed(); // Refresh feed view, close dropdowns
+            showFeed(); 
         }
 
         function deletePost(slotIndex, postIdx) {
             if (!confirm("Naozaj chcete vymazať tento príspevok?")) return;
             appSlots[slotIndex].data.posts[postIdx].deleted = true;
-            // Also unpin if pinned
             const postId = appSlots[slotIndex].data.posts[postIdx].id;
             pinnedPosts = pinnedPosts.filter(p => p.id !== postId);
             saveToLocalStorage();
-            showFeed(); // Refresh
+            showFeed(); 
         }
 
         async function regeneratePost(slotIndex, postIdx) {
-            if (!confirm("Naozaj chcete vygenerovať náhradu pre tento príspevok? To spustí novú generáciu pre tento slot.")) return;
-            // We regenerate everything for the slot for consistency, using the original scenario.
-            currentActiveSlot = slotIndex;
             const originalScenario = appSlots[slotIndex].data.scenario;
-            document.getElementById('post-modal').style.display = 'none'; // Ensure modal is closed
+            document.getElementById('post-modal').style.display = 'none'; 
             if (!originalScenario) return;
-            
-            // Mark posts as deleted for visual refresh but keep the scenario
-            appSlots[slotIndex].data.posts = [];
-            showFeed();
             
             await triggerPostGeneration(originalScenario);
         }
@@ -611,8 +556,6 @@
             showProfile();
         }
 
-        // --- Generation (Modified for 5 items: 3 articles w/ photo, 1 meme, 1 photo message) ---
-
         async function triggerPostGeneration(retryScenario = null) {
             const apiKey = getSavedApiKey();
             const promptInput = retryScenario || document.getElementById('scenario-input').value.trim();
@@ -622,36 +565,24 @@
             const spinner = document.getElementById('loading-spinner');
             spinner.style.display = 'flex';
 
-            // Find an empty or the retry slot
-            if (retryScenario === null) {
-                currentActiveSlot = appSlots.findIndex(s => !s.data.posts || s.data.posts.length === 0);
-                if (currentActiveSlot === -1) {
-                    currentActiveSlot = appSlots.length;
-                    appSlots.push({ locked: false, data: { posts: [] } });
-                }
-            }
-
-            // History logic (same as before)
             let historyContext = "";
-            const unlockedSlots = appSlots.filter((s, idx) => s.data.posts && s.data.posts.length > 0 && idx < currentActiveSlot);
+            const unlockedSlots = appSlots.filter((s, idx) => s.data.posts && s.data.posts.length > 0);
             if (unlockedSlots.length > 0) {
                 historyContext = "KONTEXT DOTERAJŠIEHO ALTERNATÍVNEHO SVETA (Tieto udalosti už prebehli, stavaj na nich a rešpektuj ich kontinuitu):\n";
                 unlockedSlots.forEach((s, idx) => { historyContext += `- Kapitola ${idx + 1}: "${s.data.scenario}"\n`; });
             }
 
             const systemPrompt = `Si komplexný generátor pluralitného internetu pre model ${MODEL_NAME}, bežiaci na platforme Fakebook.
-Používateľ zadá udalosť (zlomový bod reality). Na základe nej a predošlého vývoja sveta MUSÍŠ vygenerovať pole príspevkov ("posts"), ktoré zachytia celú situáciu z rôznych uhlov pohľadu spoločnosti.
+Používateľ zadá udalosť (zlomový bod reality). Na základe nej a predošlého vývoja sveta MUSÍŠ vygenerovať pole príspevkov ("posts"), ktoré zachytia celú situáciu z troch rôznych uhlov pohľadu spoločnosti.
 
-Vygeneruj PRESNE 5 príspevkov, bez zbytočných rečí. Príspevky by mali byť seriózne (mainstream_news) alebo s vyhraneným názorom.
+Vygeneruj PRESNE 3 články, bez zbytočných rečí. 
 
-Kombinácia 5 príspevkov:
-1. Príspevok 1 ("type": "article"): Seriózne spravodajstvo, dlhý text (3 odseky), pole "photo_desc" (opis AI-vygenerovanej fotky).
-2. Príspevok 2 ("type": "article"): Progresívna/spoločenská ostrá kritika, dlhý text (3 odseky), pole "photo_desc" (opis AI-vygenerovanej fotky).
-3. Príspevok 3 ("type": "article"): Alternatívne médium hovoriace o skrytých elitách, illuminátoch, dlhý text (3 odseky), pole "photo_desc" (opis AI-vygenerovanej fotky).
-4. Príspevok 4 ("type": "meme"): Satirický meme, musí obsahovať aj polia "meme_top", "meme_bottom", "meme_emoji".
-5. Príspevok 5 ("type": "photo_post"): Príspevok s úderným fototextom v poli "content" (1-2 vety, veľký ozdobný text).
+Kombinácia 3 článkov:
+1. Článok 1 ("type": "article"): Seriózne spravodajstvo (mainstream_news), dlhý text (3 odseky), pole "photo_desc" (podrobný opis AI-vygenerovanej fotky).
+2. Článok 2 ("type": "article"): Progresívna/spoločenská kritika (woke_critique), dlhý text (3 odseky), pole "photo_desc" (podrobný opis AI-vygenerovanej fotky).
+3. Článok 3 ("type": "article"): Alternatívne médium hovoriace o skrytých elitách (conspiracy), dlhý text (3 odseky), pole "photo_desc" (podrobný opis AI-vygenerovanej fotky).
 
-Ku KAŽDÉMU príspevku pridaj 6 unikátnych komentárov s "id", wobei at least 2 reply to previous. Autoren musí zodpovedať danej cieľovke.
+Ku KAŽDÉMU článku pridaj presne 6 unikátnych komentárov s "id", wobei at least 2 reply to previous. Autoren musí zodpovedať danej cieľovke.
 
 ${historyContext}
 
@@ -665,7 +596,7 @@ Odpovedaj výhradne v čistom JSON.
       "author_name": "Hlavné Správy 24",
       "title": "Titulok...",
       "content": ["Odsek 1", "Odsek 2", "Odsek 3"],
-      "photo_desc": "Detailný opis AI fotky, ktorá bude nad článkom.",
+      "photo_desc": "Podrobný opis AI fotky pre mainstream spravodajstvo, napr. seriózna fotka politika za rečníckym pultom.",
       "comments": [ { "id": "c1", "username": "Fero1", "stance": "proponent", "text": "Super!", "parentId": null } ]
     },
     ...
@@ -688,19 +619,16 @@ Odpovedaj výhradne v čistom JSON.
 
                 const jsonRes = await response.json();
                 let rawText = jsonRes.choices[0].message.content.trim();
-                // Ensure proper JSON if needed (though response_format:json_object should handle it)
                 if (rawText.startsWith("```json")) rawText = rawText.substring(7);
                 if (rawText.endsWith("```")) rawText = rawText.substring(0, rawText.length - 3);
 
                 const parsedData = JSON.parse(rawText.trim());
 
-                appSlots[currentActiveSlot] = {
-                    locked: false,
-                    data: { scenario: promptInput, posts: parsedData.posts }
-                };
+                appSlots.push({ locked: false, data: { scenario: promptInput, posts: parsedData.posts } });
 
-                // Create IDs if not provided
-                appSlots[currentActiveSlot].data.posts.forEach((p, idx) => { if (!p.id) p.id = `ai-p-${currentActiveSlot}-${idx}-${Date.now()}`; });
+                appSlots.forEach((slot, slotIdx) => { 
+                    slot.data.posts.forEach((p, idx) => { if (!p.id) p.id = `ai-p-${slotIdx}-${idx}-${Date.now()}`; });
+                });
 
                 saveToLocalStorage();
                 spinner.style.display = 'none';
@@ -713,7 +641,7 @@ Odpovedaj výhradne v čistom JSON.
             }
         }
 
-        // --- Full Page Article View (reused old view-article logic but for dropdown action) ---
+        // --- Full Page Article View ---
 
         function openPostFullPage(slotIdx, postIdx) {
             document.getElementById('view-feed').style.display = 'none';
@@ -724,13 +652,13 @@ Odpovedaj výhradne v čistom JSON.
             const area = document.getElementById('article-content-area');
             const avColor = generateColorFromString(post.author_name);
 
-            area.className = 'post-card'; // Reuse post card styling
+            area.className = 'post-card'; 
             area.innerHTML = `
                 <div class="post-header">
                     <div class="avatar" style="background-color: ${avColor}">${post.author_name.charAt(0).toUpperCase()}</div>
                     <div class="author-info"><span class="author-name">${post.author_name}</span><span class="author-time">Kompletný záznam · Kontext impulzu: "${appSlots[slotIdx].data.scenario}"</span></div>
                 </div>
-                ${post.photo_desc ? `<p class="post-text" style="font-style:italic; color:var(--text-muted); margin-bottom:15px;">Opis fotografie: ${post.photo_desc}</p>` : ''}
+                ${post.photo_desc ? `<div class="fb-photo-placeholder">AI FOTKA: ${post.photo_desc}</div>` : ''}
                 <h2>${post.title}</h2>
                 ${post.content ? post.content.map(p => `<p class="post-text">${p}</p>`).join('') : '<p class="post-text">Nenašiel sa obsah článku.</p>'}
             `;
@@ -791,7 +719,7 @@ Odpovedaj výhradne v čistom JSON.
             const post = appSlots[slotIdx].data.posts[postIdx];
             const userCommentId = "user-" + Date.now();
             post.comments.push({ id: userCommentId, username: "SlobodnyObcan_TY", stance: "user", text: userText, parentId: parentCommentId });
-            renderFullPostCommentsView(slotIdx, postIdx); // Refresh
+            renderFullPostCommentsView(slotIdx, postIdx); 
 
             const replyPrompt = `Si generátor hádok pre modul ${MODEL_NAME}. Používateľ poslal komentár: "${userText}". Vygeneruj dvoch Fakebook botov, ktorí na neho reagujú (jeden vysmeje "opponent", jeden podporí "proponent"). Vráť čistý JSON:
 { "replies": [ {"username": "Profil1", "stance": "opponent", "text": "..." }, {"username": "Profil2", "stance": "proponent", "text": "..." } ] }`;
@@ -805,7 +733,6 @@ Odpovedaj výhradne v čistom JSON.
 
                 const jsonRes = await response.json();
                 let rawText = jsonRes.choices[0].message.content.trim();
-                // Ensure proper JSON if needed
                 if (rawText.startsWith("```json")) rawText = rawText.substring(7);
                 if (rawText.endsWith("```")) rawText = rawText.substring(0, rawText.length - 3);
 
@@ -814,7 +741,7 @@ Odpovedaj výhradne v čistom JSON.
                     post.comments.push({ id: `ai-r-${Date.now()}-${idx}`, username: rep.username, stance: rep.stance, text: rep.text, parentId: userCommentId });
                 });
                 saveToLocalStorage();
-                renderFullPostCommentsView(slotIdx, postIdx); // Refresh
+                renderFullPostCommentsView(slotIdx, postIdx); 
 
             } catch (error) { console.error(error); inputEl.disabled = false; }
         }
