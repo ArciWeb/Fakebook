@@ -45,7 +45,7 @@
             width: 40px; height: 40px; display: flex; align-items: flex-end; justify-content: center; border-radius: 50%;
         }
 
-        .navbar h1 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+        .navbar h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; color: var(--fb-blue); }
         
         .navbar-actions { display: flex; align-items: center; gap: 8px; }
 
@@ -100,7 +100,7 @@
 
         .post-content { padding: 0 16px 12px 16px; }
         .post-content h3 { margin: 0 0 8px 0; font-size: 1.1rem; font-weight: 700; color: #050505; }
-        .post-text { font-size: 0.95rem; color: var(--text-dark); line-height: 1.4; margin-bottom: 10px;}
+        .post-text { font-size: 0.95rem; color: var(--text-dark); line-height: 1.6; margin-bottom: 12px;}
         .inline-more-btn { background: none; border: none; color: var(--fb-blue); font-weight: 600; cursor: pointer; padding: 0; font-size: 0.95rem; }
         .inline-more-btn:hover { text-decoration: underline; }
         
@@ -111,8 +111,6 @@
         .fb-action-btn:hover { background-color: #f2f3f5; }
 
         .post-comments-area { padding: 12px 16px; }
-        .view-more-comments-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-bottom: 8px; display: inline-block; }
-        .view-more-comments-label:hover { text-decoration: underline; }
 
         .comment-item { display: flex; gap: 8px; margin-bottom: 12px; }
         .comment-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.8rem; flex-shrink: 0; }
@@ -127,7 +125,7 @@
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background-color: var(--bg-card); border-radius: 8px; max-width: 500px; width: 100%; padding: 20px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); position: relative; }
         
-        .close-modal-btn { position: absolute; right: 15px; top: 15px; font-size: 32px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 1; padding: 0; }
+        .close-modal-btn { position: absolute; right: 15px; top: 5px; font-size: 48px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 1; padding: 0; }
         .close-modal-btn:hover { color: var(--text-dark); }
 
         .modal-content h3 { margin-top: 0; font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
@@ -156,6 +154,7 @@
     <div class="navbar">
         <a class="navbar-brand" onclick="showGrid()">
             <div class="logo-icon">f</div>
+            <h1>Fakebook</h1>
         </a>
         <div class="navbar-actions">
             <button class="nav-btn" onclick="showGrid()">🏠</button>
@@ -346,7 +345,13 @@
             spinner.style.display = 'flex';
             document.getElementById(`options-${sIdx}-${pIdx}`).style.display = 'none';
 
-            const sysPrompt = `Vráť JSON s 1 novým príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým. type: article. Vytvor aj image_url.`;
+            let historyContext = "";
+            if (feedData.length > 0) {
+                historyContext = "Spomeň vo vnútri článku vtipným spôsobom predchádzajúce udalosti: " + feedData.map(d => d.scenario).join("; ") + ". ";
+            }
+
+            const sysPrompt = `Vráť JSON s 1 novým dlhým, obsiahlym a vtipným príspevkom ("posts": [ { ... } ]) reagujúcim na udalosť: "${scenario}". ${historyContext}Štruktúra rovnaká ako predtým. type: article. Komentujúci majú mená ako 'NormálneMeno VtipnéPodstatnéMeno' (napr. Dávid Klobása). image_url musí byť absolútne unikátne, napr. "https://image.pollinations.ai/prompt/{anglicky_popis}_${Date.now()}?width=800&height=400&nologo=true" alebo picsum.photos so random seed.`;
+            
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -361,7 +366,8 @@
                 const jsonRes = await response.json();
                 let rawText = jsonRes.choices[0].message.content.trim();
                 if (rawText.startsWith("```json")) rawText = rawText.substring(7);
-                if (rawText.endsWith("```")) rawText = rawText.substring(0, rawText.length - 3);
+                if (rawText.endsWith("
+```")) rawText = rawText.substring(0, rawText.length - 3);
                 
                 const parsed = JSON.parse(rawText.trim());
                 if(parsed.posts && parsed.posts.length > 0) {
@@ -403,9 +409,9 @@
                     let moreBtnHtml = "";
                     const uId = `txt-${sIdx}-${pIdx}`;
 
-                    if(fullText.length > 150) {
-                        visibleText = fullText.substring(0, 150) + "... ";
-                        hiddenText = fullText.substring(150);
+                    if(fullText.length > 250) {
+                        visibleText = fullText.substring(0, 250) + "... ";
+                        hiddenText = fullText.substring(250);
                         moreBtnHtml = `<span id="hidden-text-${uId}" style="display:none;">${hiddenText}</span> <button id="more-btn-${uId}" class="inline-more-btn" onclick="toggleInline('${uId}')">Zobraziť viac</button>`;
                     }
 
@@ -540,7 +546,12 @@
             spinner.style.display = 'flex';
             errorDisplay.style.display = 'none';
 
-            const systemPrompt = `Vytvor pole 3 článkov reagujúcich na udalosť ("posts"). Typ musí byť vždy "article". Každý článok musí mať atribúty: author_name, title, content (pole odsekov), image_url, comments (pole objektov s username a text). image_url musí byť vytvorené takto: náhodne zvoľ buď URL v tvare "https://image.pollinations.ai/prompt/{anglicky_popis_obrazka}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodny_text}/800/400". Výstup len JSON.`;
+            let historyContext = "";
+            if (feedData.length > 0) {
+                historyContext = "DÔLEŽITÉ: Spomeň vo vnútri článkov vtipným spôsobom tieto predchádzajúce udalosti z nášho sveta, aby bol divák v obraze: " + feedData.map(d => d.scenario).join("; ") + ". ";
+            }
+
+            const systemPrompt = `Si satirický generátor. Vytvor pole 3 veľmi dlhých a vtipných článkov reagujúcich na udalosť ("posts"). Typ musí byť vždy "article". Atribúty: author_name, title, content (pole dlhých odsekov - aspoň 3-4), image_url, comments (pole objektov s username a text). ${historyContext}Komentujúci musia mať slovenské mená v tvare 'Normálne Meno + Vtipné Podstatné Meno ako priezvisko' (napr. Peter Podlaha, Erika Chobotová). image_url musí byť absolútne unikátne pre každý článok! Generuj URL presne takto: "https://image.pollinations.ai/prompt/{detailny_anglicky_vtipny_popis}_${Date.now()}_${Math.floor(Math.random()*10000)}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/${Date.now()}_${Math.floor(Math.random()*10000)}/800/400". Výstup len čistý JSON.`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -559,7 +570,8 @@
                 const jsonRes = await response.json();
                 let rawText = jsonRes.choices[0].message.content.trim();
                 if (rawText.startsWith("```json")) rawText = rawText.substring(7);
-                if (rawText.endsWith("```")) rawText = rawText.substring(0, rawText.length - 3);
+                if (rawText.endsWith("
+```")) rawText = rawText.substring(0, rawText.length - 3);
 
                 const parsedData = JSON.parse(rawText.trim());
 
