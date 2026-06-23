@@ -45,7 +45,7 @@
             width: 40px; height: 40px; display: flex; align-items: flex-end; justify-content: center; border-radius: 50%;
         }
 
-        .navbar h1 { margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; color: var(--fb-blue); }
+        .navbar h1 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; color: var(--fb-blue); }
         
         .navbar-actions { display: flex; align-items: center; gap: 8px; }
 
@@ -100,7 +100,7 @@
 
         .post-content { padding: 0 16px 12px 16px; }
         .post-content h3 { margin: 0 0 8px 0; font-size: 1.1rem; font-weight: 700; color: #050505; }
-        .post-text { font-size: 0.95rem; color: var(--text-dark); line-height: 1.6; margin-bottom: 12px;}
+        .post-text { font-size: 0.95rem; color: var(--text-dark); line-height: 1.4; margin-bottom: 10px;}
         .inline-more-btn { background: none; border: none; color: var(--fb-blue); font-weight: 600; cursor: pointer; padding: 0; font-size: 0.95rem; }
         .inline-more-btn:hover { text-decoration: underline; }
         
@@ -111,6 +111,8 @@
         .fb-action-btn:hover { background-color: #f2f3f5; }
 
         .post-comments-area { padding: 12px 16px; }
+        .view-more-comments-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-bottom: 8px; display: inline-block; }
+        .view-more-comments-label:hover { text-decoration: underline; }
 
         .comment-item { display: flex; gap: 8px; margin-bottom: 12px; }
         .comment-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.8rem; flex-shrink: 0; }
@@ -125,7 +127,7 @@
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background-color: var(--bg-card); border-radius: 8px; max-width: 500px; width: 100%; padding: 20px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); position: relative; }
         
-        .close-modal-btn { position: absolute; right: 15px; top: 5px; font-size: 48px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 1; padding: 0; }
+        .close-modal-btn { position: absolute; right: 15px; top: 15px; font-size: 48px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 1; padding: 0; }
         .close-modal-btn:hover { color: var(--text-dark); }
 
         .modal-content h3 { margin-top: 0; font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
@@ -274,6 +276,7 @@
                 sharedPosts = [];
                 localStorage.removeItem('fb_feed_data');
                 localStorage.removeItem('fb_shared_posts');
+                localStorage.setItem('fb_global_time', '0');
                 renderGrid();
                 closeApiModal();
             }
@@ -317,6 +320,42 @@
             localStorage.setItem('fb_shared_posts', JSON.stringify(sharedPosts));
         }
 
+        function parseTimeShift(str) {
+            str = str.toLowerCase().trim();
+            if (!str) return 0;
+            const match = str.match(/(\d+)\s*(hod|den|deň|dni|dní|dňom|tyz|týž|mes)/);
+            if (!match) return 0;
+            const val = parseInt(match[1]);
+            const unit = match[2];
+            if (unit.startsWith('hod')) return val * 60;
+            if (unit.startsWith('d')) return val * 1440;
+            if (unit.startsWith('t')) return val * 10080;
+            if (unit.startsWith('m')) return val * 43200;
+            return 0;
+        }
+
+        function formatAge(ageInMinutes) {
+            if (ageInMinutes < 60) return "Práve teraz";
+            if (ageInMinutes < 1440) {
+                const h = Math.floor(ageInMinutes / 60);
+                if (h === 1) return "Pred 1 hodinou";
+                return "Pred " + h + " hodinami";
+            }
+            if (ageInMinutes < 10080) {
+                const d = Math.floor(ageInMinutes / 1440);
+                if (d === 1) return "Včera";
+                return "Pred " + d + " dňami";
+            }
+            if (ageInMinutes < 43200) {
+                const w = Math.floor(ageInMinutes / 10080);
+                if (w === 1) return "Pred 1 týždňom";
+                return "Pred " + w + " týždňami";
+            }
+            const m = Math.floor(ageInMinutes / 43200);
+            if (m === 1) return "Pred 1 mesiacom";
+            return "Pred " + m + " mesiacmi";
+        }
+
         function toggleOptions(sIdx, pIdx) {
             const el = document.getElementById(`options-${sIdx}-${pIdx}`);
             const isVisible = el.style.display === 'block';
@@ -345,13 +384,7 @@
             spinner.style.display = 'flex';
             document.getElementById(`options-${sIdx}-${pIdx}`).style.display = 'none';
 
-            let historyContext = "";
-            if (feedData.length > 0) {
-                historyContext = "Spomeň vo vnútri článku vtipným spôsobom predchádzajúce udalosti: " + feedData.map(d => d.scenario).join("; ") + ". ";
-            }
-
-            const sysPrompt = `Vráť JSON s 1 novým dlhým, obsiahlym a vtipným príspevkom ("posts": [ { ... } ]) reagujúcim na udalosť: "${scenario}". ${historyContext}Štruktúra rovnaká ako predtým. type: article. Komentujúci majú mená ako 'NormálneMeno VtipnéPodstatnéMeno' (napr. Dávid Klobása). image_url musí byť absolútne unikátne, napr. "https://image.pollinations.ai/prompt/{anglicky_popis}_${Date.now()}?width=800&height=400&nologo=true" alebo picsum.photos so random seed.`;
-            
+            const sysPrompt = `Vráť JSON s 1 novým DLHÝM a VTIPNÝM príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým (type: article). Vytvor aj image_url. Komentujúci musia mať normálne meno a vtipné priezvisko (napr. Peter Podlaha).`;
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -366,8 +399,7 @@
                 const jsonRes = await response.json();
                 let rawText = jsonRes.choices[0].message.content.trim();
                 if (rawText.startsWith("```json")) rawText = rawText.substring(7);
-                if (rawText.endsWith("
-```")) rawText = rawText.substring(0, rawText.length - 3);
+                if (rawText.endsWith("```")) rawText = rawText.substring(0, rawText.length - 3);
                 
                 const parsed = JSON.parse(rawText.trim());
                 if(parsed.posts && parsed.posts.length > 0) {
@@ -394,9 +426,15 @@
         function renderGrid() {
             const container = document.getElementById('feed-container');
             container.innerHTML = '';
+            
+            const currentGlobalTime = parseInt(localStorage.getItem('fb_global_time') || '0');
 
             feedData.slice().reverse().forEach((slot, revIdx) => {
                 const sIdx = feedData.length - 1 - revIdx;
+                
+                let ageMinutes = currentGlobalTime - (slot.timestamp || 0);
+                if (ageMinutes < 0) ageMinutes = 0;
+                const ageStr = formatAge(ageMinutes);
                 
                 slot.posts.forEach((post, pIdx) => {
                     const card = document.createElement('div');
@@ -409,15 +447,15 @@
                     let moreBtnHtml = "";
                     const uId = `txt-${sIdx}-${pIdx}`;
 
-                    if(fullText.length > 250) {
-                        visibleText = fullText.substring(0, 250) + "... ";
-                        hiddenText = fullText.substring(250);
+                    if(fullText.length > 150) {
+                        visibleText = fullText.substring(0, 150) + "... ";
+                        hiddenText = fullText.substring(150);
                         moreBtnHtml = `<span id="hidden-text-${uId}" style="display:none;">${hiddenText}</span> <button id="more-btn-${uId}" class="inline-more-btn" onclick="toggleInline('${uId}')">Zobraziť viac</button>`;
                     }
 
                     let commentsHtml = '';
                     if(post.comments) {
-                        post.comments.slice(0, 2).forEach(c => {
+                        post.comments.slice(0, 3).forEach(c => {
                             const cColor = generateColor(c.username);
                             commentsHtml += `
                                 <div class="comment-item">
@@ -440,7 +478,7 @@
                                 <div class="avatar" style="background-color: ${avColor}">${post.author_name.charAt(0).toUpperCase()}</div>
                                 <div class="author-info">
                                     <span class="author-name">${post.author_name}</span>
-                                    <span class="author-time">Pred chvíľou</span>
+                                    <span class="author-time">${ageStr}</span>
                                 </div>
                             </div>
                             <div class="post-options-container">
@@ -487,6 +525,11 @@
             const post = feedData[sIdx].posts[pIdx];
             const area = document.getElementById('article-content-area');
             const avColor = generateColor(post.author_name);
+            
+            const currentGlobalTime = parseInt(localStorage.getItem('fb_global_time') || '0');
+            let ageMinutes = currentGlobalTime - (feedData[sIdx].timestamp || 0);
+            if (ageMinutes < 0) ageMinutes = 0;
+            const ageStr = formatAge(ageMinutes);
 
             let commentsFullHtml = '';
             post.comments.forEach(c => {
@@ -514,7 +557,7 @@
                         <div class="avatar" style="background-color: ${avColor}">${post.author_name.charAt(0).toUpperCase()}</div>
                         <div class="author-info">
                             <span class="author-name">${post.author_name}</span>
-                            <span class="author-time">Pred chvíľou</span>
+                            <span class="author-time">${ageStr}</span>
                         </div>
                     </div>
                 </div>
@@ -545,13 +588,13 @@
             const errorDisplay = document.getElementById('api-error-display');
             spinner.style.display = 'flex';
             errorDisplay.style.display = 'none';
+            
+            const previousScenarios = feedData.map(f => f.scenario).join(" | ");
+            const contextInstruction = previousScenarios ? ` Udalosti nadväzujú na tieto minulé diania, spomeň ich ak je to vtipné a relevantné: ${previousScenarios}.` : "";
 
-            let historyContext = "";
-            if (feedData.length > 0) {
-                historyContext = "DÔLEŽITÉ: Spomeň vo vnútri článkov vtipným spôsobom tieto predchádzajúce udalosti z nášho sveta, aby bol divák v obraze: " + feedData.map(d => d.scenario).join("; ") + ". ";
-            }
-
-            const systemPrompt = `Si satirický generátor. Vytvor pole 3 veľmi dlhých a vtipných článkov reagujúcich na udalosť ("posts"). Typ musí byť vždy "article". Atribúty: author_name, title, content (pole dlhých odsekov - aspoň 3-4), image_url, comments (pole objektov s username a text). ${historyContext}Komentujúci musia mať slovenské mená v tvare 'Normálne Meno + Vtipné Podstatné Meno ako priezvisko' (napr. Peter Podlaha, Erika Chobotová). image_url musí byť absolútne unikátne pre každý článok! Generuj URL presne takto: "https://image.pollinations.ai/prompt/{detailny_anglicky_vtipny_popis}_${Date.now()}_${Math.floor(Math.random()*10000)}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/${Date.now()}_${Math.floor(Math.random()*10000)}/800/400". Výstup len čistý JSON.`;
+            const systemPrompt = `Vytvor pole 3 DLHÝCH, KOMPLEXNÝCH a EXTRÉMNE VTIPNÝCH článkov reagujúcich na udalosť ("posts"). Typ musí byť vždy "article". Každý článok musí mať atribúty: author_name, title, content (pole odsekov - aspoň 4-5 dlhých odsekov), image_url, comments (pole objektov s username a text, aspoň 3 komentáre). 
+            Komentujúci musia mať normálne krstné meno a vtipné podstatné meno ako priezvisko (napr. Erika Chobotová, Juraj Skrinka, Peter Podlaha).
+            image_url musí byť vytvorené takto: náhodne zvoľ buď URL v tvare "https://image.pollinations.ai/prompt/{detailny_anglicky_popis_obrazka_k_teme_s_nahodnym_cislom_na_konci}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodne_vygenerovane_slovo_${Date.now()}}/800/400" aby sa fotky neopakovali.${contextInstruction} Výstup len striktný JSON.`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -561,7 +604,7 @@
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: systemPrompt }, { role: "user", content: promptInput } ],
                         response_format: { type: "json_object" },
-                        temperature: 0.75
+                        temperature: 0.8
                     })
                 });
 
@@ -570,13 +613,21 @@
                 const jsonRes = await response.json();
                 let rawText = jsonRes.choices[0].message.content.trim();
                 if (rawText.startsWith("```json")) rawText = rawText.substring(7);
-                if (rawText.endsWith("
-```")) rawText = rawText.substring(0, rawText.length - 3);
+                if (rawText.endsWith("```")) rawText = rawText.substring(0, rawText.length - 3);
 
                 const parsedData = JSON.parse(rawText.trim());
+                spinner.style.display = 'none';
+
+                let shiftInput = prompt("Články úspešne vygenerované! O koľko sa posunul čas od predchádzajúcich udalostí? (napr. 2 hodiny, 3 dni, 2 týždne). Ak nechcete posunúť, nechajte prázdne.");
+                let addedMinutes = parseTimeShift(shiftInput || "");
+                
+                let currentGlobalTime = parseInt(localStorage.getItem('fb_global_time') || '0');
+                currentGlobalTime += addedMinutes;
+                localStorage.setItem('fb_global_time', currentGlobalTime);
 
                 feedData.push({
                     scenario: promptInput,
+                    timestamp: currentGlobalTime,
                     posts: parsedData.posts
                 });
 
@@ -587,7 +638,6 @@
             } catch (error) {
                 errorDisplay.innerText = "Chyba generovania. Skontrolujte API kľúč.";
                 errorDisplay.style.display = 'block';
-            } finally {
                 spinner.style.display = 'none';
             }
         }
