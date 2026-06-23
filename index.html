@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fakebook | Pluralitný Mediálny Ekosystém</title>
+    <title>Fakebook</title>
     <style>
         :root {
             --bg-main-fb: #f0f2f5; 
@@ -13,8 +13,6 @@
             --text-dark: #050505;
             --text-muted: #65676b;
             --border-color: #ced0d4;
-            --accent-green: #42b72a;
-            --accent-red: #f02849;
             --bg-input: #f0f2f5;
         }
 
@@ -28,170 +26,141 @@
             line-height: 1.4;
         }
 
-        /* Fakebook Header */
         .navbar {
-            background-color: var(--fb-blue);
-            padding: 10px 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background-color: #ffffff;
+            padding: 0 16px;
+            height: 56px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: sticky; top: 0; z-index: 100;
             display: flex; justify-content: space-between; align-items: center;
         }
 
         .navbar-brand {
-            display: flex; align-items: center; gap: 10px; cursor: pointer; color: white;
+            display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--fb-blue);
+            text-decoration: none;
         }
 
         .logo-icon {
-            font-size: 1.8rem; font-weight: bold; background: white; color: var(--fb-blue);
-            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 2rem; font-weight: bold; background: var(--fb-blue); color: white;
+            width: 40px; height: 40px; display: flex; align-items: flex-end; justify-content: center; border-radius: 50%;
         }
 
         .navbar h1 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
-        .navbar-actions { display: flex; align-items: center; gap: 15px; }
         
-        .nav-icon-btn {
-            background: none; border: none; font-size: 1.2rem; color: white; cursor: pointer; padding: 0;
-        }
-        .nav-icon-btn:hover { color: #ccc; }
+        .navbar-actions { display: flex; align-items: center; gap: 8px; }
 
-        .profile-btn {
-            background-color: rgba(255, 255, 255, 0.2); border: none; width: 40px; height: 40px;
-            border-radius: 50%; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: white;
+        .nav-btn {
+            background-color: var(--bg-input); border: none; width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #050505;
         }
-        .profile-btn:hover { background-color: rgba(255, 255, 255, 0.3); }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--fb-blue); }
+        .nav-btn:hover { background-color: #e4e6eb; }
+
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid #ffffff; }
         .status-dot.active { background-color: #31a24c; }
         .status-dot.inactive { background-color: #f02849; }
 
-        /* Hlavný kontajner */
-        .main-container { max-width: 620px; margin: 20px auto; padding: 0 12px; }
-        .feed-layout { display: flex; flex-direction: column; gap: 18px; }
+        .main-container { max-width: 590px; margin: 20px auto; padding: 0; }
+        .feed-layout { display: flex; flex-direction: column; gap: 16px; }
 
-        /* Post Creation Box */
-        .create-post-box {
-            background-color: var(--bg-card); border-radius: 12px; padding: 16px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); border: 1px solid #e4e6eb;
-            display: flex; flex-direction: column; gap: 12px;
+        .create-post-card {
+            background-color: var(--bg-card); border-radius: 8px; padding: 12px 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); margin-bottom: 16px;
         }
-        .create-post-input-container { display: flex; align-items: center; gap: 12px; }
-        .create-post-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
-        .create-post-input { flex: 1; padding: 10px 16px; border: 1px solid var(--border-color); background-color: var(--bg-input); border-radius: 9999px; font-size: 0.9rem; cursor: pointer; color: var(--text-muted); text-align: left; }
-        .create-post-actions { display: flex; justify-content: space-around; border-top: 1px solid #e4e6eb; padding-top: 10px; }
-        .create-post-action-btn { background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .create-post-action-btn:hover { color: var(--text-dark); }
+        .create-post-top { display: flex; gap: 8px; align-items: center; }
+        .create-post-input {
+            flex: 1; background-color: var(--bg-input); border: none; padding: 12px 16px;
+            border-radius: 20px; font-size: 1.05rem; outline: none; color: var(--text-dark); cursor: pointer;
+        }
+        .create-post-input:hover { background-color: #e4e6eb; }
 
-        /* FB Príspevky (Karty) */
         .post-card {
-            background-color: var(--bg-card); border-radius: 12px; padding: 16px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); border: 1px solid #e4e6eb;
-            position: relative; transition: transform 0.2s;
+            background-color: var(--bg-card); border-radius: 8px; padding: 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); position: relative; margin-bottom: 16px;
         }
 
-        .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; position: relative; }
-        .avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 1rem; box-shadow: inset 0 0 4px rgba(0,0,0,0.2); }
+        .post-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; }
+        .post-header-left { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 1rem; }
         .author-info { display: flex; flex-direction: column; }
-        .author-name { font-weight: 700; font-size: 0.95rem; color: var(--text-dark); }
+        .author-name { font-weight: 600; font-size: 0.95rem; color: var(--text-dark); }
         .author-time { color: var(--text-muted); font-size: 0.8rem; }
-        
-        .post-dropdown-trigger { position: absolute; top: 0; right: 0; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 0 5px; }
-        .post-dropdown-trigger:hover { color: var(--text-dark); }
-        .post-dropdown-menu { display: none; position: absolute; top: 25px; right: 0; background: white; border: 1px solid #e4e6eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; min-width: 150px; }
-        .post-dropdown-menu button { display: block; width: 100%; text-align: left; background: none; border: none; padding: 8px 12px; font-size: 0.88rem; color: var(--text-dark); cursor: pointer; }
-        .post-dropdown-menu button:hover { background-color: #f2f3f5; }
 
-        .post-card h3 { margin: 8px 0; font-size: 1.25rem; font-weight: 700; line-height: 1.3; color: #050505; }
-        .post-text { font-size: 0.95rem; color: var(--text-dark); line-height: 1.5; text-align: justify; }
-        .see-more-btn { background: none; border: none; color: var(--fb-blue); font-weight: 600; cursor: pointer; padding: 0; font-size: 0.95rem; margin-left: 5px; }
-        .see-more-btn:hover { text-decoration: underline; }
-
-        /* Generovaná AI fotka */
-        .fb-photo {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin: 12px 0;
-            border: 1px solid #ced0d4;
-            display: block;
-            background-color: #f0f2f5;
-            min-height: 200px;
-            object-fit: cover;
+        .post-options-container { position: relative; }
+        .post-options-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--text-muted); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .post-options-btn:hover { background-color: var(--bg-input); }
+        .post-dropdown {
+            display: none; position: absolute; right: 0; top: 100%; background: white;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2); border-radius: 8px; width: 220px; z-index: 50; padding: 8px;
         }
+        .post-dropdown button {
+            width: 100%; text-align: left; padding: 8px; background: none; border: none;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer; border-radius: 6px; color: var(--text-dark);
+        }
+        .post-dropdown button:hover { background-color: var(--bg-input); }
 
-        /* FB interakčná lišta */
-        .fb-actions-bar { display: flex; justify-content: space-between; margin-top: 12px; padding: 4px 0; border-top: 1px solid #e4e6eb; border-bottom: 1px solid #e4e6eb; }
-        .fb-action-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 0.88rem; padding: 8px 0; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .post-content { padding: 0 16px 12px 16px; }
+        .post-content h3 { margin: 0 0 8px 0; font-size: 1.1rem; font-weight: 700; color: #050505; }
+        .post-text { font-size: 0.95rem; color: var(--text-dark); line-height: 1.4; margin-bottom: 10px;}
+        .inline-more-btn { background: none; border: none; color: var(--fb-blue); font-weight: 600; cursor: pointer; padding: 0; font-size: 0.95rem; }
+        .inline-more-btn:hover { text-decoration: underline; }
+        
+        .post-image { width: 100%; display: block; max-height: 500px; object-fit: cover; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background-color: #f0f2f5; }
+        
+        .fb-actions-bar { display: flex; justify-content: space-between; margin: 0 16px; padding: 4px 0; border-top: 1px solid #ced0d4; border-bottom: 1px solid #ced0d4; }
+        .fb-action-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-weight: 600; font-size: 0.9rem; padding: 6px 0; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .fb-action-btn:hover { background-color: #f2f3f5; }
 
-        /* Sekcia komentárov */
-        .post-comments-area { display: none; margin-top: 12px; border-top: 1px solid #e4e6eb; padding-top: 10px; }
-        .view-more-comments-label { color: var(--text-muted); font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-bottom: 10px; display: inline-block; }
+        .post-comments-area { padding: 12px 16px; }
+        .view-more-comments-label { color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-bottom: 8px; display: inline-block; }
         .view-more-comments-label:hover { text-decoration: underline; }
 
-        .comment-item { display: flex; gap: 10px; margin-bottom: 10px; }
-        .comment-bubble { background-color: #f0f2f5; padding: 10px 14px; border-radius: 18px; max-width: 88%; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-        .comment-user { font-weight: 700; font-size: 0.88rem; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; color: #050505; }
-        .comment-text { font-size: 0.93rem; color: #0f1419; }
+        .comment-item { display: flex; gap: 8px; margin-bottom: 12px; }
+        .comment-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 0.8rem; flex-shrink: 0; }
+        .comment-bubble { background-color: var(--bg-input); padding: 8px 12px; border-radius: 18px; max-width: 90%; }
+        .comment-user { font-weight: 600; font-size: 0.85rem; color: #050505; }
+        .comment-text { font-size: 0.9rem; color: #050505; margin-top: 2px; }
 
-        /* Full page post view */
         .article-view { display: none; }
-        .btn-back-fb { background-color: white; border: 1px solid var(--border-color); color: var(--text-dark); font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-bottom: 15px; padding: 10px 20px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .btn-back-fb:hover { background-color: #f2f3f5; }
+        .btn-back-fb { background-color: transparent; border: none; color: var(--text-dark); font-size: 1rem; font-weight: 600; cursor: pointer; padding: 12px 16px; display: flex; align-items: center; gap: 8px;}
+        .btn-back-fb:hover { background-color: var(--bg-input); border-radius: 8px; }
 
-        /* Profile View */
-        .profile-view { display: none; }
-        .profile-header {
-            background-color: var(--bg-card); border-radius: 12px; padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08); border: 1px solid #e4e6eb;
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
-            margin-bottom: 18px;
-        }
-        .profile-large-avatar { width: 100px; height: 100px; border-radius: 50%; background-color: #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 3rem; }
-        .profile-name { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); }
-        .profile-pinned-posts { display: flex; flex-direction: column; gap: 18px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background-color: var(--bg-card); border-radius: 8px; max-width: 500px; width: 100%; padding: 20px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); position: relative; }
+        
+        .close-modal-btn { position: absolute; right: 15px; top: 15px; font-size: 32px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 1; padding: 0; }
+        .close-modal-btn:hover { color: var(--text-dark); }
 
-        /* Replies */
-        .replies-container { margin-left: 38px; margin-top: 6px; border-left: 2px solid #e4e6eb; padding-left: 12px; }
-        .reply-box-trigger { margin-left: 52px; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; cursor: pointer; margin-bottom: 8px; display: inline-block; }
-        .reply-input-box { display: none; margin-left: 52px; margin-top: 5px; gap: 8px; margin-bottom: 12px; }
-        .reply-input-box input { flex: 1; padding: 8px 16px; border: 1px solid var(--border-color); background-color: var(--bg-input); border-radius: 9999px; font-size: 0.9rem; outline: none; }
-        .reply-input-box button { background-color: var(--fb-blue); color: white; border: none; padding: 0 16px; border-radius: 9999px; cursor: pointer; font-weight: 700; font-size: 0.85rem; }
+        .modal-content h3 { margin-top: 0; font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+        .modal-content textarea, .modal-content input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--border-color); background-color: var(--bg-card); border-radius: 6px; font-size: 1rem; outline: none; font-family: inherit; margin-bottom: 16px; }
+        .modal-content textarea { height: 120px; resize: none; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
-        /* Modály */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(244, 244, 244, 0.85); backdrop-filter: blur(5px); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background-color: var(--bg-card); border-radius: 12px; max-width: 550px; width: 100%; padding: 25px; box-shadow: 0 16px 40px rgba(0,0,0,0.25); position: relative; border: 1px solid var(--border-color); }
-        .modal-content h3 { margin-top: 0; font-size: 1.4rem; font-weight: 800; margin-bottom: 12px; }
-        .modal-content textarea, .modal-content input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--border-color); background-color: var(--bg-input); border-radius: 8px; font-size: 0.95rem; outline: none; font-family: inherit; }
-        .modal-content textarea { height: 110px; resize: none; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
-
-        .btn { padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.95rem; border: none; }
+        .btn { padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem; border: none; }
         .btn-secondary { background-color: #e4e6eb; color: var(--text-dark); }
         .btn-secondary:hover { background-color: #d8dadf; }
         .btn-primary { background-color: var(--fb-blue); color: white; }
         .btn-primary:hover { background-color: var(--fb-blue-hover); }
+        .btn-danger { background-color: #f02849; color: white; margin-top: 10px; width: 100%; }
 
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.97); align-items: center; justify-content: center; flex-direction: column; z-index: 300; text-align: center; padding: 30px; }
-        .spinner { border: 4px solid #f3f3f3; width: 45px; height: 45px; border-radius: 50%; border-left-color: var(--fb-blue); animation: spin 0.8s linear infinite; margin-bottom: 15px; }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.9); align-items: center; justify-content: center; flex-direction: column; z-index: 300; }
+        .spinner { border: 4px solid #f3f3f3; width: 40px; height: 40px; border-radius: 50%; border-left-color: var(--fb-blue); animation: spin 1s linear infinite; margin-bottom: 16px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .badge { font-size: 0.65rem; padding: 2px 7px; border-radius: 9999px; font-weight: 700; margin-left: 6px; text-transform: uppercase; }
-        .badge.pro { background-color: #e1f7ec; color: #31a24c; }
-        .badge.con { background-color: #ffeef6; color: #f02849; }
-        .badge.user { background-color: #e8f5fe; color: var(--fb-blue); }
+        .error-message { color: #f02849; background-color: #ffeef6; padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; display: none; }
+        
+        .shared-item { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <div class="navbar-brand" onclick="showFeed()">
+        <a class="navbar-brand" onclick="showGrid()">
             <div class="logo-icon">f</div>
-            <h1>Fakebook</h1>
-        </div>
+        </a>
         <div class="navbar-actions">
-            <button class="nav-icon-btn" onclick="showFeed()">🏠</button>
-            <button class="nav-icon-btn" onclick="showProfile()">👤</button>
-            <button class="profile-btn" onclick="openApiModal()">
+            <button class="nav-btn" onclick="showGrid()">🏠</button>
+            <button class="nav-btn" onclick="openProfile()">👤</button>
+            <button class="nav-btn" onclick="openApiModal()" style="position: relative;">
                 🔑
                 <div class="status-dot inactive" id="login-status-dot"></div>
             </button>
@@ -200,67 +169,57 @@
 
     <div class="main-container">
         
-        <div id="view-feed" class="feed-layout">
-            <div class="create-post-box">
-                <div class="create-post-input-container">
-                    <div class="create-post-avatar">U</div>
-                    <div class="create-post-input" onclick="openPostModal()">Napíšte čo máte na mysli</div>
-                </div>
-                <div class="create-post-actions">
-                    <button class="create-post-action-btn">📷 Video naživo</button>
-                    <button class="create-post-action-btn" onclick="openPostModal()">🖼️ Fotka/video</button>
-                    <button class="create-post-action-btn">😊 Nálada/aktivita</button>
+        <div id="view-grid" class="feed-layout">
+            <div class="create-post-card" onclick="openCreateModal()">
+                <div class="create-post-top">
+                    <div class="avatar" style="background-color: var(--text-muted);">TY</div>
+                    <div class="create-post-input">Napíšte čo máte na mysli...</div>
                 </div>
             </div>
-            <div id="feed-grid"></div>
+            <div id="feed-container"></div>
         </div>
 
         <div id="view-article" class="article-view">
-            <button class="btn-back-fb" onclick="showFeed()">← Návrat na hlavný feed</button>
+            <button class="btn-back-fb" onclick="showGrid()">← Späť na Fakebook</button>
             <div id="article-content-area"></div>
-            <div class="post-card" style="margin-top:15px;">
-                <h4 style="margin: 0 0 15px 0; font-size:1rem; font-weight:800; color:var(--text-muted)">KOMPLETNÁ DISKUSIA A VLÁKNA</h4>
-                <div id="comments-list-area"></div>
-            </div>
         </div>
+    </div>
 
-        <div id="view-profile" class="profile-view">
-            <div class="profile-header">
-                <div class="profile-large-avatar">U</div>
-                <div class="profile-name">Váš Profil</div>
-            </div>
-            <div class="profile-pinned-posts" id="profile-pinned-grid"></div>
+    <div class="modal-overlay" id="create-modal">
+        <div class="modal-content">
+            <button class="close-modal-btn" onclick="closeCreateModal()">&times;</button>
+            <h3>Vytvoriť príspevok</h3>
+            <textarea id="scenario-input" placeholder="Napíšte čo máte na mysli... (Zadajte udalosť)"></textarea>
+            <div class="error-message" id="api-error-display"></div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="triggerGeneration()">Publikovať</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="api-modal">
         <div class="modal-content">
-            <h3>Správa API prihlásenia</h3>
-            <p>Vlož svoj osobný Groq API kľúč. Kľúč sa uloží iba lokálne vo tvojom zariadení.</p>
-            <input type="text" id="api-key-input" placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxx" style="margin-bottom: 12px;">
-            <div id="key-status-text" style="font-size: 0.85rem; font-weight: bold; margin-bottom: 12px;"></div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeApiModal()">Zavrieť</button>
-                <button class="btn btn-primary" onclick="saveApiKey()">Prihlásiť / Uložiť</button>
+            <button class="close-modal-btn" onclick="closeApiModal()">&times;</button>
+            <h3>Nastavenia API a dát</h3>
+            <input type="text" id="api-key-input" placeholder="Groq API Key (gsk_...)">
+            <div id="key-status-text" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 16px;"></div>
+            <div class="modal-actions" style="margin-bottom: 16px;">
+                <button class="btn btn-primary" onclick="saveApiKey()">Uložiť kľúč</button>
             </div>
+            <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
+            <button class="btn btn-danger" onclick="deleteAllData()">Vymazať všetky články a údaje</button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="post-modal">
-        <div class="modal-content">
-            <h3>Vytvoriť príspevok</h3>
-            <p>Váš príbeh spustí mediálnu búrku troch článkov s generovanými fotkami.</p>
-            <textarea id="scenario-input" placeholder="Napr.: FIFA zamietla sťažnosť Kosova a definitívne pridelila body SR..."></textarea>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closePostModal()">Zrušiť</button>
-                <button class="btn btn-primary" onclick="triggerPostGeneration()">Uverejniť</button>
-            </div>
+    <div class="modal-overlay" id="user-profile-modal">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+            <button class="close-modal-btn" onclick="closeProfile()">&times;</button>
+            <h3>Môj Profil</h3>
+            <div id="shared-posts-container"></div>
         </div>
     </div>
 
     <div class="loading-overlay" id="loading-spinner">
         <div class="spinner"></div>
-        <div style="font-weight: 800; font-size:1.1rem; color:#050505;">Generujem mediálnu búrku a fotky...</div>
+        <div style="font-weight: 700; font-size:1.1rem; color:#050505;">Publikujem príspevky...</div>
     </div>
 
     <script>
@@ -268,35 +227,30 @@
         const API_URL = "https://corsproxy.io/?" + encodeURIComponent(BASE_API_URL);
         const MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct";
 
-        let appSlots = []; 
-        let pinnedPosts = []; 
+        let feedData = [];
+        let sharedPosts = [];
 
-        function getSavedApiKey() { return localStorage.getItem('whatif_groq_api_key') || ''; }
+        function getSavedApiKey() { return localStorage.getItem('fb_api_key') || ''; }
 
         function initApp() {
             updateLoginStatusUI();
-            const savedData = localStorage.getItem('whatif_multiverse_slots_v3'); 
-            const savedPinned = localStorage.getItem('whatif_pinned_posts_v3');
-            if (savedData) {
-                appSlots = JSON.parse(savedData);
-            } else {
-                appSlots = []; 
-                saveToLocalStorage();
-            }
-            if (savedPinned) { pinnedPosts = JSON.parse(savedPinned); }
-            renderFeed();
+            const savedData = localStorage.getItem('fb_feed_data');
+            const savedShared = localStorage.getItem('fb_shared_posts');
+            if (savedData) feedData = JSON.parse(savedData);
+            if (savedShared) sharedPosts = JSON.parse(savedShared);
+            renderGrid();
         }
 
         function updateLoginStatusUI() {
             const key = getSavedApiKey();
             const dot = document.getElementById('login-status-dot');
             const statusText = document.getElementById('key-status-text');
-            if (key && key.startsWith('gsk_')) {
+            if (key) {
                 dot.className = "status-dot active";
-                if(statusText) { statusText.innerText = "✓ Stav: Úspešne prihlásený"; statusText.style.color = "#31a24c"; }
+                if(statusText) { statusText.innerText = "✓ Úspešne prihlásený"; statusText.style.color = "#31a24c"; }
             } else {
                 dot.className = "status-dot inactive";
-                if(statusText) { statusText.innerText = "✗ Stav: Neprihlásený"; statusText.style.color = "#f02849"; }
+                if(statusText) { statusText.innerText = "✗ Neprihlásený"; statusText.style.color = "#f02849"; }
             }
         }
 
@@ -309,296 +263,284 @@
 
         function saveApiKey() {
             const newKey = document.getElementById('api-key-input').value.trim();
-            if(!newKey) { localStorage.removeItem('whatif_groq_api_key'); }
-            else { localStorage.setItem('whatif_groq_api_key', newKey); }
+            if(!newKey) localStorage.removeItem('fb_api_key');
+            else localStorage.setItem('fb_api_key', newKey);
             updateLoginStatusUI();
             closeApiModal();
         }
 
-        function openPostModal() {
-            if (!getSavedApiKey()) { alert("Najprv zadaj Groq API kľúč cez ikonu kľúča."); openApiModal(); return; }
-            document.getElementById('post-modal').style.display = 'flex';
-            document.getElementById('scenario-input').value = '';
+        function deleteAllData() {
+            if(confirm("Naozaj chcete vymazať všetky dáta?")) {
+                feedData = [];
+                sharedPosts = [];
+                localStorage.removeItem('fb_feed_data');
+                localStorage.removeItem('fb_shared_posts');
+                renderGrid();
+                closeApiModal();
+            }
         }
-        function closePostModal() { document.getElementById('post-modal').style.display = 'none'; }
 
-        function generateColorFromString(str) {
-            let hash = 0; for (let i = 0; i < str.length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+        function openCreateModal() {
+            if (!getSavedApiKey()) { openApiModal(); return; }
+            document.getElementById('create-modal').style.display = 'flex';
+            document.getElementById('scenario-input').value = '';
+            document.getElementById('api-error-display').style.display = 'none';
+        }
+        function closeCreateModal() { document.getElementById('create-modal').style.display = 'none'; }
+
+        function openProfile() {
+            document.getElementById('user-profile-modal').style.display = 'flex';
+            const container = document.getElementById('shared-posts-container');
+            container.innerHTML = '';
+            if (sharedPosts.length === 0) {
+                container.innerHTML = '<p>Zatiaľ nemáte žiadne zdieľané články.</p>';
+            } else {
+                sharedPosts.forEach(post => {
+                    container.innerHTML += `
+                        <div class="shared-item">
+                            <h4 style="margin:0 0 8px 0">${post.title}</h4>
+                            <p style="font-size:0.9rem; color:#65676b; margin:0">Zdroj: ${post.author_name}</p>
+                        </div>
+                    `;
+                });
+            }
+        }
+        function closeProfile() { document.getElementById('user-profile-modal').style.display = 'none'; }
+
+        function generateColor(str) {
+            let hash = 0; for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
             const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
             return "#" + "00000".substring(0, 6 - c.length) + c;
         }
 
         function saveToLocalStorage() {
-            localStorage.setItem('whatif_multiverse_slots_v3', JSON.stringify(appSlots));
-            localStorage.setItem('whatif_pinned_posts_v3', JSON.stringify(pinnedPosts));
+            localStorage.setItem('fb_feed_data', JSON.stringify(feedData));
+            localStorage.setItem('fb_shared_posts', JSON.stringify(sharedPosts));
         }
 
-        function showFeed() {
-            document.getElementById('view-article').style.display = 'none';
-            document.getElementById('view-profile').style.display = 'none';
-            document.getElementById('view-feed').style.display = 'flex';
-            renderFeed();
-        }
-        function showProfile() {
-            document.getElementById('view-article').style.display = 'none';
-            document.getElementById('view-feed').style.display = 'none';
-            document.getElementById('view-profile').style.display = 'block';
-            renderPinnedPosts();
+        function toggleOptions(sIdx, pIdx) {
+            const el = document.getElementById(`options-${sIdx}-${pIdx}`);
+            const isVisible = el.style.display === 'block';
+            document.querySelectorAll('.post-dropdown').forEach(d => d.style.display = 'none');
+            if (!isVisible) el.style.display = 'block';
         }
 
-        function renderFeed() {
-            const container = document.getElementById('feed-grid');
-            container.innerHTML = '';
-
-            for (let i = appSlots.length - 1; i >= 0; i--) {
-                if (!appSlots[i].data.posts || appSlots[i].data.posts.length === 0) continue;
-                
-                appSlots[i].data.posts.forEach((post, postIndex) => {
-                    if (post.deleted) return;
-                    const card = createPostCard(post, i, postIndex);
-                    container.appendChild(card);
-                });
-            }
-        }
-
-        function renderPinnedPosts() {
-            const container = document.getElementById('profile-pinned-grid');
-            container.innerHTML = '';
-            if (pinnedPosts.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Zatiaľ ste nezdieľali (nepripli) žiadne príspevky.</p>';
-                return;
-            }
-            pinnedPosts.forEach((post, index) => {
-                const card = createPostCard(post, null, index, true); 
-                container.appendChild(card);
-            });
-        }
-
-        function createPostCard(post, slotIndex, postIndex, isPinned = false) {
-            const card = document.createElement('div');
-            card.className = 'post-card';
-            if (slotIndex !== null && postIndex !== null) { card.id = `post-${slotIndex}-${postIndex}`; }
-            
-            const avColor = generateColorFromString(post.author_name);
-            
-            let photoHtml = '';
-            if (post.type === 'article' && post.photo_desc) {
-                // Použitie bezplatnej služby Pollinations.ai pre generovanie obrázkov na základe promptu
-                const seed = Math.floor(Math.random() * 100000); // aby sa obrázok necacheoval nesprávne
-                const encodedPrompt = encodeURIComponent(post.photo_desc + " highly detailed, realistic, high quality");
-                const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=450&nologo=true&seed=${seed}`;
-                photoHtml = `<img src="${imageUrl}" class="fb-photo" alt="AI Generated Image" loading="lazy" onerror="this.style.display='none'">`;
-            }
-            
-            let middleContentHtml = '';
-            if (post.type === 'article') {
-                const preview = post.content ? post.content[0] : '';
-                const fullTextHtml = post.content ? post.content.map(p => `<p class="post-text rolled-out-content">${p}</p>`).join('') : '';
-                middleContentHtml = `
-                    <h3>${post.title}</h3>
-                    <div class="post-text rolled-in-content">${preview}...</div>
-                    ${fullTextHtml}`;
-            }
-
-            let dropdownActionsHtml = '';
-            if (!isPinned) {
-                dropdownActionsHtml = `
-                    <button onclick="openPostFullPage(${slotIndex}, ${postIndex})">Zobraziť článok</button>
-                    <button onclick="pinPost(${slotIndex}, ${postIndex})">Zdieľať článok</button>
-                    <button onclick="deletePost(${slotIndex}, ${postIndex})">Vymazať článok</button>
-                    <button onclick="regeneratePost(${slotIndex}, ${postIndex})">Uverejniť ďalšiu kapitolu správ</button>`;
-            } else { dropdownActionsHtml = `<button onclick="unpinPost(${postIndex})">Zrušiť zdieľanie</button>`; }
-
-            let seeMoreBtnHtml = '';
-            if (post.type === 'article') {
-                seeMoreBtnHtml = `<button class="see-more-btn" onclick="togglePostRoll(${slotIndex}, ${postIndex})">Zobraziť viac</button>`;
-            }
-            if (!post.content) seeMoreBtnHtml = ''; 
-
-            let commPreviewHtml = '';
-            if (post.comments) {
-                post.comments.slice(0, 2).forEach(c => {
-                    const cColor = generateColorFromString(c.username);
-                    commPreviewHtml += `<div class="comment-item"><div class="avatar" style="background-color:${cColor}; width:30px; height:30px; font-size:0.8rem;">${c.username.charAt(0)}</div><div class="comment-bubble"><div class="comment-user">@${c.username}</div><div class="comment-text">${c.text}</div></div></div>`;
-                });
-            }
-
-            card.innerHTML = `
-                <div class="post-header">
-                    <div class="avatar" style="background-color: ${avColor}">${post.author_name.charAt(0).toUpperCase()}</div>
-                    <div class="author-info"><span class="author-name">${post.author_name}</span><span class="author-time">${isPinned ? 'Zdieľané' : ('Kapitola ' + (slotIndex + 1))} · Alternatívna realita</span></div>
-                    <button class="post-dropdown-trigger" onclick="togglePostDropdown(${slotIndex}, ${postIndex})">⋮</button>
-                    <div class="post-dropdown-menu" id="dropdown-${slotIndex}-${postIndex}">${dropdownActionsHtml}</div>
-                </div>
-                ${photoHtml}
-                ${middleContentHtml}
-                <div class="post-text rolled-in-content">${seeMoreBtnHtml}</div>
-                <div class="fb-actions-bar"><button class="fb-action-btn">👍 Páči sa mi to</button><button class="fb-action-btn" onclick="togglePostRoll(${slotIndex}, ${postIndex})">💬 Komentovať</button><button class="fb-action-btn">🔁 Zdieľať</button></div>
-                <div class="post-comments-area" id="comments-area-${slotIndex}-${postIndex}"><div class="comments-content">${commPreviewHtml}</div><div class="full-comments-list"></div></div>
-            `;
-            if (post.type === 'article') {
-                card.querySelectorAll('.rolled-out-content').forEach(el => el.style.display = 'none');
-                card.querySelector('.comments-content').style.display = 'block';
-                card.querySelector('.full-comments-list').style.display = 'none';
-            } else { card.querySelector('.comments-content').style.display = 'block'; }
-            
-            return card;
-        }
-
-        function togglePostDropdown(slotIndex, postIdx) {
-            const dropdown = document.getElementById(`dropdown-${slotIndex}-${postIdx}`);
-            document.querySelectorAll('.post-dropdown-menu').forEach(d => { if (d.id !== dropdown.id) d.style.display = 'none'; });
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-        }
-
-        window.onclick = function(event) {
-            if (!event.target.matches('.post-dropdown-trigger')) {
-                document.querySelectorAll('.post-dropdown-menu').forEach(d => d.style.display = 'none');
-            }
-        }
-
-        function togglePostRoll(slotIndex, postIdx) {
-            const postCard = document.getElementById(`post-${slotIndex}-${postIdx}`);
-            if (!postCard) return;
-            const post = appSlots[slotIndex].data.posts[postIdx];
-            if (!post || !post.content) return; 
-
-            const rolledIn = postCard.querySelector('.rolled-in-content');
-            const rolledOut = postCard.querySelectorAll('.rolled-out-content');
-            const commentsArea = document.getElementById(`comments-area-${slotIndex}-${postIdx}`);
-            const commentsContent = commentsArea.querySelector('.comments-content');
-            const fullCommentsList = commentsArea.querySelector('.full-comments-list');
-            
-            const btn = postCard.querySelector('.see-more-btn');
-
-            if (rolledIn.style.display === 'none') { // Roll in
-                rolledIn.style.display = 'block';
-                rolledOut.forEach(el => el.style.display = 'none');
-                if (post.type === 'article') {
-                    commentsArea.style.display = 'none';
-                    commentsContent.style.display = 'block';
-                    fullCommentsList.style.display = 'none';
-                    if (btn) btn.innerText = 'Zobraziť viac';
-                }
-            } else { // Roll out
-                rolledIn.style.display = 'none';
-                rolledOut.forEach(el => el.style.display = 'block');
-                commentsArea.style.display = 'block';
-                if (btn) btn.innerText = 'Zobraziť menej';
-                
-                renderFullCommentsInFeed(slotIndex, postIdx, fullCommentsList);
-                fullCommentsList.style.display = 'block';
-                commentsContent.style.display = 'none';
-            }
-        }
-
-        function renderFullCommentsInFeed(slotIdx, postIdx, container) {
-            const post = appSlots[slotIdx].data.posts[postIdx];
-            container.innerHTML = '';
-            if (!post.comments || post.comments.length === 0) { container.innerHTML = '<p style="color:var(--text-muted); font-size:0.88rem;">Zatiaľ žiadne komentáre.</p>'; return; }
-            
-            const visibleComments = post.comments.slice(0, 10); 
-            visibleComments.forEach(c => {
-                const node = createCommentNode(c, visibleComments);
-                container.appendChild(node);
-            });
-            if (post.comments.length > 10) { container.innerHTML += `<button class="see-more-btn" style="display:block; margin: 10px auto;" onclick="openPostFullPage(${slotIdx}, ${postIdx})">Zobraziť všetkých ${post.comments.length} komentárov</button>`; }
-        }
-
-        function createCommentNode(c, comments) {
-            const node = document.createElement('div');
-            node.style.marginBottom = "10px";
-            const cColor = generateColorFromString(c.username);
-            let bHtml = '';
-            if (c.stance === 'proponent') bHtml = '<span class="badge pro">Podpora</span>';
-            if (c.stance === 'opponent') bHtml = '<span class="badge con">Proti</span>';
-            
-            node.innerHTML = `<div class="comment-item" style="margin-bottom:2px;"><div class="avatar" style="background-color:${cColor}; width:30px; height:30px; font-size:0.8rem;">${c.username.charAt(0)}</div><div class="comment-bubble"><div class="comment-user">@${c.username} ${bHtml}</div><div class="comment-text">${c.text}</div></div></div>`;
-            return node;
-        }
-
-        // --- Post Actions ---
-
-        function pinPost(slotIndex, postIdx) {
-            const post = JSON.parse(JSON.stringify(appSlots[slotIndex].data.posts[postIdx])); 
-            if (pinnedPosts.some(p => p.id === post.id)) { alert("Tento príspevok už je pripnutý."); return; }
-            pinnedPosts.push(post);
+        function deletePost(sIdx, pIdx) {
+            feedData[sIdx].posts.splice(pIdx, 1);
             saveToLocalStorage();
-            alert("Článok pripnutý na profil.");
-            showFeed(); 
+            renderGrid();
         }
 
-        function deletePost(slotIndex, postIdx) {
-            if (!confirm("Naozaj chcete vymazať tento príspevok?")) return;
-            appSlots[slotIndex].data.posts[postIdx].deleted = true;
-            const postId = appSlots[slotIndex].data.posts[postIdx].id;
-            pinnedPosts = pinnedPosts.filter(p => p.id !== postId);
+        function sharePost(sIdx, pIdx) {
+            const post = feedData[sIdx].posts[pIdx];
+            sharedPosts.push(post);
             saveToLocalStorage();
-            showFeed(); 
+            alert("Článok bol pripnutý na váš profil.");
+            document.getElementById(`options-${sIdx}-${pIdx}`).style.display = 'none';
         }
 
-        async function regeneratePost(slotIndex, postIdx) {
-            const originalScenario = appSlots[slotIndex].data.scenario;
-            document.getElementById('post-modal').style.display = 'none'; 
-            if (!originalScenario) return;
-            
-            await triggerPostGeneration(originalScenario);
-        }
-
-        function unpinPost(index) {
-            pinnedPosts.splice(index, 1);
-            saveToLocalStorage();
-            showProfile();
-        }
-
-        async function triggerPostGeneration(retryScenario = null) {
-            const apiKey = getSavedApiKey();
-            const promptInput = retryScenario || document.getElementById('scenario-input').value.trim();
-            if (!promptInput) return;
-
-            closePostModal();
+        async function replacePost(sIdx, pIdx) {
+            if (!getSavedApiKey()) return;
+            const scenario = feedData[sIdx].scenario;
             const spinner = document.getElementById('loading-spinner');
             spinner.style.display = 'flex';
+            document.getElementById(`options-${sIdx}-${pIdx}`).style.display = 'none';
 
-            let historyContext = "";
-            const unlockedSlots = appSlots.filter((s, idx) => s.data.posts && s.data.posts.length > 0);
-            if (unlockedSlots.length > 0) {
-                historyContext = "KONTEXT DOTERAJŠIEHO ALTERNATÍVNEHO SVETA (Tieto udalosti už prebehli, stavaj na nich a rešpektuj ich kontinuitu):\n";
-                unlockedSlots.forEach((s, idx) => { historyContext += `- Kapitola ${idx + 1}: "${s.data.scenario}"\n`; });
+            const sysPrompt = `Vráť JSON s 1 novým príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým. type: article. Vytvor aj image_url.`;
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: MODEL_NAME,
+                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: scenario } ],
+                        response_format: { type: "json_object" },
+                        temperature: 0.8
+                    })
+                });
+                const jsonRes = await response.json();
+                let rawText = jsonRes.choices[0].message.content.trim();
+                if (rawText.startsWith("```json")) rawText = rawText.substring(7);
+                if (rawText.endsWith("```")) rawText = rawText.substring(0, rawText.length - 3);
+                
+                const parsed = JSON.parse(rawText.trim());
+                if(parsed.posts && parsed.posts.length > 0) {
+                    feedData[sIdx].posts[pIdx] = parsed.posts[0];
+                    saveToLocalStorage();
+                    renderGrid();
+                }
+            } catch(e) { alert("Chyba nahradzovania"); }
+            spinner.style.display = 'none';
+        }
+
+        function toggleInline(id) {
+            const hiddenSpan = document.getElementById(`hidden-text-${id}`);
+            const btn = document.getElementById(`more-btn-${id}`);
+            if(hiddenSpan.style.display === 'none') {
+                hiddenSpan.style.display = 'inline';
+                btn.innerText = 'Zobraziť menej';
+            } else {
+                hiddenSpan.style.display = 'none';
+                btn.innerText = 'Zobraziť viac';
             }
+        }
 
-            // Upravený prompt na prísne vyžiadanie ANGLICKÉHO promptu pre fotku
-            const systemPrompt = `Si komplexný generátor pluralitného internetu pre model ${MODEL_NAME}, bežiaci na platforme Fakebook.
-Používateľ zadá udalosť (zlomový bod reality). Na základe nej a predošlého vývoja sveta MUSÍŠ vygenerovať pole príspevkov ("posts"), ktoré zachytia celú situáciu z troch rôznych uhlov pohľadu spoločnosti.
+        function renderGrid() {
+            const container = document.getElementById('feed-container');
+            container.innerHTML = '';
 
-Vygeneruj PRESNE 3 články, bez zbytočných rečí. 
+            feedData.slice().reverse().forEach((slot, revIdx) => {
+                const sIdx = feedData.length - 1 - revIdx;
+                
+                slot.posts.forEach((post, pIdx) => {
+                    const card = document.createElement('div');
+                    card.className = 'post-card';
+                    const avColor = generateColor(post.author_name);
+                    
+                    const fullText = post.content.join(" ");
+                    let visibleText = fullText;
+                    let hiddenText = "";
+                    let moreBtnHtml = "";
+                    const uId = `txt-${sIdx}-${pIdx}`;
 
-Kombinácia 3 článkov:
-1. Článok 1 ("type": "article"): Seriózne spravodajstvo (mainstream_news), dlhý text.
-2. Článok 2 ("type": "article"): Progresívna/spoločenská kritika (woke_critique), dlhý text.
-3. Článok 3 ("type": "article"): Alternatívne médium hovoriace o skrytých elitách (conspiracy), dlhý text.
+                    if(fullText.length > 150) {
+                        visibleText = fullText.substring(0, 150) + "... ";
+                        hiddenText = fullText.substring(150);
+                        moreBtnHtml = `<span id="hidden-text-${uId}" style="display:none;">${hiddenText}</span> <button id="more-btn-${uId}" class="inline-more-btn" onclick="toggleInline('${uId}')">Zobraziť viac</button>`;
+                    }
 
-DÔLEŽITÉ PRE FOTKY: V poli "photo_desc" MUSÍŠ vygenerovať veľmi podrobný prompt pre generátor obrázkov VÝHRADNE V ANGLIČTINE. Popíš presnú scénu, ľudí, emócie a štýl (napr. "A photorealistic image of a politician at a press conference, dramatic lighting, news photography").
+                    let commentsHtml = '';
+                    if(post.comments) {
+                        post.comments.slice(0, 2).forEach(c => {
+                            const cColor = generateColor(c.username);
+                            commentsHtml += `
+                                <div class="comment-item">
+                                    <div class="comment-avatar" style="background-color:${cColor}">${c.username.charAt(0)}</div>
+                                    <div class="comment-bubble">
+                                        <div class="comment-user">${c.username}</div>
+                                        <div class="comment-text">${c.text}</div>
+                                    </div>
+                                </div>`;
+                        });
+                    }
 
-Ku KAŽDÉMU článku pridaj presne 6 unikátnych komentárov.
+                    const copyrightHtml = post.image_url.includes('pollinations') 
+                        ? `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: AI Generated</div>`
+                        : `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: Web Archive</div>`;
 
-${historyContext}
+                    card.innerHTML = `
+                        <div class="post-header">
+                            <div class="post-header-left">
+                                <div class="avatar" style="background-color: ${avColor}">${post.author_name.charAt(0).toUpperCase()}</div>
+                                <div class="author-info">
+                                    <span class="author-name">${post.author_name}</span>
+                                    <span class="author-time">Pred chvíľou</span>
+                                </div>
+                            </div>
+                            <div class="post-options-container">
+                                <button class="post-options-btn" onclick="toggleOptions(${sIdx}, ${pIdx})">•••</button>
+                                <div id="options-${sIdx}-${pIdx}" class="post-dropdown">
+                                    <button onclick="openPost(${sIdx}, ${pIdx})">Zobraziť článok</button>
+                                    <button onclick="sharePost(${sIdx}, ${pIdx})">Zdieľať článok</button>
+                                    <button onclick="replacePost(${sIdx}, ${pIdx})">Vygenerovať náhradu</button>
+                                    <button onclick="deletePost(${sIdx}, ${pIdx})" style="color:var(--text-muted)">Vymazať článok</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <h3>${post.title}</h3>
+                            <div class="post-text">${visibleText}${moreBtnHtml}</div>
+                        </div>
+                        <img src="${post.image_url}" class="post-image" alt="Article image">
+                        ${copyrightHtml}
+                        <div class="fb-actions-bar">
+                            <button class="fb-action-btn">👍 Páči sa mi to</button>
+                            <button class="fb-action-btn" onclick="openPost(${sIdx}, ${pIdx})">💬 Komentovať</button>
+                            <button class="fb-action-btn" onclick="sharePost(${sIdx}, ${pIdx})">🔁 Zdieľať</button>
+                        </div>
+                        <div class="post-comments-area">
+                            ${commentsHtml}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+        }
 
-Odpovedaj výhradne v čistom JSON.
-{
-  "posts": [
-    {
-      "id": "p1",
-      "type": "article",
-      "perspective": "mainstream_news",
-      "author_name": "Hlavné Správy 24",
-      "title": "Titulok...",
-      "content": ["Odsek 1", "Odsek 2", "Odsek 3"],
-      "photo_desc": "A realistic photo of a large protest in the city center, people holding flags, rainy weather, high resolution, news style",
-      "comments": [ { "id": "c1", "username": "Fero1", "stance": "proponent", "text": "Super!", "parentId": null } ]
-    }
-  ]
-}`;
+        function showGrid() { 
+            document.getElementById('view-article').style.display = 'none'; 
+            document.getElementById('view-grid').style.display = 'flex'; 
+            renderGrid(); 
+        }
+
+        function openPost(sIdx, pIdx) {
+            document.getElementById(`options-${sIdx}-${pIdx}`).style.display = 'none';
+            document.getElementById('view-grid').style.display = 'none';
+            document.getElementById('view-article').style.display = 'block';
+
+            const post = feedData[sIdx].posts[pIdx];
+            const area = document.getElementById('article-content-area');
+            const avColor = generateColor(post.author_name);
+
+            let commentsFullHtml = '';
+            post.comments.forEach(c => {
+                const cColor = generateColor(c.username);
+                commentsFullHtml += `
+                    <div class="comment-item">
+                        <div class="comment-avatar" style="background-color:${cColor}">${c.username.charAt(0)}</div>
+                        <div class="comment-bubble">
+                            <div class="comment-user">${c.username}</div>
+                            <div class="comment-text">${c.text}</div>
+                        </div>
+                    </div>`;
+            });
+
+            area.className = 'post-card';
+            area.style.marginBottom = '0';
+            
+            const copyrightHtml = post.image_url.includes('pollinations') 
+                ? `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: AI Generated</div>`
+                : `<div style="font-size:0.75rem; color:var(--text-muted); text-align:right; padding: 4px 16px;">Zdroj: Web Archive</div>`;
+
+            area.innerHTML = `
+                <div class="post-header">
+                    <div class="post-header-left">
+                        <div class="avatar" style="background-color: ${avColor}">${post.author_name.charAt(0).toUpperCase()}</div>
+                        <div class="author-info">
+                            <span class="author-name">${post.author_name}</span>
+                            <span class="author-time">Pred chvíľou</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <h3>${post.title}</h3>
+                    ${post.content.map(p => `<p class="post-text">${p}</p>`).join('')}
+                </div>
+                <img src="${post.image_url}" class="post-image" alt="Article image">
+                ${copyrightHtml}
+                <div class="fb-actions-bar">
+                    <button class="fb-action-btn">👍 Páči sa mi to</button>
+                    <button class="fb-action-btn">💬 Komentovať</button>
+                    <button class="fb-action-btn" onclick="sharePost(${sIdx}, ${pIdx})">🔁 Zdieľať</button>
+                </div>
+                <div class="post-comments-area">
+                    <h4 style="margin:0 0 12px 0; font-size:1rem;">Komentáre</h4>
+                    ${commentsFullHtml}
+                </div>
+            `;
+        }
+
+        async function triggerGeneration() {
+            const apiKey = getSavedApiKey();
+            const promptInput = document.getElementById('scenario-input').value.trim();
+            if (!promptInput) return;
+
+            const spinner = document.getElementById('loading-spinner');
+            const errorDisplay = document.getElementById('api-error-display');
+            spinner.style.display = 'flex';
+            errorDisplay.style.display = 'none';
+
+            const systemPrompt = `Vytvor pole 3 článkov reagujúcich na udalosť ("posts"). Typ musí byť vždy "article". Každý článok musí mať atribúty: author_name, title, content (pole odsekov), image_url, comments (pole objektov s username a text). image_url musí byť vytvorené takto: náhodne zvoľ buď URL v tvare "https://image.pollinations.ai/prompt/{anglicky_popis_obrazka}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodny_text}/800/400". Výstup len JSON.`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -608,11 +550,11 @@ Odpovedaj výhradne v čistom JSON.
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: systemPrompt }, { role: "user", content: promptInput } ],
                         response_format: { type: "json_object" },
-                        temperature: 0.7
+                        temperature: 0.75
                     })
                 });
 
-                if (!response.ok) throw new Error(`Proxy zlyhalo (${response.status})`);
+                if (!response.ok) throw new Error(`Chyba API`);
 
                 const jsonRes = await response.json();
                 let rawText = jsonRes.choices[0].message.content.trim();
@@ -621,136 +563,30 @@ Odpovedaj výhradne v čistom JSON.
 
                 const parsedData = JSON.parse(rawText.trim());
 
-                appSlots.push({ locked: false, data: { scenario: promptInput, posts: parsedData.posts } });
-
-                appSlots.forEach((slot, slotIdx) => { 
-                    slot.data.posts.forEach((p, idx) => { if (!p.id) p.id = `ai-p-${slotIdx}-${idx}-${Date.now()}`; });
+                feedData.push({
+                    scenario: promptInput,
+                    posts: parsedData.posts
                 });
 
                 saveToLocalStorage();
-                spinner.style.display = 'none';
-                showFeed();
+                closeCreateModal();
+                renderGrid();
 
             } catch (error) {
-                console.error(error);
+                errorDisplay.innerText = "Chyba generovania. Skontrolujte API kľúč.";
+                errorDisplay.style.display = 'block';
+            } finally {
                 spinner.style.display = 'none';
-                alert(`Chyba simulácie: ${error.message}. Skontroluj API kľúč.`);
             }
         }
 
-        // --- Full Page Article View ---
-
-        function openPostFullPage(slotIdx, postIdx) {
-            document.getElementById('view-feed').style.display = 'none';
-            document.getElementById('view-profile').style.display = 'none';
-            document.getElementById('view-article').style.display = 'block';
-
-            const post = appSlots[slotIdx].data.posts[postIdx];
-            const area = document.getElementById('article-content-area');
-            const avColor = generateColorFromString(post.author_name);
-
-            let photoHtml = '';
-            if (post.photo_desc) {
-                const seed = Math.floor(Math.random() * 100000);
-                const encodedPrompt = encodeURIComponent(post.photo_desc + " highly detailed, realistic, high quality");
-                const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=450&nologo=true&seed=${seed}`;
-                photoHtml = `<img src="${imageUrl}" class="fb-photo" alt="AI Generated Image">`;
+        document.addEventListener('click', function(event) {
+            const isDropdownBtn = event.target.closest('.post-options-btn');
+            const isDropdown = event.target.closest('.post-dropdown');
+            if (!isDropdownBtn && !isDropdown) {
+                document.querySelectorAll('.post-dropdown').forEach(d => d.style.display = 'none');
             }
-
-            area.className = 'post-card'; 
-            area.innerHTML = `
-                <div class="post-header">
-                    <div class="avatar" style="background-color: ${avColor}">${post.author_name.charAt(0).toUpperCase()}</div>
-                    <div class="author-info"><span class="author-name">${post.author_name}</span><span class="author-time">Kompletný záznam · Kontext impulzu: "${appSlots[slotIdx].data.scenario}"</span></div>
-                </div>
-                ${photoHtml}
-                <h2>${post.title}</h2>
-                ${post.content ? post.content.map(p => `<p class="post-text">${p}</p>`).join('') : '<p class="post-text">Nenašiel sa obsah článku.</p>'}
-            `;
-            renderFullPostCommentsView(slotIdx, postIdx);
-        }
-
-        function renderFullPostCommentsView(slotIdx, postIdx) {
-            const container = document.getElementById('comments-list-area');
-            const post = appSlots[slotIdx].data.posts[postIdx];
-            container.innerHTML = '';
-            if (!post.comments || post.comments.length === 0) { container.innerHTML = '<p style="color:var(--text-muted);">Zatiaľ žiadne komentáre v tejto diskusii.</p>'; return; }
-            
-            const commentMap = {};
-            post.comments.forEach(c => {
-                const node = document.createElement('div');
-                node.style.marginBottom = "12px";
-                let bHtml = '';
-                if (c.stance === 'proponent') bHtml = '<span class="badge pro">Podpora</span>';
-                if (c.stance === 'opponent') bHtml = '<span class="badge con">Proti</span>';
-                if (c.stance === 'user') bHtml = '<span class="badge user">TY</span>';
-                
-                const cColor = generateColorFromString(c.username);
-                node.innerHTML = `
-                    <div class="comment-item" style="margin-bottom:2px;">
-                        <div class="avatar" style="background-color:${cColor}; width:34px; height:34px; font-size:0.85rem;">${c.username.charAt(0)}</div>
-                        <div class="comment-bubble"><div class="comment-user">@${c.username} ${bHtml}</div><div class="comment-text">${c.text}</div></div>
-                    </div>
-                    <span class="reply-box-trigger" onclick="toggleReplyBoxView('${c.id}')">↩ Odpovedať</span>
-                    <div class="reply-input-box" id="reply-box-view-${c.id}">
-                        <input type="text" id="input-view-${c.id}" placeholder="Napíš reakciu do tohto vlákna...">
-                        <button onclick="submitUserReplyView('${slotIdx}', '${postIdx}', '${c.id}')">Odoslať</button>
-                    </div>
-                    <div class="replies-container" id="replies-to-view-${c.id}"></div>
-                `;
-                commentMap[c.id] = node;
-            });
-
-            post.comments.forEach(c => {
-                const element = commentMap[c.id];
-                if (c.parentId && commentMap[c.parentId]) {
-                    commentMap[c.parentId].querySelector(`#replies-to-view-${c.parentId}`).appendChild(element);
-                } else { container.appendChild(element); }
-            });
-        }
-
-        function toggleReplyBoxView(id) {
-            const b = document.getElementById(`reply-box-view-${id}`);
-            b.style.display = b.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        async function submitUserReplyView(slotIdx, postIdx, parentCommentId) {
-            const apiKey = getSavedApiKey();
-            const inputEl = document.getElementById(`input-view-${parentCommentId}`);
-            const userText = inputEl.value.trim();
-            if (!userText || !apiKey) return;
-
-            inputEl.disabled = true;
-            const post = appSlots[slotIdx].data.posts[postIdx];
-            const userCommentId = "user-" + Date.now();
-            post.comments.push({ id: userCommentId, username: "SlobodnyObcan_TY", stance: "user", text: userText, parentId: parentCommentId });
-            renderFullPostCommentsView(slotIdx, postIdx); 
-
-            const replyPrompt = `Si generátor hádok pre modul ${MODEL_NAME}. Používateľ poslal komentár: "${userText}". Vygeneruj dvoch Fakebook botov, ktorí na neho reagujú (jeden vysmeje "opponent", jeden podporí "proponent"). Vráť čistý JSON:
-{ "replies": [ {"username": "Profil1", "stance": "opponent", "text": "..." }, {"username": "Profil2", "stance": "proponent", "text": "..." } ] }`;
-
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model: MODEL_NAME, messages: [ { role: "system", content: replyPrompt } ] })
-                });
-
-                const jsonRes = await response.json();
-                let rawText = jsonRes.choices[0].message.content.trim();
-                if (rawText.startsWith("```json")) rawText = rawText.substring(7);
-                if (rawText.endsWith("
-```")) rawText = rawText.substring(0, rawText.length - 3);
-
-                const parsedReplies = JSON.parse(rawText.trim());
-                parsedReplies.replies.forEach((rep, idx) => {
-                    post.comments.push({ id: `ai-r-${Date.now()}-${idx}`, username: rep.username, stance: rep.stance, text: rep.text, parentId: userCommentId });
-                });
-                saveToLocalStorage();
-                renderFullPostCommentsView(slotIdx, postIdx); 
-
-            } catch (error) { console.error(error); inputEl.disabled = false; }
-        }
+        });
 
         window.onload = initApp;
     </script>
