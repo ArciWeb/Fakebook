@@ -984,7 +984,7 @@
         }
 
         // TÁTO FUNKCIA VYBUDUJE STROM KOMENTÁROV TAK, ABY BOL CELKOVÝ POČET BUBLÍN PRESNE MAX. MAXCOUNT
-        function buildPreviewTree(allComments, maxCount = 3) {
+        function buildPreviewTree(allComments, maxCount = 1) {
             if (!allComments || allComments.length === 0) return [];
             let result = [];
             let currentCount = 0;
