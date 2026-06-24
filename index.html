@@ -132,7 +132,7 @@
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background-color: var(--bg-card); border-radius: 8px; max-width: 500px; width: 100%; padding: 20px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto;}
         
-        .close-modal-btn { position: absolute; right: 15px; top: 15px; font-size: 72px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 1; padding: 0; }
+        .close-modal-btn { position: absolute; right: 20px; top: 15px; font-size: 100px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 0.7; padding: 0; }
         .close-modal-btn:hover { color: var(--text-dark); }
 
         .modal-content h3 { margin-top: 0; font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
@@ -163,7 +163,6 @@
         
         .shared-item { border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
 
-        /* FB Profile Styles */
         .profile-header-card {
             background-color: var(--bg-card); border-radius: 0 0 8px 8px; margin-bottom: 16px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-bottom: 1px solid var(--border-color);
@@ -368,6 +367,19 @@
             }
         }
 
+        function sanitizeComments(comments) {
+            if (!comments) return [];
+            comments.forEach(c => {
+                if (!c.id) c.id = Math.random().toString(36).substr(2, 9);
+                if (!c.replies) c.replies = [];
+                c.replies.forEach(r => {
+                    if (!r.id) r.id = Math.random().toString(36).substr(2, 9);
+                    r.replies = []; 
+                });
+            });
+            return comments;
+        }
+
         function initApp() {
             updateLoginStatusUI();
             populateSelectOptions();
@@ -389,10 +401,7 @@
                     slot.posts.forEach(post => {
                         if(post.likes === undefined) post.likes = Math.floor(Math.random() * 800) + 12;
                         if(post.comments) {
-                            post.comments.forEach(c => {
-                                if(!c.id) c.id = Math.random().toString(36).substr(2, 9);
-                                if(!c.replies) c.replies = [];
-                            });
+                            post.comments = sanitizeComments(post.comments);
                         }
                     });
                 }
@@ -699,7 +708,12 @@
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
                 
                 if (parsed && parsed.username && parsed.text) {
-                    if(!found.comment.replies) found.comment.replies = [];
+                    let targetComment = found.comment;
+                    if (found.parent !== post.comments) {
+                        targetComment = post.comments.find(c => c.replies && c.replies.some(r => r.id === found.comment.id));
+                        if(!targetComment) targetComment = found.comment; 
+                    }
+                    if(!targetComment.replies) targetComment.replies = [];
                     
                     let newTrollReplyId = Math.random().toString(36).substr(2, 9);
                     let trollReplyObj = {
@@ -708,7 +722,7 @@
                         text: `<span style="color:var(--fb-blue); font-weight:600;">${authorName}</span> ${parsed.text}`,
                         replies: []
                     };
-                    found.comment.replies.push(trollReplyObj);
+                    targetComment.replies.push(trollReplyObj);
 
                     if (Math.random() > 0.5) {
                         if(loaderText) loaderText.innerText = "Pôvodný autor sa začal hádať späť...";
@@ -732,7 +746,7 @@
                             const jsonRes2 = await response2.json();
                             const parsed2 = tryParseJSON(jsonRes2.choices[0].message.content);
                             if (parsed2 && parsed2.text) {
-                                trollReplyObj.replies.push({
+                                targetComment.replies.push({
                                     id: Math.random().toString(36).substr(2, 9),
                                     username: authorName,
                                     text: `<span style="color:var(--fb-blue); font-weight:600;">${parsed.username}</span> ${parsed2.text}`,
@@ -768,7 +782,7 @@
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
             if(opt) opt.style.display = 'none';
 
-            const sysPrompt = `Vráť JSON s 1 novým EXTRÉMNE DLHÝM a BULVÁRNYM príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým. Článok musí byť poriadne dlhý. Vymysli si vlastné detaily k udalosti, nejaký bod rozober do extrémneho detailu, vymysli si príbeh a nafúkni to ako bulvárny novinár. Ostatné z udalosti len spomeň. Content musí mať veľa odsekov. Komentujúci musia mať normálne krstné meno a vtipné priezvisko. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Vygeneruj 5 až 20 komentárov, musia to byť hádky, hlúpi ľudia, trollovia. Výstup musí byť striktne iba JSON objekt.`;
+            const sysPrompt = `Vráť JSON s 1 novým EXTRÉMNE DLHÝM a BULVÁRNYM príspevkom ("posts": [ { ... } ]) reagujúcim na: "${scenario}". Štruktúra rovnaká ako predtým. Článok musí byť poriadne dlhý. Vymysli si vlastné detaily k udalosti, nejaký bod rozober do extrémneho detailu, vymysli si príbeh a nafúkni to ako bulvárny novinár. Ostatné z udalosti len spomeň. Content musí mať veľa odsekov. Komentujúci musia mať normálne krstné meno a vtipné priezvisko. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Vygeneruj 5 až 20 hlavných komentárov s podkomentármi ('replies' pole). V podkomentároch sa ľudia hádajú (často 5-6 ľudí útočí na pôvodného autora a on im 1-2 krát odpíše na obranu). Všetci čítali článok alebo vlákno. Výstup musí byť striktne iba JSON objekt so štruktúrou: {"posts": [{"comments": [{"username":"", "text":"", "replies": [{"username":"", "text":""}]}]}]}.`;
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -787,12 +801,7 @@
                 if(parsed && parsed.posts && parsed.posts.length > 0) {
                     let newPost = parsed.posts[0];
                     newPost.likes = Math.floor(Math.random() * 800) + 12;
-                    if(newPost.comments) {
-                        newPost.comments.forEach(c => {
-                            if(!c.id) c.id = Math.random().toString(36).substr(2, 9);
-                            if(!c.replies) c.replies = [];
-                        });
-                    }
+                    newPost.comments = sanitizeComments(newPost.comments);
                     feedData[sIdx].posts[pIdx] = newPost;
                     saveToLocalStorage();
                     renderGrid();
@@ -814,7 +823,7 @@
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
             if(opt) opt.style.display = 'none';
 
-            const sysPrompt = `Vytvor NÁHODNÝ POČET od 5 do 25 komentárov k tomuto článku: "${post.title}". Komentáre musia písať EXTRÉMNE hlúpi ľudia, trollovia, hádajú sa medzi sebou, riešia nezmysly a konšpirácie. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Výstup musí byť čistý JSON: { "comments": [ {"username": "Meno Priezvisko", "text": "obsah komentára"} ] }`;
+            const sysPrompt = `Vytvor NÁHODNÝ POČET od 5 do 25 hlavných komentárov k tomuto článku: "${post.title}". Každý komentár musí mať pole 'replies'. V podkomentároch sa ľudia hádajú (5-6 ľudí odpovedá na pôvodný komentár, autor sa bráni). Komentáre musia písať EXTRÉMNE hlúpi ľudia, trollovia, hádajú sa medzi sebou, riešia nezmysly a konšpirácie. Inšpiruj sa z poolu mien: ${getRandomNames(15).join(', ')}. Výstup musí byť čistý JSON: { "comments": [ {"username": "Meno Priezvisko", "text": "obsah", "replies": [{"username":"", "text":""}]} ] }`;
             
             try {
                 const response = await fetch(API_URL, {
@@ -833,11 +842,8 @@
 
                 if (parsed && Array.isArray(parsed.comments)) {
                     if (!post.comments) post.comments = [];
-                    parsed.comments.forEach(c => {
-                        c.id = Math.random().toString(36).substr(2, 9);
-                        c.replies = [];
-                        post.comments.push(c);
-                    });
+                    let newComments = sanitizeComments(parsed.comments);
+                    newComments.forEach(c => post.comments.push(c));
                     saveToLocalStorage();
                     if (document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
                     else renderGrid();
@@ -858,7 +864,7 @@
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
             if(opt) opt.style.display = 'none';
 
-            const sysPrompt = `Vytvor 1 nový EXTRÉMNE DLHÝ, KOMPLEXNÝ a BULVÁRNY príspevok/článok o tej istej téme: "${scenario}". Očakávané atribúty: author_name, title, content (pole odsekov), image_url, comments (pole s username a text). Článok musí byť poriadne dlhý. Vyber si info z témy a vymýšľaj si, nejaký bod rozober do detailu, vymysli si k nemu príbeh a nafúkni to ako bulvárny novinár. Ostatné veci z témy len spomeň. Content musí mať veľa odsekov. Vygeneruj aspoň 5-15 komentárov plných hlúpych ľudí, trollov a hádok. Inšpiruj sa pre autorov a komentujúcich z poolu mien: ${getRandomNames(15).join(', ')}. Výstup: čisto JSON objekt { "posts": [ { ... } ] }`;
+            const sysPrompt = `Vytvor 1 nový EXTRÉMNE DLHÝ, KOMPLEXNÝ a BULVÁRNY príspevok/článok o tej istej téme: "${scenario}". Očakávané atribúty: author_name, title, content (pole odsekov), image_url, comments. Článok musí byť poriadne dlhý. Vyber si info z témy a vymýšľaj si, nejaký bod rozober do detailu, vymysli si k nemu príbeh a nafúkni to ako bulvárny novinár. Ostatné veci z témy len spomeň. Content musí mať veľa odsekov. Vygeneruj aspoň 5-15 hlavných komentárov, ktoré obsahujú aj vlákna odpovedí ('replies' pole). V nich sa ľudia hádajú, útočia na autora komentára (aj 5-6 ľudí) a ten sa bráni. Inšpiruj sa pre autorov a komentujúcich z poolu mien: ${getRandomNames(15).join(', ')}. Výstup: čisto JSON objekt { "posts": [ { "comments": [{"username":"", "text":"", "replies": [{"username":"", "text":""}]}] } ] }`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -884,12 +890,7 @@
 
                 if (extractedPost) {
                     extractedPost.likes = Math.floor(Math.random() * 800) + 12;
-                    if(extractedPost.comments) {
-                        extractedPost.comments.forEach(c => {
-                            if(!c.id) c.id = Math.random().toString(36).substr(2, 9);
-                            if(!c.replies) c.replies = [];
-                        });
-                    }
+                    extractedPost.comments = sanitizeComments(extractedPost.comments);
                     feedData[sIdx].posts.push(extractedPost);
                     saveToLocalStorage();
                     renderGrid();
@@ -947,14 +948,20 @@
             let post = feedData[sIdx].posts[pIdx];
             let found = findCommentById(post.comments, id);
             if(found) {
-                if(!found.comment.replies) found.comment.replies = [];
+                let targetComment = found.comment;
+                if (found.parent !== post.comments) {
+                    targetComment = post.comments.find(c => c.replies && c.replies.some(r => r.id === found.comment.id));
+                    if(!targetComment) targetComment = found.comment;
+                }
+                if(!targetComment.replies) targetComment.replies = [];
+                
                 let newReply = {
                     id: Math.random().toString(36).substr(2, 9),
                     username: currentUsername,
                     text: `<span style="color:var(--fb-blue); font-weight:600;">${replyToName}</span> ${text}`,
                     replies: []
                 };
-                found.comment.replies.push(newReply);
+                targetComment.replies.push(newReply);
                 saveToLocalStorage();
                 renderGrid();
                 if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
@@ -977,8 +984,6 @@
                 currentCount++;
                 
                 if (currentCount >= maxCount) break;
-                
-
             }
             return result;
         }
@@ -1212,11 +1217,11 @@
             const previousScenarios = feedData.map(f => f.scenario).join(" | ");
             const contextInstruction = previousScenarios ? ` Udalosti nadväzujú na minulé diania, spomeň ich ak je to vtipné a relevantné: ${previousScenarios}.` : "";
 
-            const systemPrompt = `Vytvor pole 3 EXTRÉMNE DLHÝCH, BULVÁRNYCH a VTIPNÝCH článkov reagujúcich na udalosť ("posts"). Atribúty: author_name, title, content (pole odsekov), image_url, comments (pole objektov s username a text). 
+            const systemPrompt = `Vytvor pole 3 EXTRÉMNE DLHÝCH, BULVÁRNYCH a VTIPNÝCH článkov reagujúcich na udalosť ("posts"). Atribúty: author_name, title, content (pole odsekov), image_url, comments (pole objektov s username, text a replies). 
             DÔLEŽITÉ PRE ČLÁNOK: Článok musí byť poriadne dlhý! Vyber si informácie z promptu, začni si o nich vymýšľať ďalšie šialené veci. Ostatné veci len spomeň, ale vždy jeden alebo dva body rozober do absolútneho detailu, vymysli si k tomu príbeh a nafúkni to ako ten najlepší bulvárny novinár. Majú svojský štýl a veľa si domýšľaj. Content musí obsahovať skutočne veľa dlhých odsekov.
-            DÔLEŽITÉ PRE KOMENTÁRE: Pre každý článok vygeneruj NÁHODNÝ POČET od 5 do 30 komentárov! Musia byť extrémne vtipné, píšu ich hlúpi ľudia, trollovia, hádajú sa, urážajú a tvoria konšpirácie.
+            DÔLEŽITÉ PRE KOMENTÁRE: Pre každý článok vygeneruj NÁHODNÝ POČET od 5 do 30 hlavných komentárov! Tieto komentáre musia obsahovať vnorené pole 'replies' (odpovede na hlavný komentár). V replies sa ľudia intenzívne hádajú, často 5-6 ľudí útočí na autora komentára a on im 1-2 krát odpovie späť na obranu. Žiadna tretia úroveň nebude, len hlavný komentár a jeho replies. Všetci komentujúci musia čítať článok alebo celé vlákno.
             Meno autora aj komentujúcich vyber z tohto poolu: ${getRandomNames(15).join(', ')}.
-            image_url vyber náhodne buď "https://image.pollinations.ai/prompt/{detailny_anglicky_popis}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodne_slovo_${Date.now()}}/800/400".${contextInstruction} Výstup vráť striktne ako JSON objekt s poľom "posts".`;
+            image_url vyber náhodne buď "https://image.pollinations.ai/prompt/{detailny_anglicky_popis}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodne_slovo_${Date.now()}}/800/400".${contextInstruction} Výstup vráť striktne ako JSON objekt s poľom "posts". Štruktúra komentárov: [{"username": "...", "text": "...", "replies": [{"username": "...", "text": "..."}]}]`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -1244,10 +1249,7 @@
                 parsedData.posts.forEach(post => {
                     post.likes = Math.floor(Math.random() * 800) + 12;
                     if(post.comments) {
-                        post.comments.forEach(c => {
-                            c.id = Math.random().toString(36).substr(2, 9);
-                            c.replies = [];
-                        });
+                        post.comments = sanitizeComments(post.comments);
                     }
                 });
 
