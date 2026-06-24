@@ -982,37 +982,16 @@
             renderGrid();
             if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
         }
+function getSingleRandomComment(allComments) {
+    if (!allComments || allComments.length === 0) return [];
+    
+    // Vyberieme náhodný index z poľa
+    const randomIndex = Math.floor(Math.random() * allComments.length);
+    
+    // Vrátime pole s jedným objektom (aby sa zachovala štruktúra, ktorú očakáva tvoj zvyšok kódu)
+    return [allComments[randomIndex]];
+}
 
-        // TÁTO FUNKCIA VYBUDUJE STROM KOMENTÁROV TAK, ABY BOL CELKOVÝ POČET BUBLÍN PRESNE MAX. MAXCOUNT
-        function buildPreviewTree(allComments, maxCount = 1) {
-            if (!allComments || allComments.length === 0) return [];
-            let result = [];
-            let currentCount = 0;
-            let shuffled = [...allComments].sort(() => 0.5 - Math.random());
-            
-            for (let c of shuffled) {
-                if (currentCount >= maxCount) break;
-                
-                // Vytvoríme kópiu hlavného komentára, ale vyprázdnime mu reakcie (pridáme len tie, ktoré sa zmestia)
-                let clonedComment = JSON.parse(JSON.stringify(c));
-                clonedComment.replies = []; 
-                
-                result.push(clonedComment);
-                currentCount++;
-                
-                if (currentCount >= maxCount) break;
-                
-                // Ak mal tento komentár aj reakcie, naplníme ich do limitu
-                if (c.replies && c.replies.length > 0) {
-                    for (let r of c.replies) {
-                        if (currentCount >= maxCount) break;
-                        clonedComment.replies.push(r); 
-                        currentCount++;
-                    }
-                }
-            }
-            return result;
-        }
 
         function renderComments(commentsArray, sIdx, pIdx, parentId = null) {
             let html = '';
