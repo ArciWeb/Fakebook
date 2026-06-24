@@ -650,6 +650,10 @@
 
             const commentText = found.comment.text;
             const authorName = found.comment.username;
+            
+            // Extrakcia kontextu článku
+            const articleTitle = post.title || "";
+            const articleContent = Array.isArray(post.content) ? post.content.join(" ") : (post.content || "");
 
             const personas = [
                 "Agresívny boomer z krčmy, ktorý nadáva na všetko nové", 
@@ -674,9 +678,11 @@
             ];
             const randomStyle = trollStyles[Math.floor(Math.random() * trollStyles.length)];
 
+            // Pridaný kontext článku do promptu
             const sysPrompt = `Si človek na sociálnej sieti. Tvoja rola: ${randomPersona}. 
             Tvoj presný štýl pre túto jednu odpoveď: ${randomStyle}.
-            Odpovedáš priamo na komentár od užívateľa ${authorName}: "${commentText}". 
+            Najprv si prečítaj tento článok, aby si bol v obraze (Názov: "${articleTitle}", Obsah: "${articleContent}").
+            Teraz reaguješ priamo na komentár k tomuto článku od užívateľa ${authorName}, ktorý napísal: "${commentText}". 
             Tvoje meno: vyber niekoho z: ${getRandomNames(5).join(', ')}. 
             ZAKÁZANÉ FRÁZY: Nesmieš začať odpoveď slovami ako 'Ah', 'Och', 'Zaujímavé', 'Klasika', 'No jasné'. Buď originálny, použi jedinečný tón, občas hrubosť, občas úplnú iróniu. Výstup vráť čisto len ako JSON: { "username": "Meno Priezvisko", "text": "tvoja drsná a špecifická odpoveď" }`;
             
@@ -711,7 +717,7 @@
                     if (Math.random() > 0.5) {
                         if(loaderText) loaderText.innerText = "Pôvodný autor sa začal hádať späť...";
                         
-                        const sysPrompt2 = `Si používateľ na Facebooku menom "${authorName}". Niekto s menom "${parsed.username}" ťa práve vyprovokoval po tom, čo si napísal: "${commentText}".
+                        const sysPrompt2 = `Si používateľ na Facebooku menom "${authorName}". Komentoval si článok s názvom "${articleTitle}" slovami: "${commentText}". Niekto s menom "${parsed.username}" ťa práve vyprovokoval.
                         Jeho útok/provokácia na teba znie: "${parsed.text}".
                         Odpovedz mu okamžite späť do vlákna! Hádaj sa, bráň sa, prekrúcaj fakty, používaj iróniu alebo ho brutálne zotri. Nech to znie ako ozajstná toxická prestrelka na internete.
                         ZAKÁZANÉ FRÁZY: 'Oh', 'Páni', 'No dovoľ', 'Wow'. Buď priamy a uštipačný. Výstup vráť čisto len ako JSON: { "text": "tvoja defenzívna/útočná odpoveď" }`;
@@ -1033,7 +1039,7 @@
                             <span style="cursor:pointer;" onclick="deleteComment('${sIdx}', '${pIdx}', '${c.id}')">Vymazať</span>
                             <span style="cursor:pointer; color: var(--fb-blue); font-weight: 700;" onclick="triggerAICommentReply('${sIdx}', '${pIdx}', '${c.id}')">🤖 AI Troll Reakcia</span>
                         </div>
-                        <div id="reply-box-${c.id}" style="display:none; margin-top: 8px; display: flex; gap: 8px;">
+                        <div id="reply-box-${c.id}" style="display: none; margin-top: 8px; gap: 8px;">
                             <input type="text" id="reply-input-${c.id}" placeholder="Odpovedať ${c.username}..." style="flex:1; border-radius: 16px; border: 1px solid var(--border-color); padding: 4px 12px; outline: none; background: var(--bg-input); font-size: 0.85rem;">
                             <button onclick="submitReply('${sIdx}', '${pIdx}', '${c.id}', '${c.username}')" style="background: none; border: none; color: var(--fb-blue); font-weight: bold; cursor:pointer; font-size:0.85rem;">Odoslať</button>
                         </div>
