@@ -132,7 +132,7 @@
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background-color: var(--bg-card); border-radius: 8px; max-width: 500px; width: 100%; padding: 20px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto;}
         
-        .close-modal-btn { position: absolute; right: 20px; top: 15px; font-size: 100px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 0.7; padding: 0; }
+        .close-modal-btn { position: absolute; right: 20px; top: 15px; font-size: 150px; font-weight: bold; cursor: pointer; color: var(--text-muted); background: none; border: none; line-height: 0.5; padding: 0; }
         .close-modal-btn:hover { color: var(--text-dark); }
 
         .modal-content h3 { margin-top: 0; font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
@@ -253,6 +253,17 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="review-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="close-modal-btn" onclick="closeReviewModal()">&times;</button>
+            <h3>Úprava vygenerovaných obrázkov</h3>
+            <div id="review-images-container" style="display:flex; flex-direction:column; gap:24px;"></div>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 12px;" onclick="confirmAndPublish()">Potvrdiť a Publikovať</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="api-modal">
         <div class="modal-content">
             <button class="close-modal-btn" onclick="closeApiModal()">&times;</button>
@@ -327,6 +338,7 @@
         let feedData = [];
         let sharedPosts = [];
         let currentUsername = "Používateľ";
+        let pendingGenerationData = null;
 
         function getSavedApiKey() { return localStorage.getItem('fb_api_key') || ''; }
 
@@ -533,6 +545,7 @@
             document.getElementById('api-error-display').style.display = 'none';
         }
         function closeCreateModal() { document.getElementById('create-modal').style.display = 'none'; }
+        function closeReviewModal() { document.getElementById('review-modal').style.display = 'none'; }
 
         function openProfile() {
             document.getElementById('user-profile-modal').style.display = 'flex';
@@ -769,6 +782,45 @@
             }
             spinner.style.display = 'none';
         }
+
+function replaceImage(sIdx, pIdx) {
+    let post = feedData[sIdx].posts[pIdx];
+    if (!post) return;
+
+    // Otvorí pop-up okno na zadanie textu (promptu)
+    let newPrompt = prompt("Zadajte anglický prompt pre nový obrázok:", post.image_prompt || "");
+    
+    // Ak používateľ stlačil "Zrušiť" (Cancel), proces sa preruší
+    if (newPrompt === null) return;
+
+    if (newPrompt.trim() === "") {
+        // Ak nechal text prázdny, obrázok úplne zmizne
+        post.image_url = "";
+        post.image_prompt = "";
+    } else {
+        // Vygenerovanie novej URL adresy s unikátnym seed-om, aby sa vyhol cache pamäti
+        let w = 800;
+        let h = 450;
+        post.image_prompt = newPrompt;
+        post.image_url = `https://image.pollinations.ai/prompt/${encodeURIComponent(newPrompt)}?width=${w}&height=${h}&nologo=true&seed=${Math.random()}`;
+    }
+
+    // Uloženie zmien do LocalStorage
+    saveToLocalStorage();
+
+    // Skrytie rozbaleného dropdown menu
+    const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
+    if (opt) opt.style.display = 'none';
+
+    // Aktualizácia zobrazenia (podľa toho, či si v detaile článku alebo na hlavnej nástenke)
+    if (document.getElementById('view-article').style.display === 'block') {
+        openPost(sIdx, pIdx);
+    } else {
+        renderGrid();
+    }
+}
+
+
 
         async function replacePost(sIdx, pIdx) {
             if (!getSavedApiKey() || !feedData[sIdx]) return;
@@ -1092,6 +1144,8 @@
                                     <button onclick="sharePost(${sIdx}, ${pIdx})">Zdieľať článok</button>
                                     <button onclick="addRandomComments(${sIdx}, ${pIdx})">💬 Pridať vojnu v komentároch</button>
                                     <button onclick="generateAlternativePost(${sIdx}, ${pIdx})">📰 Generovať ďalší článok</button>
+                                    <button onclick="replaceImage(${sIdx}, ${pIdx})">🖼️ Nahradiť obrázok</button>
+
                                     <button onclick="replacePost(${sIdx}, ${pIdx})">Vygenerovať náhradu</button>
                                     <button onclick="showPrompt(${sIdx})">📝 Zobraziť prompt</button>
                                     <button onclick="deletePost(${sIdx}, ${pIdx})" style="color:var(--text-muted)">Vymazať článok</button>
@@ -1217,11 +1271,11 @@
             const previousScenarios = feedData.map(f => f.scenario).join(" | ");
             const contextInstruction = previousScenarios ? ` Udalosti nadväzujú na minulé diania, spomeň ich ak je to vtipné a relevantné: ${previousScenarios}.` : "";
 
-            const systemPrompt = `Vytvor pole 3 EXTRÉMNE DLHÝCH, BULVÁRNYCH a VTIPNÝCH článkov reagujúcich na udalosť ("posts"). Atribúty: author_name, title, content (pole odsekov), image_url, comments (pole objektov s username, text a replies). 
+            const systemPrompt = `Vytvor pole 3 EXTRÉMNE DLHÝCH, BULVÁRNYCH a VTIPNÝCH článkov reagujúcich na udalosť ("posts"). Atribúty: author_name, title, content (pole odsekov), image_prompt (detailný anglický vizuálny prompt pre AI generátor fotiek), comments (pole objektov s username, text a replies). 
             DÔLEŽITÉ PRE ČLÁNOK: Článok musí byť poriadne dlhý! Vyber si informácie z promptu, začni si o nich vymýšľať ďalšie šialené veci. Ostatné veci len spomeň, ale vždy jeden alebo dva body rozober do absolútneho detailu, vymysli si k tomu príbeh a nafúkni to ako ten najlepší bulvárny novinár. Majú svojský štýl a veľa si domýšľaj. Content musí obsahovať skutočne veľa dlhých odsekov.
             DÔLEŽITÉ PRE KOMENTÁRE: Pre každý článok vygeneruj NÁHODNÝ POČET od 5 do 30 hlavných komentárov! Tieto komentáre musia obsahovať vnorené pole 'replies' (odpovede na hlavný komentár). V replies sa ľudia intenzívne hádajú, často 5-6 ľudí útočí na autora komentára a on im 1-2 krát odpovie späť na obranu. Žiadna tretia úroveň nebude, len hlavný komentár a jeho replies. Všetci komentujúci musia čítať článok alebo celé vlákno.
             Meno autora aj komentujúcich vyber z tohto poolu: ${getRandomNames(15).join(', ')}.
-            image_url vyber náhodne buď "https://image.pollinations.ai/prompt/{detailny_anglicky_popis}?width=800&height=400&nologo=true" ALEBO "https://picsum.photos/seed/{nahodne_slovo_${Date.now()}}/800/400".${contextInstruction} Výstup vráť striktne ako JSON objekt s poľom "posts". Štruktúra komentárov: [{"username": "...", "text": "...", "replies": [{"username": "...", "text": "..."}]}]`;
+            ${contextInstruction} Výstup vráť striktne ako JSON objekt s poľom "posts". Štruktúra: {"posts": [{"author_name": "...", "title": "...", "content": ["..."], "image_prompt": "...", "comments": [{"username": "...", "text": "...", "replies": [{"username": "...", "text": "..."}]}]}]}`;
 
             try {
                 const response = await fetch(API_URL, {
@@ -1261,17 +1315,14 @@
                 
                 let currentGlobalTime = parseInt(localStorage.getItem('fb_global_time') || '0');
                 currentGlobalTime += addedMinutes;
-                localStorage.setItem('fb_global_time', currentGlobalTime);
 
-                feedData.push({
+                pendingGenerationData = {
                     scenario: promptInput,
                     timestamp: currentGlobalTime, 
                     posts: parsedData.posts
-                });
+                };
 
-                saveToLocalStorage();
-                closeCreateModal();
-                renderGrid();
+                openReviewModal();
 
             } catch (error) {
                 console.error(error);
@@ -1279,6 +1330,70 @@
                 errorDisplay.style.display = 'block';
                 spinner.style.display = 'none';
             }
+        }
+
+        function openReviewModal() {
+            closeCreateModal();
+            const container = document.getElementById('review-images-container');
+            container.innerHTML = '';
+            
+            pendingGenerationData.posts.forEach((post, i) => {
+                let prompt = post.image_prompt || `Article about ${post.title || 'news'}`;
+                let w = 800; let h = 450;
+                let initialUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true`;
+                
+                container.innerHTML += `
+                    <div class="shared-item" style="display:flex; flex-direction:column; gap:10px; background-color: var(--bg-card);">
+                        <h4 style="margin:0;">Článok: ${post.title}</h4>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">Prispôsobte pomer strán ťahaním za pravý dolný roh modrého rámika.</div>
+                        <div class="resize-wrapper" id="resize-wrapper-${i}" style="width: 100%; height: 300px; resize: both; overflow: hidden; border: 2px dashed var(--fb-blue); position: relative; min-width: 200px; min-height: 150px;">
+                            <img id="review-img-${i}" src="${initialUrl}" style="width: 100%; height: 100%; object-fit: fill; display: block;" alt="Preview">
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <textarea id="review-prompt-${i}" style="flex: 1; height:60px; padding:8px; border-radius:6px; border:1px solid var(--border-color); font-family:inherit; font-size:0.9rem;" placeholder="Zadajte anglický prompt pre obrázok">${prompt}</textarea>
+                            <button class="btn btn-secondary" style="height: 60px; font-weight: 700;" onclick="updateReviewImage(${i})">Generovať<br>novú</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('review-modal').style.display = 'flex';
+        }
+
+        function updateReviewImage(i) {
+            let prompt = document.getElementById(`review-prompt-${i}`).value.trim();
+            let wrapper = document.getElementById(`resize-wrapper-${i}`);
+            let w = Math.max(200, Math.round(wrapper.offsetWidth));
+            let h = Math.max(150, Math.round(wrapper.offsetHeight));
+            let img = document.getElementById(`review-img-${i}`);
+            img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true&seed=${Math.random()}`;
+        }
+
+        function confirmAndPublish() {
+            if (!pendingGenerationData) return;
+            
+            pendingGenerationData.posts.forEach((post, i) => {
+                let prompt = document.getElementById(`review-prompt-${i}`).value.trim();
+                let wrapper = document.getElementById(`resize-wrapper-${i}`);
+                let w = Math.max(200, Math.round(wrapper.offsetWidth));
+                let h = Math.max(150, Math.round(wrapper.offsetHeight));
+                
+                post.image_url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true`;
+                post.image_prompt = prompt;
+            });
+
+            localStorage.setItem('fb_global_time', pendingGenerationData.timestamp);
+            
+            feedData.push({
+                scenario: pendingGenerationData.scenario,
+                timestamp: pendingGenerationData.timestamp,
+                posts: pendingGenerationData.posts
+            });
+
+            saveToLocalStorage();
+            closeReviewModal();
+            renderGrid();
+            pendingGenerationData = null;
         }
 
         document.addEventListener('click', function(event) {
