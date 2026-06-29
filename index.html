@@ -979,39 +979,25 @@
     <script>
         // REGISTRÁCIA SERVICE WORKERA PRE PWA FUNKČNOSŤ
         // REGISTRÁCIA SERVICE WORKERA PRE PWA FUNKČNOSŤ
+          // REGISTRÁCIA SERVICE WORKERA PRE PWA FUNKČNOSŤ
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then(reg => {
-                        console.log('Fakebook PWA: Service Worker úspešne registrovaný!');
-                        // Ak sa zistí aktualizácia sw.js, okamžite ju aktivujeme
-                        reg.onupdatefound = () => {
-                            const installingWorker = reg.installing;
-                            if (installingWorker) {
-                                installingWorker.onstatechange = () => {
-                                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        console.log('Fakebook PWA: Nová verzia je dostupná, obnovte stránku.');
-                                    }
-                                };
-                            }
-                        };
-                    })
+                    .then(reg => console.log('Fakebook PWA: Service Worker úspešne registrovaný!'))
                     .catch(err => console.log('Fakebook PWA: Chyba registrácie Service Workera:', err));
             });
         }
 
-        // LOGIKA PRE INŠTALAČNÝ BANNER a DETEKCIU
+        // LOGIKA PRE INŠTALAČNÝ BANNER (VERZIA PO VZORE CHANGELOGU 3.93)
         let deferredPrompt;
         const installBanner = document.getElementById('pwa-install-banner');
         const btnInstallYes = document.getElementById('btn-pwa-install-yes');
         const btnInstallNo = document.getElementById('btn-pwa-install-no');
 
-        // Funkcia na kontrolu, či je aplikácia už spustená ako standalone (nainštalovaná)
         function checkIncomingPwaMode() {
+            // Zistíme, či je web otvorený už ako nainštalovaná aplikácia (standalone režim)
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-            const isDismissed = localStorage.getItem('fb_pwa_banner_dismissed') === '1';
 
-            // Ak bežíme ako nainštalovaná aplikácia, banner nikdy neukazujeme
             if (isStandalone) {
                 if (installBanner) installBanner.style.display = 'none';
                 return true;
@@ -1020,15 +1006,14 @@
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Zamedzíme natívnemu rýchlemu zobrazeniu, aby sme použili tvoju peknú modrú lištu
+            // Zablokujeme predvolený inštalačný dialóg prehliadača Chrome
             e.preventDefault();
             deferredPrompt = e;
             
-            // Spustíme kontrolu režimu. Ak nie je standalone a užívateľ na banner v tejto relácii ešte neklikol "Nie"
+            // Ak NIE SME v standalone režime, banner sa VŽDY natvrdo zobrazí pri načítaní
             if (!checkIncomingPwaMode()) {
-                const isDismissed = localStorage.getItem('fb_pwa_banner_dismissed') === '1';
-                if (!isDismissed && installBanner) {
-                    installBanner.style.style.setProperty('display', 'flex', 'important');
+                if (installBanner) {
+                    installBanner.style.setProperty('display', 'flex', 'important');
                 }
             }
         });
@@ -1046,9 +1031,9 @@
 
         if (btnInstallNo) {
             btnInstallNo.addEventListener('click', () => {
+                // OPRAVA: Iba vizuálne skryjeme lištu v tejto relácii.
+                // Neukladáme nič do LocalStorage, takže po F5 / obnovení stránky lišta opäť vyskočí!
                 if (installBanner) installBanner.style.display = 'none';
-                // Zapíšeme do localStorage, že užívateľ nechcel inštaláciu, aby sme ho neotravovali pri každom kliknutí na feed
-                localStorage.setItem('fb_pwa_banner_dismissed', '1');
             });
         }
 
@@ -1058,8 +1043,9 @@
             deferredPrompt = null;
         });
 
-        // Kontrola pri načítaní pre istotu
+        // Spustíme rýchlu poistnú kontrolu chvíľu po načítaní
         setTimeout(checkIncomingPwaMode, 500);
+
 
         // MANAGEMENT HISTÓRIE PRE TLAČIDLO SPÄŤ (PREVENCIA ZATVORENIA PWA)
         window.addEventListener('popstate', function(event) {
