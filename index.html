@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fakebook v. 3.97</title>
-    <link class="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1877f2">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Fakebook">
-    <link class="apple-touch-icon" href="fakebook_small.png">
-    
+    <link rel="apple-touch-icon" href="fakebook_small.png">
+
     <style>
         :root {
             --bg-main-fb: #f0f2f5; 
@@ -978,35 +978,65 @@
 
     <script>
         // REGISTRÁCIA SERVICE WORKERA PRE PWA FUNKČNOSŤ
+        // REGISTRÁCIA SERVICE WORKERA PRE PWA FUNKČNOSŤ
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Fakebook PWA: Service Worker úspešne registrovaný zo súboru sw.js!'))
+                    .then(reg => {
+                        console.log('Fakebook PWA: Service Worker úspešne registrovaný!');
+                        // Ak sa zistí aktualizácia sw.js, okamžite ju aktivujeme
+                        reg.onupdatefound = () => {
+                            const installingWorker = reg.installing;
+                            if (installingWorker) {
+                                installingWorker.onstatechange = () => {
+                                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        console.log('Fakebook PWA: Nová verzia je dostupná, obnovte stránku.');
+                                    }
+                                };
+                            }
+                        };
+                    })
                     .catch(err => console.log('Fakebook PWA: Chyba registrácie Service Workera:', err));
             });
         }
 
-        // LOGIKA PRE INŠTALAČNÝ BANNER
+        // LOGIKA PRE INŠTALAČNÝ BANNER a DETEKCIU
         let deferredPrompt;
         const installBanner = document.getElementById('pwa-install-banner');
         const btnInstallYes = document.getElementById('btn-pwa-install-yes');
         const btnInstallNo = document.getElementById('btn-pwa-install-no');
 
+        // Funkcia na kontrolu, či je aplikácia už spustená ako standalone (nainštalovaná)
+        function checkIncomingPwaMode() {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const isDismissed = localStorage.getItem('fb_pwa_banner_dismissed') === '1';
+
+            // Ak bežíme ako nainštalovaná aplikácia, banner nikdy neukazujeme
+            if (isStandalone) {
+                if (installBanner) installBanner.style.display = 'none';
+                return true;
+            }
+            return false;
+        }
+
         window.addEventListener('beforeinstallprompt', (e) => {
+            // Zamedzíme natívnemu rýchlemu zobrazeniu, aby sme použili tvoju peknú modrú lištu
             e.preventDefault();
             deferredPrompt = e;
             
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-            if (!isStandalone) {
-                installBanner.style.display = 'flex';
+            // Spustíme kontrolu režimu. Ak nie je standalone a užívateľ na banner v tejto relácii ešte neklikol "Nie"
+            if (!checkIncomingPwaMode()) {
+                const isDismissed = localStorage.getItem('fb_pwa_banner_dismissed') === '1';
+                if (!isDismissed && installBanner) {
+                    installBanner.style.style.setProperty('display', 'flex', 'important');
+                }
             }
         });
 
         if (btnInstallYes) {
             btnInstallYes.addEventListener('click', async () => {
                 if (!deferredPrompt) return;
-                installBanner.style.display = 'none';
+                if (installBanner) installBanner.style.display = 'none';
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 console.log(`Fakebook PWA: Rozhodnutie o inštalácii: ${outcome}`);
@@ -1016,15 +1046,20 @@
 
         if (btnInstallNo) {
             btnInstallNo.addEventListener('click', () => {
-                installBanner.style.display = 'none';
+                if (installBanner) installBanner.style.display = 'none';
+                // Zapíšeme do localStorage, že užívateľ nechcel inštaláciu, aby sme ho neotravovali pri každom kliknutí na feed
+                localStorage.setItem('fb_pwa_banner_dismissed', '1');
             });
         }
 
         window.addEventListener('appinstalled', (log) => {
             console.log('Fakebook PWA: Aplikácia bola úspešne nainštalovaná na plochu!');
-            installBanner.style.display = 'none';
+            if (installBanner) installBanner.style.display = 'none';
             deferredPrompt = null;
         });
+
+        // Kontrola pri načítaní pre istotu
+        setTimeout(checkIncomingPwaMode, 500);
 
         // MANAGEMENT HISTÓRIE PRE TLAČIDLO SPÄŤ (PREVENCIA ZATVORENIA PWA)
         window.addEventListener('popstate', function(event) {
