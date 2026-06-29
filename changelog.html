@@ -1,0 +1,1323 @@
+﻿<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fakebook - Vývojový denník (Changelog)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #050505;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1877f2;
+            border-bottom: 2px solid #ced0d4;
+            padding-bottom: 12px;
+            margin-top: 0;
+        }
+        .version-block {
+            background: #f0f2f5;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 5px solid #1877f2;
+        }
+        .version-header {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #1877f2;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .version-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #050505;
+        }
+        ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #1877f2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝 Fakebook Changelog</h1>
+    <p style="color: #65676b; font-size: 0.9rem;">Kompletná história zmien a zoznam verzií aplikácie.</p>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.97 (Aktuálna)</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Súkromné profily, algoritmus žiadostí o priateľstvo a double-texting v Messengeri</div>
+        <ul>
+            <li><b>Oprava lokalizácie tlačidla komentárov:</b> Odstránená kritická chyba prejavujúca sa zobrazením textového reťazca "undefined" na hlavnej ploche pri príspevkoch s počtom komentárov vyšším ako 3. Mechanizmus bol plne prepojený na lokalizačné balíky pre slovenský, anglický aj srbský jazyk.</li>
+            <li><b>Implementácia funkcie Súkromný Profil:</b> Kliknutie na meno akéhokoľvek komentujúceho používateľa v sekcii komentárov (ktorého zatiaľ nemáte v zozname priateľov) vyvolá plnohodnotné okno simulovaného uzamknutého profilu. Rozhranie jasne indikuje stav súkromia v príslušnom jazyku a integruje asynchrónne tlačidlo na odoslanie žiadosti o priateľstvo.</li>
+            <li><b>Algoritmus spracovania žiadostí o priateľstvo (70% úspešnosť):</b> Nový matematický model s pravdepodobnosťou 70% akceptuje podanú žiadosť. V prípade úspechu je entita plne zaregistrovaná do zoznamu trvalých priateľov, pričom systém zistí biologické pohlavie, priradí meno, vygeneruje vlastnosti, gramatické preferencie, messenger kód a prepojí entitu na pôvodný príspevok.</li>
+            <li><b>Bezpečnostná poistka pre deštruktívne mazanie:</b> Odstránenie priateľa zo zoznamu trvalých entít bolo ošetrené natívnym potvrdzovacím oknom. Systém vyžaduje explicitný súhlas používateľa s upozornením na permanentné následky pred vymazaním údajov, chatov a logov.</li>
+            <li><b>Kontextový Messenger podsystém (Double-Texting awareness):</b> AI model v Groq prompt inžinierstve získal vrstvu sebauvedomenia, vďaka ktorej vie, že používateľ prechádza obdobím ticha (ignore/no reply). Entita reaguje vysoko adaptívne na základe svojej psychologickej povahy – od jemného pokusu o zmenu témy až po urazenie sa či obavy.</li>
+            <li><b>Integrácia do grafického Changelogu:</b> Všetky informácie o revízii 3.97 boli štrukturálne zapracované do interného lokalizovaného prehľadu zmien v sekcii nastavení a informácií.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.96</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Gendrovo senzitívna lokalizácia, databázy mien a rotačný algoritmus vydavateľov</div>
+        <ul>
+            <li><b>Oprava lokalizácie sekcie záujmov:</b> Do modálneho okna technických vlastností profilov priateľov bol pridaný chýbajúci preklad nadpisu pre kategóriu obľúbených tém (lbl-sec-topics), ktorý sa teraz dynamicky zobrazuje v slovenčine ("Obľúbené témy"), angličtine ("Favorite Topics") aj srbčine ("Omiljene teme").</li>
+            <li><b>Gendrovo senzitívna lokalizácia osobnostných čŕt (SK):</b> Slovenský preklad zoznamu archetypov osobností (ALL_PERSONALITIES) bol upravený tak, aby rešpektoval gramatický rod postavy. Pri ženskom pohlaví systém automaticky generuje ženské tvary (napr. "Vandalizujúca", "Vulgárna", "Namyslená") namiesto mužských.</li>
+            <li><b>Multijazyčné databázy mien a priezvisk (EN / SRB):</b> Integrované plnohodnotné pooly pre anglické mužské a ženské mená s univerzálnymi priezviskami. Pre srbský jazyk bol vytvorený špecifický generátor mien rešpektujúci lokálne koncovky priezvisk (-ić, -ova, -eva) na základe biologického rodu.</li>
+            <li><b>Rotačný algoritmus predvolených vydavateľov:</b> Selektor stránok pred publikáciou príspevku už nie je fixne nastavený na prvú položku. Implementovaný pseudonáhodný výber (Math.random()), ktorý pri každom novom generovaní predvolí inú spravodajskú či satirickú stránku.</li>
+            <li><b>Eliminácia whitespace chyby pri skracovaní textu:</b> Opravená chyba v skripte renderGrid(), ktorá pri vizuálnom zalomení dlhých statusov pomocou tlačidla "Zobraziť viac" vkladala nežiaducu prázdnu medzeru do rozdeleného slova. Text sa teraz spája plynule.</li>
+            <li><b>Aktualizácia interného databázového indexu:</b> Verzia aplikácie bola oficiálne zvýšená na 3.96 a informácie o opravách boli natívne integrované do komponentu info-modal pre zachovanie konzistentnej informovanosti.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.95</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Kompletná integrácia srbského jazyka a adaptívny AI generátor</div>
+        <ul>
+            <li><b>Kompletná integrácia srbského jazyka (SRB):</b> Do lokalizačného balíčka UI_TEXTS bola plne implementovaná srbčina vrátane všetkých tlačidiel, popisov, textov chýb, návodu a prémiových nastavení.</li>
+            <li><b>Jazykovo adaptívny generátor AI:</b> Systém odosielania príkazov pre LLM (meta-llama) bol prepracovaný tak, aby pri zvolenej srbčine striktne vynucoval generovanie príspevkov, novinových článkov, komentárov, profilových aktivít a správ v Messengeri v srbskom jazyku.</li>
+            <li><b>Interaktívne preklady atribútov priateľov:</b> Generovanie mien, priezvisk, osobnostných rysov, úrovní kontaktov a typov vzťahov bolo prispôsobené pre dynamický srbský kontext bez poškodenia spätnej kompatibility.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.94</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Prevencia zatvorenia PWA, History API a hardvérové tlačidlo späť</div>
+        <ul>
+            <li><b>Prevencia nežiaduceho zatvorenia PWA (History API Integration):</b> Pri každom otvorení modálneho okna (Priatelia, Nastavenia, Profil, Messenger, Chat, Tvorba príspevku, Review) sa do histórie prehliadača automaticky vloží nový stav pomocou history.pushState().</li>
+            <li><b>Hardvérové tlačidlo Späť na mobile:</b> Stlačenie natívneho tlačidla späť alebo použitie gesta na smartfóne namiesto opustenia celej aplikácie bezpečne zachytí udalosť popstate, zatvorí aktuálne otvorené modálne okno a vráti používateľa na hlavnú plochu (Feed).</li>
+            <li><b>Synchronizácia stavov histórie:</b> Systém inteligentne odstraňuje nadbytočné stavy z histórie pri manuálnom zatvorení okna krížikom, čím zabraňuje rozsynchronizovaniu navigácie.</li>
+            <li><b>Aktualizácia prehľadu verzií a návodu:</b> Sekcia s informáciami priamo v aplikácii bola rozšírená o oficiálny prehľad zmien pre verziu 3.95 a bol vytvorený nový návod v troch jazykoch, pričom odkaz na externý súbor changelog.html zostal zachovaný (exkluzívne v slovenčine).</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.93</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Opravy perzistencie, lokalizácia komentárov a dynamické vlastnosti priateľov</div>
+        <ul>
+            <li><b>PWA Inštalačný Banner:</b> Opravená perzistencia bannera v prehliadači Chrome. Odstránené ukladanie do localStorage pri zamietnutí, čím sa zabezpečí opätovné zobrazenie bannera po obnovení stránky, pokiaľ aplikácia nie je regulárne nainštalovaná. Pridaná chýbajúca lokalizácia pre anglickú verziu bannera vrátane textácie výzvy a tlačidiel.</li>
+            <li><b>Oprava lokalizácie komentárov ("Undefined"):</b> Odstránená kritická chyba runtime zobrazenia textového reťazca počtu komentárov, ktorá v anglickej lokalizácii spôsobovala pád do stavu undefined namiesto správneho formátu. Všetky väzby na dynamické texty reťazcov boli preauditované.</li>
+            <li><b>Dynamická lokalizácia vlastností priateľov:</b> Prebudovaný systém ukladania a čítania pohlavia, rasy/archetypov osobností a vzťahov. Systém už neukladá statické lokalizované reťazce priamo do dátového objektu priateľa, ale pracuje s internými identifikátormi. Vďaka tomu sa vlastnosti ako "Muž", "Vagabund/Vandal", či typ vzťahu okamžite a bezchybne preložia pri prepnutí jazyka prostredia.</li>
+            <li><b>Kaskádové a selektívne čistenie dát (Wipe Data):</b> Kompletne reštrukturalizovaná funkcia `deleteAllData()`. Pôvodné plošné mazanie bolo nahradené sekvenčným potvrdzovacím algoritmom. Používateľovi sú postupne zobrazené tri nezávislé bezpečnostné otázky, ktoré umožňujú selektívne vymazať príspevky a komentáre, históriu chatov z Messengera, alebo databázu vytvorených priateľov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.92</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Fix sieťovej komunikácie, integrácia inštalačnej lišty a osamostatnenie sw.js</div>
+        <ul>
+            <li><b>Kritický Bug Fix sieťového pádovania (ERR_FAILED):</b> Odstránená fatálna chyba typu ReferenceError v zachytávaní požiadaviek Service Workera. Opravené chybné volanie neexistujúcej premennej `res`, ktoré v predošlom pokuse kompletne ochromilo sieťovú vrstvu, spôsobilo zablokovanie GitHub Pages a vracalo systémovú chybu o nedostupnosti webu. Systém odteraz správne vracia premennú `cachedResponse`, vďaka čomu je načítavanie webu 100% stabilné.</li>
+            <li><b>Separácia a stabilizácia Service Workera v súbore sw.js:</b> Celá sieťová a cache logika bola kompletne vyčistená a presunutá z dočasných in-line Blob objektov v index.html do vlastného fyzického súboru sw.js. Výrazne sa tým zjednodušila architektúra kódu. Service Worker bezpečne ukladá statické súbory rozhrania a ikony pre offline beh, pričom striktne prepúšťa živé požiadavky na Groq API a corsproxy bez toho, aby ich nežiaduco cachoval.</li>
+            <li><b>Integrácia inteligentnej PWA inštalačnej lišty:</b> Priamo na samotný vrch stránky (nad navigačný panel) bol zapracovaný nový interaktívny inštalačný banner s otázkou „Chcete nainštalovať aplikáciu Fakebook na plochu?“. Lišta je priamo napojená na inštalačný dialóg prehliadača Chrome (udalosť beforeinstallprompt). Ak užívateľ klikne na „Áno“, vyvolá sa natívne systémové potvrdenie inštalácie. Tlačidlo „Nie“ lištu okamžite skryje a zapíše príznak do LocalStorage, vďaka čomu užívateľa pri ďalšej návšteve neotravuje.</li>
+            <li><b>Automatické riadenie viditeľnosti inštalačných prvkov:</b> Inštalačný banner je naprogramovaný tak, že sa automaticky schová v momente, keď používateľ úspešne dokončí inštaláciu aplikácie (udalosť appinstalled). Rovnako sa lišta vôbec nevykresľuje, ak bol Fakebook otvorený priamo cez ikonu na ploche ako samostatný program (standalone režim), čím sa chráni čistota dizajnu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.91</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Prechod na Progressive Web App (PWA) štandard a zavedenie manifestu</div>
+        <ul>
+            <li><b>Prvotná transformácia na PWA aplikáciu:</b> Fakebook prešiel masívnou aktualizáciou jadra a bol transformovaný do formátu Progressive Web App. Aplikácia odteraz spĺňa moderné štandardy pre mobilné a desktopové prehliadače, čo jej umožňuje správať sa ako skutočná inštalovateľná aplikácia priamo v operačnom systéme.</li>
+            <li><b>Vytvorenie konfiguračného súboru manifest.json:</b> Do koreňového adresára bol pridaný nový systémový súbor manifest.json. Tento súbor definuje pre prehliadač identitu celej aplikácie, jej štartovaciu adresu, farbu motívu sociálnej siete a vynucuje zobrazenie v režime na výšku (portrait-primary) pre zachovanie natívneho mobilného zážitku.</li>
+            <li><b>Nasadenie ikon aplikácie a podpora pre Apple zariadenia:</b> V rámci manifestu a hlavičky webu boli zavedené inštalačné ikony prepojené na súbory fakebook.png (rozmer 512x512) a fakebook_small.png (rozmer 192x192). Zároveň boli do hlavičke pridané špecifické meta tagy a linka apple-touch-icon, ktoré zabezpečujú korektné zobrazenie ikon a správanie aplikácie na zariadeniach so systémom iOS (iPhone, iPad).</li>
+            <li><b>Prvé nasadenie in-line registrácie Service Workera:</b> Do úvodu hlavného JavaScriptu v index.html bola implementovaná úvodná asynchrónna registrácia Service Workera, ktorá prehliadaču oznamuje, že aplikácia disponuje manažmentom vyrovnávacej pamäte na pozadí, čo je základným technickým predpokladom pre aktiváciu inštalačného tlačidla.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.84</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Komplexný audit reťazcov, odstránenie hybridných textov a ochrana čitateľnosti prémiových tém</div>
+        <ul>
+            <li><b>Úplná eliminácia hybridných textov a bilingválna izolácia:</b> Z rozhrania boli kompletne odstránené všetky kombinované dvojjazyčné texty oddelené lomkou (napr. „Meno priateľa... / Friend name...“). Celé prostredie aplikácie, vrátane všetkých modalov, popisov, tlačidiel a zástupných textov (placeholders) vo vstupných poliach chatu či nastavení profilu, bolo dôsledne vyčistené a prepracované. Aplikácia teraz zobrazuje čistú slovenčinu alebo čistú angličtinu striktne podľa globálne zvoleného systémového jazyka.</li>
+            <li><b>Ochrana čitateľnosti a kontrastu pri prémiových témach:</b> Do funkcie `applyThemeAndFont()` bola pridaná natvrdo podmienka pre svetlé prémiové vzhľady (Gold, Diamond, Silver). Pokiaľ má používateľ aktivovanú jednu z týchto svetlých tém, systém pri detekcii ignoruje vovoľbu bielej, žltej, striebornej alebo zlatej farby písma a automaticky vynúti tmavé zobrazenie textu. Tým sa zabránilo splývaniu písma s pozadím a text príspevkov zostáva vždy dokonale čitateľný.</li>
+            <li><b>Rodová a jazyková harmonizácia osobných nastavení:</b> Zoznamy predvolených osobností bota (`ALL_PERSONALITIES`) and možností pôvodu vzťahov (`RELATIONSHIP_OPTIONS`) boli v kóde kompletne rozdelené na samostatné lokalizované polia pre slovenskú aj anglickú mutáciu, čím sa zaistilo správne kontextové generovanie promptov pre LLM model.</li>
+            <li><b>Zachovanie funkčného jadra aplikácie:</b> Všetky pokročilé asynchrónne interakcie, vedomie izolácie identity AI v histórii chatu, asymetry logy, prepojenia s API Groq a Pollinations AI s variabilným pomerom plátna zostali plne zachované a neporušené v stopercentnom rozsahu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.83</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Kompletná auditívna lokalizácia textových reťazcov and synchronizácia komponentov</div>
+        <ul>
+            <li><b>Kompletná auditívna lokalizácia textových reťazcov:</b> Bol vykonaný hĺbkový audit celého zdrojového kódu so zameraním na zostávajúce pevne zakódované slovenské reťazce umiestnené priamo v HTML elementoch, chybových hláseniach, atribútoch a pomocných textoch. Všetky lokalizované položky boli extrahované a plne integrované do bilingválneho lokalizačného balíčka `UI_TEXTS` pre stopercentný zážitok bez jazykového miešania.</li>
+            <li><b>Rozšírenie jazykových mutácií:</b> Statické texty v modaloch, výberových poliach (pohlavia, zoradenia, úrovne gramatiky a typy správ) and kontextové zástupné texty (placeholders) teraz dynamicky reagujú na zvolený globálny jazyk aplikácie (Slovenčina / English).</li>
+            <li><b>Synchronizácia komponentov správy priateľov:</b> Profily generovaných priateľov, nastavenia ich behaviorálnych vlastností, asynchrónne výzvy a potvrdzovacie dialógy boli štrukturálne upravené tak, aby rešpektovali zvolenú lokalizáciu pri zachovaní plnej kompatibility s perzistentným úložiskom `localStorage`.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.82</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Optimalizácia kontextu, lokalizácia a reštrukturalizácia panelov</div>
+        <ul>
+            <li><b>Optimalizácia kontextového vnímania AI:</b> Implementované striktné rozlišovanie rolí v histórii správ (user vs. assistant). Umelá inteligencia teraz presne chápe štruktúru dialógu, vďaka čomu už nedochádza k situáciám, kedy by odpovedala na svoje vlastné otázky alebo generovala nadväzujúce správy v nesprávnem mene.</li>
+            <li><b>Kompletná lokalizácia do anglického jazyka:</b> Všetky zostávajúce slovenské textové reťazce, popisky, placeholder-y a systémové hlášky, ktoré sa zobrazovali v používateľskom rozhraní, boli preložené do angličtiny, čím sa dosiahlo plne konzistentné cudzojazyčné prostredie.</li>
+            <li><b>Reštrukturalizácia informačného panela:</b> Podľa nových požiadaviek bolo upravené poradie prvkov v záhlaví stránky. Návod na použitie a základné informácie o aplikácii sa teraz nachádzajú úplne navrchu. Hneď pod nimi je umiestnený dedikovaný blok pre novinky a úpravy aktuálnej verzie 3.82.</li>
+            <li><b>Prepojenie na externý archív zmien:</b> Pod sekciu aktuálnej verzie bol implementovaný navigačný odkaz/tlačidlo smerujúce na externý súbor changelog.html, kde sa nachádza kompletný archív predchádzajúcich aktualizácií.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.81</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Optimalizácia Messengera, vydavatelia článkov a konverzia priateľov</div>
+        <ul>
+            <li><b>Optimalizácia otvárania chatu (Messenger):</b> Odstránený rušivý element automatickej aktivácie písania (focus) po otvorení chatovacieho okna alebo zoznamu správ. Klávesnica / aktívne písanie sa spustí až po priamom kliknutí užívateľa do vstupného políčka textu.</li>
+            <li><b>Usporiadanie správ v hlavičkách priateľov:</b> Pri otvorení chatu priamo cez profil priateľa alebo kliknutím na „Poslať správu“ v zozname priateľov sa konverzácia usporiada správne od najstaršej po najnovšiu (posledná správa naspodu) a rovnako nedôjde k automatickému vyvolaniu klávesnice bez kliknutia.</li>
+            <li><b>Funkcia vynútenia správy (Bonus):</b> Pridaná možnost vyvolať okamžitú správu podržaním ikony Messengera v navigačnej lište na 3 sekundy. Systém následne vygeneruje novú prichádzajúcu správu od náhodného priateľa bez nutnosti čakať na automatický časovač alebo manuálny refresh feedu.</li>
+            <li><b>Pokročilé nastavenia publikovania článku:</b> Pri procese generovania a následnej úpravy príspevkov/fotiek bola zavedená možnost nastavenia vydavateľa. Používateľ si môže zvoliť buď predvolený náhodný názov stránky (z vopred definovaného poolu stránok namiesto doterajšieho „príspevky od užívateľov“), nechať systém kontextovo vygenerovať tématický názov stránky zodpovedajúci obsahu článku, alebo ručne vpísať vlastný unikátny názov stránky.</li>
+            <li><b>Konverzia komentujúcich na priateľov:</b> Do sekcie komentárov bola integrovaná šanca, že náhodný používateľ, s ktorým diskutujete pod príspevkom, zašle žiadosť o priateľstvo pre pokračovanie v debate. Po schválení žiadosti systém automaticky vygeneruje nového plnohodnotného priateľa s náhodnými vlastnosťami. Pohlavie je určené na základe mena a vek je vypočítaný s maximálnym rozdielom do 10 rokov od veku hlavného užívateľa.</li>
+            <li><b>Plná lokalizácia rozhrania a obsahu (SK / EN):</b> Do nastavení vedľa API klávesu pribudol prepínač jazykov (Slovenčina a Angličtina). Po prepnutí do anglického jazyka sa celé používateľské rozhranie, texty, tlačidlá, nápisy, ako aj novo generované články, príspevky, správy a komentáre prepnú do angličtiny. Historicky vygenerovaný obsah pred zmenou jazyka ostáva v pôvodnom znení. Prompt pre generovanie cez umelú inteligenciu dynamicky preberá nastavený jazykový parameter.</li>
+            <li><b>Prepojenie na kompletný archív zmien:</b> Pod sekciu rýchleho prehľadu aktuálnej verzie bol pridaný odkaz na externý súbor changelog.html pre pohodlné prezeranie histórie všetkých doterajších verzií.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.76</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Režimy chatu, inteligentné načítavanie a luxusné témy</div>
+        <ul>
+            <li><b>Dva režimy chatu:</b> Možnosť otvoriť správy buď ako rýchle okienko zo zoznamu priateľov (najnovšie správy navrchu), alebo ako plnohodnotný Messenger z hornej lišty (najnovšie správy naspodu s automatickým rolovaním).</li>
+            <li><b>Inteligentné načítavanie správ na pozadí:</b> Pri kliknutí na Messenger systém najprv na pozadí vyhodne a vygeneruje prijaté správy. Až po ich zaradení a vizuálnom označení sa okno otvorí, aby boli konverzácie okamžite aktuálne a zoradené.</li>
+            <li><b>Radenie konverzácií:</b> Zoznam správ v Messengeri sa odteraz dynamicky zoraďuje presne podľa času prijatia/odoslania najnovšej správy.</li>
+            <li><b>Vylepšené notifikácie a oddelenie textu:</b> Neprečítané konverzácie sú v zozname vizuálne oveľa výraznejšie, reagujú na farbu prémiovej témy. Vo vnútri chatu pribudla výrazná čiara oddeľujúca nové (neprečítané) správy od starých.</li>
+            <li><b>Dynamická kontrola písma:</b> V nastaveniach sa už nedá zvoliť farba písma, ktorá by splývala s aktuálnou témou (napríklad biele písmo na svetlej téme automaticky zmizne z ponuky a zmení sa na čierne).</li>
+            <li><b>Modernizácia UI:</b> Do dizajnu boli plošne integrované oblejšie rohy, modernejšie okraje a plynulejšie tiene pre lepší moderný používateľský zážitok.</li>
+            <li><b>Nové a vylepšené prémiové témy:</b> Pôvodná Strieborná a Diamantová téma boli kompletne prepracované pre skutočne luxusný, lesklý vzhľad. Pribudlo 5 úplne nových prémiových diznov: Zlatý (Gold), Neónový (Neon), Smaragdový (Emerald), Zafírový (Sapphire) a Rubínový (Ruby) s animovanými prechodmi a luxusnými vzormi.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.75</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Veľký update algoritmov, usporiadania a správy vzťahov</div>
+        <ul>
+            <li><b>Usporiadanie Messengera:</b> Správy in četovom okne sú odteraz chronologicky usporiadané tak, aby najnovšie správy boli vždy na vrchu.</li>
+            <li><b>Algoritmus zoradenia priateľov:</b> Pridané výberové menu pre zoradenie zoznamu priateľov abecedne, podľa dátumu pridania alebo podľa inteligentného algoritmu počtu správ (najaktívnejší čet navrchu).</li>
+            <li><b>Hlavná úroveň kontaktu priateľov:</b> Zapracovaná možnosť určenia intenzity a blízkosti kontaktu priateľov (Veľmi dobre sa poznáme, Poznáme sa, Zriedkavý kontakt) ovplyvňujúca slang, divokosť tém a narážky AI na spoločné zážitky vonku.</li>
+            <li><b>Optimalizácia kódu:</b> Starý statický zoznam zmien bol kompletne vyčlenený z hlavného skriptu a presunutý do tohto externého GitHub dokumentu (changelog.html).</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.74</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj/Jún 2026</span>
+        </div>
+        <div class="version-title">Veľký update osobností a logiky UI</div>
+        <ul>
+            <li><b>Nové osobnosti a viacnásobný výber:</b> Pridaných 20 úplne nových osobností (Konšpirátor, Lenivec, Stalker, Gambler, Nerd, Fanatik...). Priateľom teraz môžete priradiť <strong>viac osobností naraz</strong> pomocou zaškrtávacích políčok alebo si vytvoriť vlastnú!</li>
+            <li><b>Logika ignorovania v Messengeri:</b> Priatelia prestanú otravovať. Ak neodpíšete na 5 správ po sebe od konkrétnego priateľa, prestane vám písať spontánne správy a pripomínať sa, kým mu neodpíšete vy.</li>
+            <li><b>Profily bežných komentujúcich:</b> Úplná revolúcia v komentároch! AI teraz náhodne s 50% šancou vygeneruje skrytý osobný profil (osobnosť + gramatika) aj úplne cudzím ľudom v diskusiách pod článkami, vďaka čomu sa budú správať a hádať mimoriadne autenticky.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.73</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Vylepšenia UI a Bug Fixy</div>
+        <ul>
+            <li><b>Oprava vizuálu nastavení:</b> Technické nastavenia Messengera (percentá) sú prepracované na jasné štítky (Napr. "Nepríde správa - 80%").</li>
+            <li><b>Rolovacie menu:</b> Sekcie Osobnosť, Odkiaľ ho poznám a Obľúbené témy sú teraz elegantne zbalené, po kliknutí sa rozbalia, čo veľmi sprehľadnilo kartu priateľa.</li>
+            <li><b>Indikátor neprečítaných správ:</b> Ak vám niekto napíše, ikonka Messengera v hornom paneli sa jasne modro rozsvieti (prispôsobené pre všetky témy), rovnako tak chat v zozname priateľov svieti na modro, až kým ho neotvoríte!</li>
+            <li><b>Témy:</b> Doladené kontrasty ikon in navigačnom paneli, aby na tmavých témach svietili bielo a na svetlých tmavo, všetko je teraz plne prehľadné.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.72</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Unikátne osobnosti and Bug Fixy</div>
+        <ul>
+            <li><b>Bug fixy:</b> AI pri odpovediach na komentáre teraz "číta" celý článok aj predchádzajúce vlákno a nestráca kontext. Opravené zasekávanie dlhých diskusií.</li>
+            <li><b>Priatelia a Osobnosti:</b> Každý priateľ má rozsiahle nové nastavenia: Osobnosť (Vandal, Influencerka, atď.), Gramatika (Slovák, Debil...), Typ počtu správ (Doubler/Tripler), Vzťah odkiaľ ho poznáte, a možnosti Romantiky (ak ste opačného pohlavia). Píšu o svojich obľúbených témach.</li>
+            <li><b>Nová funkcia:</b> Po vygenerovaní nového článku na ploche je 10% šanca, že sa vám spontánne ozve niektorý priateľ a začne o ňom diskusiu. Pridaná možnost zablokovať priateľa.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.71</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Messenger a Reakcie AI</div>
+        <ul>
+            <li><b>Integrácia Messengera:</b> Messenger pridaný do hornej lišty, konverzácie s priateľmi, šance na odpovede a správy s možnosťou úprav pre každého priateľa.</li>
+            <li><b>Reakcie na komentáre:</b> AI teraz náhodne reaguje (aj vo veľkom počte) na vaše komentáre pod príspevkami. Rozšírené osobnosti priateľov (smajlíky, pamäť konverzácií).</li>
+            <li><b>Vrstvy:</b> Správne z-index vrstvy pre nové okná.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.66</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Bug Fixes v profiloch</div>
+        <ul>
+            <li>V profiloch priateľov a vo vašom profile sa už správne zobrazujú komentáre pod článkami s rovnakou logikou ako na hlavnej stránke (náhľad 2 komentárov a zobrazenie viac).</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.65</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Užívateľské rozhranie profilu</div>
+        <ul>
+            <li>V mojom profile je teraz sekcia "Moje obľúbené témy" predvolene zrolovaná. Rozbalí sa až po kliknutí.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.64</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Bug Fix náhodného generovania</div>
+        <ul>
+            <li>Opravená chyba, ktorá spôsobovala, že pri náhodnom generovaní statusu systém príliš často vytváral status o slovenskom prezidentovi.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.63</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Modálne okná a fixy pamäte</div>
+        <ul>
+            <li>Opravené prekrývanie modálnych okien pri zobrazení informácií cez API nastavenia alebo po kliknutí na logo.</li>
+            <li>Oprava chýb in ukladaní API kľúča.</li>
+            <li>Contextová pamäť AI generátora je teraz predvolene nastavená na vypnutú.</li>
+            <li>V zozname priateľov boli vrátené stratené tlačidlá pre vytváranie statusov a článkov od priateľa.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.62</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Veľká aktualizácia vyváženia, profilov a prispôsobenia</div>
+        <ul>
+            <li>Počet lajkov a komentárov na statusoch/príspevkoch od priateľov bol výrazne znížený o 70%.</li>
+            <li>Šanca, že komentáre v statusoch priateľov budú pochádzať od iných priateľov, sa zvýšila o 300% (šanca stúpla z 1:50 na 4:50).</li>
+            <li>Pridaná možnost nastaviť si vlastný vek a pohlavie priamo v našom profile.</li>
+            <li>Pool krstných mien bol rozdelený na samostatný mužský a ženský zoznam. Generované ženské priezviská automaticky dostávajú koncovku "-ová".</li>
+            <li>V profile pribudla správa obľúbených tém (výber z desiatok tém + ručné dopisovanie) a voľba preferencie (Obľúbené témy vs Všetky témy).</li>
+            <li>Pri generovaní nového AI článku pribudla rolovacia možnosť výberu konkrétnej témy priamo pod nastavením času (berie do úvahy témy z profilu vrátane ručne pridaných).</li>
+            <li>Prepracované šance náhodného generovania: Svetová téma (90%), Článok o priateľovi (2%) a nový Typ príspevku - Status priateľa o náhodnej dĺžke (krátky 33% / stredný 33% / dlhý 33%) s celkovou šancou 8%.</li>
+            <li>Presunutá ikonka informácií priamo do pop-up okna nastavení API. Informácie sa zobrazia aj po kliknutí na logo Fakebooku (podržaním na 5 sekúnd prebehne hard reset).</li>
+            <li>Do nastavení vzhľadu pribudla vovoľba veľkosti písma (Malá, Stredná, Veľká, Extra veľká) and výber z 5 rôznych fontov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.61</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Nové Témy, Úpravy Šancí and Prispôsobenie Fontov (Zlúčená beta balansu)</div>
+        <ul>
+            <li><b>Veľká aktualizácia profilu:</b> Prvá implementácia správy desiatok tém a vlastného veku/pohlavia ovplyvňujúcich správanie algoritmu.</li>
+            <li><b>Interakcia priateľov:</b> Úprava počtu lajkov na hodnoty (2 až 35 namiesto 12-800) and prepis základnej komentárovej logiky (komentáre pridaných priateľov narástli z 1:50 na 1:3 pre testovacie účely v tejto vetve).</li>
+            <li><b>Generátor:</b> Generátor mien úspešne rozdelený na rodové zoznamy.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.54</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Informačný panel a hard reset</div>
+        <ul>
+            <li>Bola pridaná tabuľka s informáciami a aktualizáciami.</li>
+            <li>Oprava prekrývania okien pri zmenách grafiky.</li>
+            <li>Podržaním ikonky Fakebooku na 5 sekúnd sa dajú natvrdo resetovať nastavenia tém a zatvoriť zaseknuté okná.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.53</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Fix bugs</div>
+        <ul>
+            <li>Opravy drobných chýb v systéme.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.52</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Zmena farby písma</div>
+        <ul>
+            <li>Pridaná možnosť upraviť si farbu textu podľa seba v nastaveniach.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.51</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Pamäť AI a nové témy</div>
+        <ul>
+            <li>Bola pridaná možnosť vypnúť pamäť histórie AI generátora.</li>
+            <li>Boli pridané možnosti meniť témy: Klasická svetlá, Tmavá, Modrá, Červená, Strieborná, Diamantová.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.50</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
+        </div>
+        <div class="version-title">Profily, zdieľanie a AI komentáre</div>
+        <ul>
+            <li>Pridaná plnohodnotná podpora používateľských profilov so zdieľanými príspevkami.</li>
+            <li>Implementovaná možnosť generovania náhodných provokatívnych komentárov a simulovania vojen v diskusiách.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.45</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Oprava - globálna šanca na komentáre</div>
+        <ul>
+            <li>Šanca na komentár od ľubovoľného priateľa je teraz globálne 1:50.</li>
+            <li>Systém už neráta šancu pre každého priateľa samostatne.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.44</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Škálovanie šancí na komentár priateľa</div>
+        <ul>
+            <li>Vytvorená šanca 100:1 pre každého priateľa.</li>
+            <li>Ak má užívateľ 10 priateľov, šanca je 1:10. Zavedený dolný limit, aby šanca nikdy nepresiahla 10%.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.43</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Profily priateľov a úprava šancí</div>
+        <ul>
+            <li>Priatelia majú vlastný profil, kde vidíte ich aktivitu.</li>
+            <li>Znížená šanca na náhodný článok o priateľoch na 10%.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.42</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Interakcia priateľov a ich správa</div>
+        <ul>
+            <li>Priatelia môžu odteraz náhodne komentovať články na ploche (šanca 1:50).</li>
+            <li>Pridaná možnosť vymazať priateľov zo zoznamu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.41</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Rozšírené funkcie priateľov</div>
+        <ul>
+            <li>Pridaná možnosť vytvárať články o priateľoch, zdieľať ich články and vytvoriť osobný status priateľa priamo z menu priateľov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.36</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Detaily priateľov</div>
+        <ul>
+            <li>Pridaná možnosť určiť vek a pohlavie priateľa pre lepšie AI cielenie.</li>
+            <li>Mierne znížená šanca na článok o priateľovi.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.35</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Nové témy pre AI články</div>
+        <ul>
+            <li>Rozšírené témy na náhodné články zo sveta.</li>
+            <li>K pôvodným kategóriám (Šport, politika, šoubiznis, veda) boli pridané: celebrity, vesmír, alkohol, bulvár, filmy a seriály, ekonomika, zo sveta, zo Slovenska, krypto, insider, elektro, nové vynálezy, náboženstvo a cirkev, vojny a konflikty, škandály, tip na turistiku, dovolenky, životospráva.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.34</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Balans generovania</div>
+        <ul>
+            <li>Znížená šanca na náhodný článok o priateľovi.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.33</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Fix bugs</div>
+        <ul>
+            <li>Opravy a stabilizácia systému.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.32</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Články o priateľoch</div>
+        <ul>
+            <li>Nová možnosť vytvoriť článok exkluzívne o priateľovi.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.31</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Zoznam priateľov</div>
+        <ul>
+            <li>Odteraz si môžete vytvárať, definovať a ukladať vlastných priateľov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.25</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl/Máj 2026</span>
+        </div>
+        <div class="version-title">Stabilizácia pred veľkým updatom</div>
+        <ul>
+            <li>Finálna úprava ukladania stavov prechodu na moduly priateľov.</li>
+            <li>Oprava JavaScript chýb pri čítaní prázdneho zoznamu lajkov.</li>
+            <li>Predpríprava rozhrania na zavedenie bočného menu priateľov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.24</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+        </div>
+        <div class="version-title">Optimalizácia DOM štruktúry</div>
+        <ul>
+            <li>Zrýchlenie vykresľovania hlavnej steny pri veľkom množstve textových príspevkov.</li>
+            <li>Oprava pretekania dlhých slov v tele generovaného textu na mobilných zariadeniach.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.23</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+        </div>
+        <div class="version-title">Úprava šablóny komentárov</div>
+        <ul>
+            <li>Zmena HTML štruktúry diskusie pod príspevkami pre lepšie naviazanie budúcich funkcií botov.</li>
+            <li>Drobné vizuálne úpravy odsadenia komentárov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.22</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+        </div>
+        <div class="version-title">Kritické opravy pred verejným releasom</div>
+        <ul>
+            <li>Masívna oprava pádov JS kvôli chýbajúcim parametrom v `localStorage`. Prepracovaný systém inicializácie objektov pri prvom zapnutí.</li>
+            <li>Vyriešený problém s neobmedzeným cyklením odpovedí bota, ak bol vstupný text príliš dlhý.</li>
+            <li>Optimalizácia vykresľovania DOM, vyčistenie konzolových chýb. Prechod do testovacej fázy zoznamu priateľov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.21</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+        </div>
+        <div class="version-title">Zavedenie modulárnych okien nastavení</div>
+        <ul>
+            <li>Pridané vyskakovacie okná (Modals) pre API konfiguráciu a nastavenie bota, čím sa uvoľnilo miesto na ploche.</li>
+            <li>Opravená asynchrónna logika – systém po odoslaní príkazu na generovanie zamrzol. Pridaný prvý prototyp načítavacieho kolesa (spinnera).</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.12</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+        </div>
+        <div class="version-title">Úprava stability API komunikácie</div>
+        <ul>
+            <li>Opravená fatálna chyba, kedy pretekanie textu do JSON stringu rozbíjalo spracovanie odpovede z LLM.</li>
+            <li>Pridané ošetrenie `try-catch` blokov na celú komunikáciu s API, aby aplikácia kompletne nepadla, ak server neodpovedá.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.11</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+        </div>
+        <div class="version-title">Pridanie náhodných komentárov od botov</div>
+        <ul>
+            <li>Systém teraz pod vygenerovaným článkom automaticky vytvorí 1 až 3 náhodné komentáre od náhodne generovaných osôb (zatiaľ pevne dané pole mien).</li>
+            <li>Opravené chybné premazávanie článkov po stlačení klávesu Enter v textovom poli.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.04</span>
+            <span style="font-size:0.85rem; color:#65676b;">Marec 2026</span>
+        </div>
+        <div class="version-title">Drobné opravy rozhrania</div>
+        <ul>
+            <li>Opravené CSS štýlovanie pre príspevky bez obrázkov, kedy zostával prázdny škaredý šedý pás.</li>
+            <li>Jemné doladenie Facebook modrej farby v záhlaví a tlačidlách.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.03</span>
+            <span style="font-size:0.85rem; color:#65676b;">Marec 2026</span>
+        </div>
+        <div class="version-title">Fix pre ukladanie dát</div>
+        <ul>
+            <li>Opravené permanentné vymazávanie API kľúča pri obnovení stránky v niektorých prehliadačoch (zlá syntax LocalStorage).</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.02</span>
+            <span style="font-size:0.85rem; color:#65676b;">Marec 2026</span>
+        </div>
+        <div class="version-title">Fix obrázkového layoutu</div>
+        <ul>
+            <li>Opravené neúmerné naťahovanie obrázkov pri článkoch, ktoré deformovalo celú časovú os. Nastavený fixný `object-fit: cover`.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 3.01</span>
+            <span style="font-size:0.85rem; color:#65676b;">Marec 2026</span>
+        </div>
+        <div class="version-title">Veľký prepis na Fakebook UI a vizuál príspevkov</div>
+        <ul>
+            <li>Celkový redizajn surového HTML do podoby sociálnej siete.</li>
+            <li>Pridaná horná navigácia, logo Fakebooku a karty príspevkov s lajkami.</li>
+            <li>Zavedenie statického počtu lajkov (náhodný generátor) a pridanie tlačidla 'Páči sa mi to' (zatiaľ bez ukladania stavu).</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.67</span>
+            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+        </div>
+        <div class="version-title">Optimalizácia animácií a správy modálov</div>
+        <ul>
+            <li>Pridaná plynulá CSS transformácia (`transition`) pre zatváranie a otváranie okien modálov.</li>
+            <li>Odstránená chyba duplicitných overlay vrstiev pri rýchlom klikaní na tlačidlo API nastavení.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.64</span>
+            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+        </div>
+        <div class="version-title">Vylepšenie detekcie chýb LocalStorage</div>
+        <ul>
+            <li>Pridaná automatická inicializácia základnej konfigurácie JSON, pokiaľ je lokálna pamäť prehliadača poškodená alebo vymazaná užívateľom.</li>
+            <li>Vyčistenie nepotrebných logovacích správ z konzoly prehliadača.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.61</span>
+            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+        </div>
+        <div class="version-title">Prepojenie CSS premenných s dynamickými prvkami</div>
+        <ul>
+            <li>Príprava pre globálnu paletu farieb a zjednotenie elementov pomocou `:root` deklarácie v CSS.</li>
+            <li>Opravené chybné pretekanie dlhých textov popisu verzie priamo v testovacom rozhraní changelogu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.54</span>
+            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+        </div>
+        <div class="version-title">Optimalizácia promptov and odsekov</div>
+        <ul>
+            <li>Úprava interného systémového promptu bota, aby generoval texty rozdelené do viacerých odsekov namiesto jedného veľkého bloku textu. Oprava kódovania znakov s diakritikou (Slovenská gramatika).</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.53</span>
+            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+        </div>
+        <div class="version-title">Ukladanie konfigurácie UI</div>
+        <ul>
+            <li>Implementácia ukladania zvolených rozmerov okien a nastavení do lokálnej pamäte.</li>
+            <li>Vyriešený problém s miznutím textu pri čiastočnom načítaní API odpovede.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.52</span>
+            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+        </div>
+        <div class="version-title">Oprava z-indexov modálov</div>
+        <ul>
+            <li>Fix prekrývania modálneho okna nastavení API s oknom recenzií generovania.</li>
+            <li>Odstránené blikanie postrannej lišty počas generovania príspevku.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.51</span>
+            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+        </div>
+        <div class="version-title">Pokročilé modálne okná</div>
+        <ul>
+            <li>Prepracovaný systém modálnych okien pre Nastavenia a Články.</li>
+            <li>Pridaná natívna podpora plynulého zatvárania okien kliknutím mimo ich plochu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.41</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január/Február 2026</span>
+        </div>
+        <div class="version-title">Časovač a simulácia reálneho času</div>
+        <ul>
+            <li>Pridaná funkcia voľby času publikácie článku (napr. "Pred 5 minútami", "Práve teraz").</li>
+            <li>Prepojenie časovača priamo do generovanej HTML karty príspevku.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.32</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Bug Fix formátovania textu</div>
+        <ul>
+            <li>Opravená chyba, kedy AI v odpovedi vracalo nežiadúce úvodzovky a JSON znaky do nadpisov článkov.</li>
+            <li>Vyčistenie spracovania stringov z API.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.31</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Spracovanie AI odpovedí do HTML kariet</div>
+        <ul>
+            <li>Vytvorená nová funkcia na rozdelenie jedného surového AI textu na samostatný Nadpis, Podnadpis a Telo článku.</li>
+            <li>Automatické formátovanie odsekov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.24</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Vylepšenie validácie kľúča</div>
+        <ul>
+            <li>Pridaná vizuálna indikácia (zelená/červená) stavu API kľúča priamo v rozhraní.</li>
+            <li>Ošetrenie chybových stavov pri výpadku pripojenia na servery OpenRouter.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.23</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Úprava asynchrónnych volaní</div>
+        <ul>
+            <li>Pridaný animovaný "spinner" (indikátor načítania) počas čakania na odpoveď z LLM.</li>
+            <li>Tlačidlo generovania sa počas behu funkcie deaktivuje, aby sa predišlo duplicitným požiadavkám.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.22</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Fix prenosu systémového promptu</div>
+        <ul>
+            <li>Opravená zásadná chyba in doručovaní kontextu do AI, kedy systém ignoroval požiadavku na slovensky písané články a odpovedal v angličtine.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.21</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Výber tónu textu (štýlu)</div>
+        <ul>
+            <li>Do generátora pridaná možnosť zvoliť si tón článku (Seriózny, Bulvárny, Sarkastický).</li>
+            <li>Opravené padanie pri stlačení tlačidla bez vyplneného textového zadania.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.12</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Drobné opravy časovača</div>
+        <ul>
+            <li>Opravené chybné prepočítavanie minút na sekundy v simulovanom odpočítavaní času vydania článku.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.11</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Časovač simulácie publikácie</div>
+        <ul>
+            <li>Pridaná funkcia odloženého publikovania príspevku. Užívateľ si môže nastaviť, za koľko minút sa má príspevok "akože" objaviť na ploche.</li>
+            <li>Oprava chybnej manipulácie s globálnym poľom vygenerovaných dát.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.10</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+        </div>
+        <div class="version-title">Grafické témy, sloty a ukladanie</div>
+        <ul>
+            <li>Predstavené pokročilé grafické motívy vrátane animovaného Diamantového lesku.</li>
+            <li>Pridané 4 nezávislé zálohovacie sloty LocalStorage pre ukladanie rôznych profilov simulácie.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.06</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Hotfix duplikácie textu</div>
+        <ul>
+            <li>Opravená chyba, kedy pri rýchlom kliknutí na tlačidlo vygenerovať poslal systém požiadavku dvakrát a vytvoril identické duplikáty.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.05</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Fix pre prázdny API kľúč</div>
+        <ul>
+            <li>Doplnená validácia vstupného poľa pre API. Ak užívateľ nemá zadaný kľúč, generovanie sa nespustí a systém ho jasne upozorní.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.04</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Oprava formátovania dátumu</div>
+        <ul>
+            <li>Opravené generovanie času. Pri každom článku sa predtým zobrazoval presne ten istý statický čas, teraz sa generuje reálny timestamp.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.03</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Fix straty dát pri obnove</div>
+        <ul>
+            <li>Vyriešená chyba, pri ktorej sa vygenerované články kompletne vymazali pri reštarte alebo F5 stránky. Implementované základné `localStorage` ukladanie pre príspevky.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.02</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Bug Fix asynchrónneho spracovania</div>
+        <ul>
+            <li>Vyriešený problém so zamŕzaním UI počas čakania na sieťovú odpoveď zo servera.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 2.01</span>
+            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+        </div>
+        <div class="version-title">Pridanie generátora obrázkov and veľká úprava architektúry</div>
+        <ul>
+            <li>Pridaná prvá veľká funkcia: Automatické priraďovanie obrázkov k vygenerovanému článku (využívajú sa externé free fotobanky na základe kľúčových slov).</li>
+            <li>Kompletný prepis JS logiky na objektovú architektúru kvôli prehľadnosti kódu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.75</span>
+            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+        </div>
+        <div class="version-title">Stabilizácia Llama integrácie</div>
+        <ul>
+            <li>Úprava tokenizačných nastavení pre nový model, aby texty neboli uprostred vety useknuté. Zvýšenie limitu `max_tokens` na 800.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.74</span>
+            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+        </div>
+        <div class="version-title">Fix pretekania generátora mien</div>
+        <ul>
+            <li>Opravený pád skriptu, ak náhodný generátor vybral index mimo pole slovenských priezvisk.</li>
+            <li>Vyčistenie globálneho scopu premenných.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.73</span>
+            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+        </div>
+        <div class="version-title">Fix generovania lajkov</div>
+        <ul>
+            <li>Opravená chyba, ktorá generovala záporné počty lajkov pri špecifických kategóriách správ. Nastavené pevné minimum na 0.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.72</span>
+            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+        </div>
+        <div class="version-title">Úprava generovania mien komentujúcich</div>
+        <ul>
+            <li>Rozšírená databáza o 50 nových fiktívnych slovenských mien a priezvisk pre vyššiu variabilitu v diskusii.</li>
+            <li>Úprava náhodného algoritmu výberu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.71</span>
+            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+        </div>
+        <div class="version-title">Prvý simulátor lajkov a náhodných komentárov</div>
+        <ul>
+            <li>Implementovaná funkcia, ktorá pri vytvorení príspevku náhodne vygeneruje počet lajkov (v rozsahu 12-800) a pridá sekciu pre statické komentáre s náhodnými menami autorov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.62</span>
+            <span style="font-size:0.85rem; color:#65676b;">November 2025</span>
+        </div>
+        <div class="version-title">Fix ukladania LocalStorage</div>
+        <ul>
+            <li>Opravený kritický bug, ktorý spôsoboval prepísanie API kľúča na hodnotu "undefined" pri obyčajnom obnovení stránky (F5).</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.61</span>
+            <span style="font-size:0.85rem; color:#65676b;">November 2025</span>
+        </div>
+        <div class="version-title">Prvé perzistentné úložisko nastavení</div>
+        <ul>
+            <li>Zavedenie základnej integrácie `localStorage` na ukladanie OpenRouter API kľúča, aby ho užívateľ nemusel zadávať pri každom načítaní.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.53</span>
+            <span style="font-size:0.85rem; color:#65676b;">November 2025</span>
+        </div>
+        <div class="version-title">Fix CSS gridu príspevkov</div>
+        <ul>
+            <li>Oprava responzivity hlavnej steny. Karty príspevkov sa už na menších obrazovkách nedeformujú a text sa správne zalamuje.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.52</span>
+            <span style="font-size:0.85rem; color:#65676b;">Október 2025</span>
+        </div>
+        <div class="version-title">Úprava globálnej palety farieb</div>
+        <ul>
+            <li>Zjednotenie farieb na štandard Facebook modrej (`#1877f2`) and jemného sivého pozadia pre navodenie vernejšej ilúzie sociálnej siete.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.51</span>
+            <span style="font-size:0.85rem; color:#65676b;">Október 2025</span>
+        </div>
+        <div class="version-title">Základný vizuálny štýl a CSS premenné</div>
+        <ul>
+            <li>Vytvorenie dedikovaného CSS štýlu s koreňovými premennými (:root) pre farby a písma.</li>
+            <li>Pridané moderné zaoblené rohy na karty a panely.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.41</span>
+            <span style="font-size:0.85rem; color:#65676b;">September 2025</span>
+        </div>
+        <div class="version-title">Kategórie svetových tém</div>
+        <ul>
+            <li>Do AI promptu bol pridaný pevný zoznam základných tém (Šport, politika, šoubiznis, veda).</li>
+            <li>Systém pred odoslaním požiadavky náhodne vyberie jednu z nich.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.34</span>
+            <span style="font-size:0.85rem; color:#65676b;">August 2025</span>
+        </div>
+        <div class="version-title">Fix pretekania textu hlavičky</div>
+        <ul>
+            <li>Opravené zalomenie textu v hornom navigačnom paneli na zariadeniach s nízkym rozlíšením obrazovky.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.33</span>
+            <span style="font-size:0.85rem; color:#65676b;">August 2025</span>
+        </div>
+        <div class="version-title">Fix asynchrónneho spracovania JSONu</div>
+        <ul>
+            <li>Pridané ošetrenie `try-catch` bloku pri parsovaní odpovede z OpenRouter API, ktoré predchádza úplnému zamrznutiu skriptu pri zlom formáte.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.32</span>
+            <span style="font-size:0.85rem; color:#65676b;">August 2025</span>
+        </div>
+        <div class="version-title">Optimalizácia API requestu</div>
+        <ul>
+            <li>Upravené parametre požiadavky na LLM model. Hodnota `temperature` bola znížená, aby sa obmedzilo generovanie nezmyselných textov a halucinácií.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.31</span>
+            <span style="font-size:0.85rem; color:#65676b;">August 2025</span>
+        </div>
+        <div class="version-title">Zavedenie systémového promptu pre AI</div>
+        <ul>
+            <li>Pridané striktné inštrukcie do tela požiadavky (System Prompt) pre AI model, ktoré definujú, že výstupom musí byť autentický príspevok na sociálnu sieť.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.26</span>
+            <span style="font-size:0.85rem; color:#65676b;">Júl 2025</span>
+        </div>
+        <div class="version-title">Fix layoutu tlačidiel</div>
+        <ul>
+            <li>Opravené centrovanie hlavného tlačidla na generovanie príspevkov v hornom paneli nástrojov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.25</span>
+            <span style="font-size:0.85rem; color:#65676b;">Júl 2025</span>
+        </div>
+        <div class="version-title">Fix hlavičiek požiadavky</div>
+        <ul>
+            <li>Opravená chybne naformátovaná hlavička `Authorization` v `fetch` požiadavke, kvôli ktorej server OpenRouter vracal chybu 401.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.24</span>
+            <span style="font-size:0.85rem; color:#65676b;">Júl 2025</span>
+        </div>
+        <div class="version-title">Fix parsovania payloadu</div>
+        <ul>
+            <li>Oprava štruktúry odosielaného JSON objektu pre prechod na OpenRouter endpoint tak, aby vyhovoval štandardu špecifikácie.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.23</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2025</span>
+        </div>
+        <div class="version-title">Oprava mapovania parametrov modelu</div>
+        <ul>
+            <li>Opravený nesprávny názov premennej v konfigurácii tela požiadavky, ktorý spôsoboval odmietnutie spojenia zo strany API.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.22</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2025</span>
+        </div>
+        <div class="version-title">Fix pretekania textu</div>
+        <ul>
+            <li>Opravená vizuálna chyba v CSS, kedy dlhé nadpisy článkov pretekali mimo hlavného rámčeka a rozbíjali textovú štruktúru plochy.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.21</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2025</span>
+        </div>
+        <div class="version-title">Zavedenie automatického generovania nadpisov</div>
+        <ul>
+            <li>AI teraz okrem samotného tela článku vygeneruje aj úderný chytľavý nadpis (title).</li>
+            <li>Oprava chybného spracovania HTML entít v odpovediach z API.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.14</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2025</span>
+        </div>
+        <div class="version-title">Úprava sily systémového promptu i skriptu</div>
+        <ul>
+            <li>Vylepšený interný príkaz pre AI, ktorý striktne zakazuje modelu vracať uvítacie vety typu "Here is the article:".</li>
+            <li>Presun inicializačných funkcií do jednotného bloku and úprava globálnych premenných pre čistotu kódu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.13</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2025</span>
+        </div>
+        <div class="version-title">Oprava chybnej odpovede z API</div>
+        <ul>
+            <li>Implementovaný parser, ktorý opravuje zlé ukončenie JSON štruktúry z Llama rozhrania.</li>
+            <li>Opravená chyba priameho vkladania neovereného textu z textarei, ktorá spôsobovala rozpad HTML elementov.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.12</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2025</span>
+        </div>
+        <div class="version-title">Úprava rýchlosti spracovania a API poľa</div>
+        <ul>
+            <li>Odstránenie zbytočných medzikrokov pri prenose dát, zrýchlenie generovania textov o cca 40%.</li>
+            <li>Pridané základné textové pole pre manuálne vloženie API kľúča priamo do rozhrania bez nutnosti editácie zdrojového kódu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.11</span>
+            <span style="font-size:0.85rem; color:#65676b;">Máj 2025</span>
+        </div>
+        <div class="version-title">Prechod na nový model meta-llama/llama-4-scout-17b-16e-instruct</div>
+        <ul>
+            <li>Kompletný prechod z nestabilného testovacieho nástroja na pokročilý AI program Llama-4-Scout pre plynulejšie generovanie.</li>
+            <li><b>Pridanie funkcie:</b> Prvotný výber zo 4 základných kategórií článkov sveta (Šport, Politika, Šoubiznis, Veda). Napojenie úspešne presmerované na OpenRouter API.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.03</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl 2025</span>
+        </div>
+        <div class="version-title">Úprava kódovania slovenských znakov and časovania</div>
+        <ul>
+            <li>Opravená chyba UTF-8, kedy starý engine generoval skomolené slovenské písmená s dĺžňami a mäkčeňmi.</li>
+            <li>Zmena časových intervalov simulácie behu "generovania" a vizuálne vylepšenie testovacieho boxu.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.02</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl 2025</span>
+        </div>
+        <div class="version-title">Bug Fix stability a odosielania formulára</div>
+        <ul>
+            <li>Opravený fatálny bug: Pri stlačení tlačidla generovať sa namiesto AI požiadavky reštartovala celá stránka.</li>
+            <li>Opravené zacyklenie funkcie prichytávania statického poľa, ktoré zahlcovalo pamäť prehliadača.</li>
+        </ul>
+    </div>
+
+    <div class="version-block">
+        <div class="version-header">
+            <span>Verzia 1.01</span>
+            <span style="font-size:0.85rem; color:#65676b;">Apríl 2025</span>
+        </div>
+        <div class="version-title">Prvý lokálny generátor príspevkov a správa API kľúča</div>
+        <ul>
+            <li><b>Nová funkcia:</b> Pridané vstupné pole pre ukladanie tajného API kľúča (Zatiaľ implementované nedokonale – kľúč sa občas vymaže).</li>
+            <li>Pridaná testovacia funkcia, ktorá vygeneruje statickú kartu príspevku na stenu.</li>
+            <li><b>Bug Fix:</b> Opravená nefunkčná metóda `fetch()` z Beta verzie (chýbajúce CORS hlavičky) a opravený chýbajúci DOM element blokujúci JavaScript.</li>
+        </ul>
+    </div>
+
+    <div class="version-block" style="opacity: 0.6;">
+        <div class="version-header">
+            <span>Verzia 1.00 (Zlúčená historická Beta verzia)</span>
+            <span style="font-size:0.85rem; color:#65676b;">Marec 2025</span>
+        </div>
+        <div class="version-title">Hola beta verzia systému / Základný čistý prototyp</div>
+        <ul>
+            <li>Úplný prazáklad aplikácie Fakebook.</li>
+            <li>Obsahuje iba statickú HTML štruktúru hlavnej steny, jedno jediné textové pole a jedno tlačidlo pre vygenerovanie náhodného textu na bielu obrazovku.</li>
+            <li>Použitý dočasný, nestabilný textový model <b>text-davinci-003</b> alebo lokálny mockup skript (<i>LocalFakeGen-v1</i>), pričom funkcia generovania je zatiaľ nefunkčná kvôli chybám v asynchrónnej logike a chýbajúcemu sieťovému prepojeniu na API server.</li>
+        </ul>
+    </div>
+
+    <a href="index.html" class="back-link">← Späť na hlavnú aplikáciu Fakebook</a>
+</div>
+
+</body>
+</html>
