@@ -81,7 +81,7 @@
         <div class="version-title">Súkromné profily, algoritmus žiadostí o priateľstvo a double-texting v Messengeri</div>
         <ul>
             <li><b>Oprava lokalizácie tlačidla komentárov:</b> Odstránená kritická chyba prejavujúca sa zobrazením textového reťazca "undefined" na hlavnej ploche pri príspevkoch s počtom komentárov vyšším ako 3. Mechanizmus bol plne prepojený na lokalizačné balíky pre slovenský, anglický aj srbský jazyk.</li>
-            <li><b>Implementácia funkcie Súkromný Profil:</b> Kliknutie na meno akéhokoľvek komentujúceho používateľa v sekcii komentárov (ktorého zatiaľ nemáte v zozname priateľov) vyvolá plnohodnotné okno simulovaného uzamknutého profilu. Rozhranie jasne indikuje stav súkromia v príslušnom jazyku a integruje asynchrónne tlačidlo na odoslanie žiadosti o priateľstvo.</li>
+            <li><b>Implementácia funkcie Súkromný Profil:</b> Kliknutie na meno akéhokoľvek komentujúceho používateľa v sekcii komentárov (ktorého zatiall nemáte v zozname priateľov) vyvolá plnohodnotné okno simulovaného uzamknutého profilu. Rozhranie jasne indikuje stav súkromia v príslušnom jazyku a integruje asynchrónne tlačidlo na odoslanie žiadosti o priateľstvo.</li>
             <li><b>Algoritmus spracovania žiadostí o priateľstvo (70% úspešnosť):</b> Nový matematický model s pravdepodobnosťou 70% akceptuje podanú žiadosť. V prípade úspechu je entita plne zaregistrovaná do zoznamu trvalých priateľov, pričom systém zistí biologické pohlavie, priradí meno, vygeneruje vlastnosti, gramatické preferencie, messenger kód a prepojí entitu na pôvodný príspevok.</li>
             <li><b>Bezpečnostná poistka pre deštruktívne mazanie:</b> Odstránenie priateľa zo zoznamu trvalých entít bolo ošetrené natívnym potvrdzovacím oknom. Systém vyžaduje explicitný súhlas používateľa s upozornením na permanentné následky pred vymazaním údajov, chatov a logov.</li>
             <li><b>Kontextový Messenger podsystém (Double-Texting awareness):</b> AI model v Groq prompt inžinierstve získal vrstvu sebauvedomenia, vďaka ktorej vie, že používateľ prechádza obdobím ticha (ignore/no reply). Entita reaguje vysoko adaptívne na základe svojej psychologickej povahy – od jemného pokusu o zmenu témy až po urazenie sa či obavy.</li>
@@ -101,7 +101,6 @@
             <li><b>Multijazyčné databázy mien a priezvisk (EN / SRB):</b> Integrované plnohodnotné pooly pre anglické mužské a ženské mená s univerzálnymi priezviskami. Pre srbský jazyk bol vytvorený špecifický generátor mien rešpektujúci lokálne koncovky priezvisk (-ić, -ova, -eva) na základe biologického rodu.</li>
             <li><b>Rotačný algoritmus predvolených vydavateľov:</b> Selektor stránok pred publikáciou príspevku už nie je fixne nastavený na prvú položku. Implementovaný pseudonáhodný výber (Math.random()), ktorý pri každom novom generovaní predvolí inú spravodajskú či satirickú stránku.</li>
             <li><b>Eliminácia whitespace chyby pri skracovaní textu:</b> Opravená chyba v skripte renderGrid(), ktorá pri vizuálnom zalomení dlhých statusov pomocou tlačidla "Zobraziť viac" vkladala nežiaducu prázdnu medzeru do rozdeleného slova. Text sa teraz spája plynule.</li>
-            <li><b>Aktualizácia interného databázového indexu:</b> Verzia aplikácie bola oficiálne zvýšená na 3.96 a informácie o opravách boli natívne integrované do komponentu info-modal pre zachovanie konzistentnej informovanosti.</li>
         </ul>
     </div>
 
@@ -128,7 +127,7 @@
             <li><b>Prevencia nežiaduceho zatvorenia PWA (History API Integration):</b> Pri každom otvorení modálneho okna (Priatelia, Nastavenia, Profil, Messenger, Chat, Tvorba príspevku, Review) sa do histórie prehliadača automaticky vloží nový stav pomocou history.pushState().</li>
             <li><b>Hardvérové tlačidlo Späť na mobile:</b> Stlačenie natívneho tlačidla späť alebo použitie gesta na smartfóne namiesto opustenia celej aplikácie bezpečne zachytí udalosť popstate, zatvorí aktuálne otvorené modálne okno a vráti používateľa na hlavnú plochu (Feed).</li>
             <li><b>Synchronizácia stavov histórie:</b> Systém inteligentne odstraňuje nadbytočné stavy z histórie pri manuálnom zatvorení okna krížikom, čím zabraňuje rozsynchronizovaniu navigácie.</li>
-            <li><b>Aktualizácia prehľadu verzií a návodu:</b> Sekcia s informáciami priamo v aplikácii bola rozšírená o oficiálny prehľad zmien pre verziu 3.95 a bol vytvorený nový návod v troch jazykoch, pričom odkaz na externý súbor changelog.html zostal zachovaný (exkluzívne v slovenčine).</li>
+            <li><b>Aktualizácia prehľadu verzií a návodu:</b> Sekcia s informáciami priamo v aplikácii bola rozšírená o oficiálny prehľad zmien pre verziu 3.95 (plánované pridanie Srbského Jazyka) a bol vytvorený nový návod v troch jazykoch, pričom odkaz na externý súbor changelog.html zostal zachovaný (exkluzívne v slovenčine).</li>
         </ul>
     </div>
 
@@ -169,7 +168,7 @@
         <ul>
             <li><b>Prvotná transformácia na PWA aplikáciu:</b> Fakebook prešiel masívnou aktualizáciou jadra a bol transformovaný do formátu Progressive Web App. Aplikácia odteraz spĺňa moderné štandardy pre mobilné a desktopové prehliadače, čo jej umožňuje správať sa ako skutočná inštalovateľná aplikácia priamo v operačnom systéme.</li>
             <li><b>Vytvorenie konfiguračného súboru manifest.json:</b> Do koreňového adresára bol pridaný nový systémový súbor manifest.json. Tento súbor definuje pre prehliadač identitu celej aplikácie, jej štartovaciu adresu, farbu motívu sociálnej siete a vynucuje zobrazenie v režime na výšku (portrait-primary) pre zachovanie natívneho mobilného zážitku.</li>
-            <li><b>Nasadenie ikon aplikácie a podpora pre Apple zariadenia:</b> V rámci manifestu a hlavičky webu boli zavedené inštalačné ikony prepojené na súbory fakebook.png (rozmer 512x512) a fakebook_small.png (rozmer 192x192). Zároveň boli do hlavičke pridané špecifické meta tagy a linka apple-touch-icon, ktoré zabezpečujú korektné zobrazenie ikon a správanie aplikácie na zariadeniach so systémom iOS (iPhone, iPad).</li>
+            <li><b>Nasadenie ikon aplikácie a podpora pre Apple zariadenia:</b> V rámci manifestu a hlavičke webu boli zavedené inštalačné ikony prepojené na súbory fakebook.png (rozmer 512x512) and fakebook_small.png (rozmer 192x192). Zároveň boli do hlavičke pridané špecifické meta tagy a linka apple-touch-icon, ktoré zabezpečujú korektné zobrazenie ikon a správanie aplikácie na zariadeniach so systémom iOS (iPhone, iPad).</li>
             <li><b>Prvé nasadenie in-line registrácie Service Workera:</b> Do úvodu hlavného JavaScriptu v index.html bola implementovaná úvodná asynchrónna registrácia Service Workera, ktorá prehliadaču oznamuje, že aplikácia disponuje manažmentom vyrovnávacej pamäte na pozadí, čo je základným technickým predpokladom pre aktiváciu inštalačného tlačidla.</li>
         </ul>
     </div>
@@ -182,7 +181,7 @@
         <div class="version-title">Komplexný audit reťazcov, odstránenie hybridných textov a ochrana čitateľnosti prémiových tém</div>
         <ul>
             <li><b>Úplná eliminácia hybridných textov a bilingválna izolácia:</b> Z rozhrania boli kompletne odstránené všetky kombinované dvojjazyčné texty oddelené lomkou (napr. „Meno priateľa... / Friend name...“). Celé prostredie aplikácie, vrátane všetkých modalov, popisov, tlačidiel a zástupných textov (placeholders) vo vstupných poliach chatu či nastavení profilu, bolo dôsledne vyčistené a prepracované. Aplikácia teraz zobrazuje čistú slovenčinu alebo čistú angličtinu striktne podľa globálne zvoleného systémového jazyka.</li>
-            <li><b>Ochrana čitateľnosti a kontrastu pri prémiových témach:</b> Do funkcie `applyThemeAndFont()` bola pridaná natvrdo podmienka pre svetlé prémiové vzhľady (Gold, Diamond, Silver). Pokiaľ má používateľ aktivovanú jednu z týchto svetlých tém, systém pri detekcii ignoruje vovoľbu bielej, žltej, striebornej alebo zlatej farby písma a automaticky vynúti tmavé zobrazenie textu. Tým sa zabránilo splývaniu písma s pozadím a text príspevkov zostáva vždy dokonale čitateľný.</li>
+            <li><b>Ochrana čitateľnosti a kontrastu pri prémiových témach:</b> Do funkcie `applyThemeAndFont()` bola pridaná natvrdo podmienka pre svetlé prémiové vzhľady (Gold, Diamond, Silver). Pokiall má používateľ aktivovanú jednu z týchto svetlých tém, systém pri detekcii ignoruje vovoľbu bielej, žltej, striebornej alebo zlatej farby písma a automaticky vynúti tmavé zobrazenie textu. Tým sa zabránilo splývaniu písma s pozadím a text príspevkov zostáva vždy dokonale čitateľný.</li>
             <li><b>Rodová a jazyková harmonizácia osobných nastavení:</b> Zoznamy predvolených osobností bota (`ALL_PERSONALITIES`) and možností pôvodu vzťahov (`RELATIONSHIP_OPTIONS`) boli v kóde kompletne rozdelené na samostatné lokalizované polia pre slovenskú aj anglickú mutáciu, čím sa zaistilo správne kontextové generovanie promptov pre LLM model.</li>
             <li><b>Zachovanie funkčného jadra aplikácie:</b> Všetky pokročilé asynchrónne interakcie, vedomie izolácie identity AI v histórii chatu, asymetry logy, prepojenia s API Groq a Pollinations AI s variabilným pomerom plátna zostali plne zachované a neporušené v stopercentnom rozsahu.</li>
         </ul>
@@ -266,7 +265,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.74</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj/Jún 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Veľký update osobností a logiky UI</div>
         <ul>
@@ -279,7 +278,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.73</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Vylepšenia UI a Bug Fixy</div>
         <ul>
@@ -293,7 +292,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.72</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Unikátne osobnosti and Bug Fixy</div>
         <ul>
@@ -306,7 +305,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.71</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Messenger a Reakcie AI</div>
         <ul>
@@ -319,7 +318,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.66</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Bug Fixes v profiloch</div>
         <ul>
@@ -330,7 +329,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.65</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Užívateľské rozhranie profilu</div>
         <ul>
@@ -341,7 +340,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.64</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Bug Fix náhodného generovania</div>
         <ul>
@@ -352,7 +351,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.63</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Modálne okná a fixy pamäte</div>
         <ul>
@@ -366,7 +365,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.62</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Veľká aktualizácia vyváženia, profilov a prispôsobenia</div>
         <ul>
@@ -374,7 +373,7 @@
             <li>Šanca, že komentáre v statusoch priateľov budú pochádzať od iných priateľov, sa zvýšila o 300% (šanca stúpla z 1:50 na 4:50).</li>
             <li>Pridaná možnost nastaviť si vlastný vek a pohlavie priamo v našom profile.</li>
             <li>Pool krstných mien bol rozdelený na samostatný mužský a ženský zoznam. Generované ženské priezviská automaticky dostávajú koncovku "-ová".</li>
-            <li>V profile pribudla správa obľúbených tém (výber z desiatok tém + ručné dopisovanie) a voľba preferencie (Obľúbené témy vs Všetky témy).</li>
+            <li>V profile pribudla správa obľúbených mien (výber z desiatok tém + ručné dopisovanie) a voľba preferencie (Obľúbené témy vs Všetky témy).</li>
             <li>Pri generovaní nového AI článku pribudla rolovacia možnosť výberu konkrétnej témy priamo pod nastavením času (berie do úvahy témy z profilu vrátane ručne pridaných).</li>
             <li>Prepracované šance náhodného generovania: Svetová téma (90%), Článok o priateľovi (2%) a nový Typ príspevku - Status priateľa o náhodnej dĺžke (krátky 33% / stredný 33% / dlhý 33%) s celkovou šancou 8%.</li>
             <li>Presunutá ikonka informácií priamo do pop-up okna nastavení API. Informácie sa zobrazia aj po kliknutí na logo Fakebooku (podržaním na 5 sekúnd prebehne hard reset).</li>
@@ -385,7 +384,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.61</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Nové Témy, Úpravy Šancí and Prispôsobenie Fontov (Zlúčená beta balansu)</div>
         <ul>
@@ -398,7 +397,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.54</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Informačný panel a hard reset</div>
         <ul>
@@ -411,7 +410,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.53</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix bugs</div>
         <ul>
@@ -422,7 +421,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.52</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Zmena farby písma</div>
         <ul>
@@ -433,7 +432,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.51</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Pamäť AI a nové témy</div>
         <ul>
@@ -457,7 +456,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.45</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Oprava - globálna šanca na komentáre</div>
         <ul>
@@ -469,7 +468,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.44</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Škálovanie šancí na komentár priateľa</div>
         <ul>
@@ -481,7 +480,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.43</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Profily priateľov a úprava šancí</div>
         <ul>
@@ -493,7 +492,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.42</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Interakcia priateľov a ich správa</div>
         <ul>
@@ -505,7 +504,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.41</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Rozšírené funkcie priateľov</div>
         <ul>
@@ -516,7 +515,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.36</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Detaily priateľov</div>
         <ul>
@@ -528,7 +527,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.35</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Nové témy pre AI články</div>
         <ul>
@@ -540,7 +539,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.34</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Balans generovania</div>
         <ul>
@@ -551,7 +550,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.33</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix bugs</div>
         <ul>
@@ -562,7 +561,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.32</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Články o priateľoch</div>
         <ul>
@@ -573,7 +572,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.31</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Zoznam priateľov</div>
         <ul>
@@ -584,7 +583,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.25</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl/Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Stabilizácia pred veľkým updatom</div>
         <ul>
@@ -597,7 +596,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.24</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Optimalizácia DOM štruktúry</div>
         <ul>
@@ -609,7 +608,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.23</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Úprava šablóny komentárov</div>
         <ul>
@@ -621,7 +620,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.22</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Kritické opravy pred verejným releasom</div>
         <ul>
@@ -634,7 +633,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.21</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Zavedenie modulárnych okien nastavení</div>
         <ul>
@@ -646,7 +645,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.12</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Úprava stability API komunikácie</div>
         <ul>
@@ -658,7 +657,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.11</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Pridanie náhodných komentárov od botov</div>
         <ul>
@@ -670,7 +669,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.04</span>
-            <span style="font-size:0.85rem; color:#65676b;">Marec 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Drobné opravy rozhrania</div>
         <ul>
@@ -682,7 +681,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.03</span>
-            <span style="font-size:0.85rem; color:#65676b;">Marec 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix pre ukladanie dát</div>
         <ul>
@@ -693,7 +692,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.02</span>
-            <span style="font-size:0.85rem; color:#65676b;">Marec 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix obrázkového layoutu</div>
         <ul>
@@ -704,7 +703,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 3.01</span>
-            <span style="font-size:0.85rem; color:#65676b;">Marec 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Veľký prepis na Fakebook UI a vizuál príspevkov</div>
         <ul>
@@ -717,7 +716,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.67</span>
-            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Optimalizácia animácií a správy modálov</div>
         <ul>
@@ -729,7 +728,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.64</span>
-            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Vylepšenie detekcie chýb LocalStorage</div>
         <ul>
@@ -741,7 +740,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.61</span>
-            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Prepojenie CSS premenných s dynamickými prvkami</div>
         <ul>
@@ -753,7 +752,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.54</span>
-            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Optimalizácia promptov and odsekov</div>
         <ul>
@@ -764,7 +763,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.53</span>
-            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Ukladanie konfigurácie UI</div>
         <ul>
@@ -776,7 +775,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.52</span>
-            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Oprava z-indexov modálov</div>
         <ul>
@@ -788,7 +787,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.51</span>
-            <span style="font-size:0.85rem; color:#65676b;">Február 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Pokročilé modálne okná</div>
         <ul>
@@ -800,7 +799,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.41</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január/Február 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Časovač a simulácia reálneho času</div>
         <ul>
@@ -812,7 +811,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.32</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Bug Fix formátovania textu</div>
         <ul>
@@ -824,7 +823,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.31</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Spracovanie AI odpovedí do HTML kariet</div>
         <ul>
@@ -836,7 +835,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.24</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Vylepšenie validácie kľúča</div>
         <ul>
@@ -848,7 +847,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.23</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Úprava asynchrónnych volaní</div>
         <ul>
@@ -860,7 +859,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.22</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix prenosu systémového promptu</div>
         <ul>
@@ -871,7 +870,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.21</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Výber tónu textu (štýlu)</div>
         <ul>
@@ -883,7 +882,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.12</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Drobné opravy časovača</div>
         <ul>
@@ -894,7 +893,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.11</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Časovač simulácie publikácie</div>
         <ul>
@@ -906,7 +905,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.10</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Grafické témy, sloty a ukladanie</div>
         <ul>
@@ -918,7 +917,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.06</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Hotfix duplikácie textu</div>
         <ul>
@@ -929,7 +928,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.05</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix pre prázdny API kľúč</div>
         <ul>
@@ -940,7 +939,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.04</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Oprava formátovania dátumu</div>
         <ul>
@@ -951,7 +950,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.03</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix straty dát pri obnove</div>
         <ul>
@@ -962,7 +961,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.02</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Bug Fix asynchrónneho spracovania</div>
         <ul>
@@ -973,7 +972,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 2.01</span>
-            <span style="font-size:0.85rem; color:#65676b;">Január 2026</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Pridanie generátora obrázkov and veľká úprava architektúry</div>
         <ul>
@@ -985,7 +984,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.75</span>
-            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Stabilizácia Llama integrácie</div>
         <ul>
@@ -996,7 +995,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.74</span>
-            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix pretekania generátora mien</div>
         <ul>
@@ -1008,7 +1007,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.73</span>
-            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix generovania lajkov</div>
         <ul>
@@ -1019,7 +1018,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.72</span>
-            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Úprava generovania mien komentujúcich</div>
         <ul>
@@ -1031,7 +1030,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.71</span>
-            <span style="font-size:0.85rem; color:#65676b;">December 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Prvý simulátor lajkov a náhodných komentárov</div>
         <ul>
@@ -1042,7 +1041,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.62</span>
-            <span style="font-size:0.85rem; color:#65676b;">November 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix ukladania LocalStorage</div>
         <ul>
@@ -1053,7 +1052,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.61</span>
-            <span style="font-size:0.85rem; color:#65676b;">November 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Prvé perzistentné úložisko nastavení</div>
         <ul>
@@ -1064,7 +1063,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.53</span>
-            <span style="font-size:0.85rem; color:#65676b;">November 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix CSS gridu príspevkov</div>
         <ul>
@@ -1075,7 +1074,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.52</span>
-            <span style="font-size:0.85rem; color:#65676b;">Október 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Úprava globálnej palety farieb</div>
         <ul>
@@ -1086,7 +1085,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.51</span>
-            <span style="font-size:0.85rem; color:#65676b;">Október 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Základný vizuálny štýl a CSS premenné</div>
         <ul>
@@ -1098,7 +1097,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.41</span>
-            <span style="font-size:0.85rem; color:#65676b;">September 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Kategórie svetových tém</div>
         <ul>
@@ -1110,7 +1109,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.34</span>
-            <span style="font-size:0.85rem; color:#65676b;">August 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix pretekania textu hlavičky</div>
         <ul>
@@ -1121,7 +1120,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.33</span>
-            <span style="font-size:0.85rem; color:#65676b;">August 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix asynchrónneho spracovania JSONu</div>
         <ul>
@@ -1132,7 +1131,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.32</span>
-            <span style="font-size:0.85rem; color:#65676b;">August 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Optimalizácia API requestu</div>
         <ul>
@@ -1143,7 +1142,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.31</span>
-            <span style="font-size:0.85rem; color:#65676b;">August 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Zavedenie systémového promptu pre AI</div>
         <ul>
@@ -1154,7 +1153,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.26</span>
-            <span style="font-size:0.85rem; color:#65676b;">Júl 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix layoutu tlačidiel</div>
         <ul>
@@ -1165,7 +1164,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.25</span>
-            <span style="font-size:0.85rem; color:#65676b;">Júl 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix hlavičiek požiadavky</div>
         <ul>
@@ -1176,7 +1175,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.24</span>
-            <span style="font-size:0.85rem; color:#65676b;">Júl 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix parsovania payloadu</div>
         <ul>
@@ -1187,7 +1186,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.23</span>
-            <span style="font-size:0.85rem; color:#65676b;">Jún 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Oprava mapovania parametrov modelu</div>
         <ul>
@@ -1198,7 +1197,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.22</span>
-            <span style="font-size:0.85rem; color:#65676b;">Jún 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Fix pretekania textu</div>
         <ul>
@@ -1209,19 +1208,19 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.21</span>
-            <span style="font-size:0.85rem; color:#65676b;">Jún 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Zavedenie automatického generovania nadpisov</div>
         <ul>
             <li>AI teraz okrem samotného tela článku vygeneruje aj úderný chytľavý nadpis (title).</li>
-            <li>Oprava chybného spracovania HTML entít v odpovediach z API.</li>
+            <li>Oprava chytného spracovania HTML entít v odpovediach z API.</li>
         </ul>
     </div>
 
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.14</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Úprava sily systémového promptu i skriptu</div>
         <ul>
@@ -1233,7 +1232,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.13</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Oprava chybnej odpovede z API</div>
         <ul>
@@ -1245,7 +1244,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.12</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Úprava rýchlosti spracovania a API poľa</div>
         <ul>
@@ -1257,7 +1256,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.11</span>
-            <span style="font-size:0.85rem; color:#65676b;">Máj 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Prechod na nový model meta-llama/llama-4-scout-17b-16e-instruct</div>
         <ul>
@@ -1269,7 +1268,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.03</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Úprava kódovania slovenských znakov and časovania</div>
         <ul>
@@ -1281,7 +1280,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.02</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Bug Fix stability a odosielania formulára</div>
         <ul>
@@ -1293,7 +1292,7 @@
     <div class="version-block">
         <div class="version-header">
             <span>Verzia 1.01</span>
-            <span style="font-size:0.85rem; color:#65676b;">Apríl 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Prvý lokálny generátor príspevkov a správa API kľúča</div>
         <ul>
@@ -1306,7 +1305,7 @@
     <div class="version-block" style="opacity: 0.6;">
         <div class="version-header">
             <span>Verzia 1.00 (Zlúčená historická Beta verzia)</span>
-            <span style="font-size:0.85rem; color:#65676b;">Marec 2025</span>
+            <span style="font-size:0.85rem; color:#65676b;">Jún 2026</span>
         </div>
         <div class="version-title">Hola beta verzia systému / Základný čistý prototyp</div>
         <ul>
