@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fakebook v. 3.97</title>
-    <link rel="manifest" href="manifest.json">
+    <link class="manifest" href="manifest.json">
     <meta name="theme-color" content="#1877f2">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Fakebook">
-    <link rel="apple-touch-icon" href="fakebook_small.png">
-
+    <link class="apple-touch-icon" href="fakebook_small.png">
+    
     <style>
         :root {
             --bg-main-fb: #f0f2f5; 
@@ -978,50 +978,35 @@
 
     <script>
         // REGISTRÁCIA SERVICE WORKERA PRE PWA FUNKČNOSŤ
-        // REGISTRÁCIA SERVICE WORKERA PRE PWA FUNKČNOSŤ
-          // REGISTRÁCIA SERVICE WORKERA PRE PWA FUNKČNOSŤ
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Fakebook PWA: Service Worker úspešne registrovaný!'))
+                    .then(reg => console.log('Fakebook PWA: Service Worker úspešne registrovaný zo súboru sw.js!'))
                     .catch(err => console.log('Fakebook PWA: Chyba registrácie Service Workera:', err));
             });
         }
 
-        // LOGIKA PRE INŠTALAČNÝ BANNER (VERZIA PO VZORE CHANGELOGU 3.93)
+        // LOGIKA PRE INŠTALAČNÝ BANNER
         let deferredPrompt;
         const installBanner = document.getElementById('pwa-install-banner');
         const btnInstallYes = document.getElementById('btn-pwa-install-yes');
         const btnInstallNo = document.getElementById('btn-pwa-install-no');
 
-        function checkIncomingPwaMode() {
-            // Zistíme, či je web otvorený už ako nainštalovaná aplikácia (standalone režim)
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-            if (isStandalone) {
-                if (installBanner) installBanner.style.display = 'none';
-                return true;
-            }
-            return false;
-        }
-
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Zablokujeme predvolený inštalačný dialóg prehliadača Chrome
             e.preventDefault();
             deferredPrompt = e;
             
-            // Ak NIE SME v standalone režime, banner sa VŽDY natvrdo zobrazí pri načítaní
-            if (!checkIncomingPwaMode()) {
-                if (installBanner) {
-                    installBanner.style.setProperty('display', 'flex', 'important');
-                }
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+            if (!isStandalone) {
+                installBanner.style.display = 'flex';
             }
         });
 
         if (btnInstallYes) {
             btnInstallYes.addEventListener('click', async () => {
                 if (!deferredPrompt) return;
-                if (installBanner) installBanner.style.display = 'none';
+                installBanner.style.display = 'none';
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 console.log(`Fakebook PWA: Rozhodnutie o inštalácii: ${outcome}`);
@@ -1031,21 +1016,15 @@
 
         if (btnInstallNo) {
             btnInstallNo.addEventListener('click', () => {
-                // OPRAVA: Iba vizuálne skryjeme lištu v tejto relácii.
-                // Neukladáme nič do LocalStorage, takže po F5 / obnovení stránky lišta opäť vyskočí!
-                if (installBanner) installBanner.style.display = 'none';
+                installBanner.style.display = 'none';
             });
         }
 
         window.addEventListener('appinstalled', (log) => {
             console.log('Fakebook PWA: Aplikácia bola úspešne nainštalovaná na plochu!');
-            if (installBanner) installBanner.style.display = 'none';
+            installBanner.style.display = 'none';
             deferredPrompt = null;
         });
-
-        // Spustíme rýchlu poistnú kontrolu chvíľu po načítaní
-        setTimeout(checkIncomingPwaMode, 500);
-
 
         // MANAGEMENT HISTÓRIE PRE TLAČIDLO SPÄŤ (PREVENCIA ZATVORENIA PWA)
         window.addEventListener('popstate', function(event) {
@@ -1080,7 +1059,7 @@
 
         const BASE_API_URL = "https://api.groq.com/openai/v1/chat/completions";
         const API_URL = "https://corsproxy.io/?" + encodeURIComponent(BASE_API_URL);
-        const MODEL_NAME = "meta-llama/Llama-4-Maverick-17B-128E-Instruct";
+        const MODEL_NAME = "meta-llama/llama-4-scout-17b-16e-instruct";
 
         const MALE_NAMES = ["Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid", "Dežo", "Gejza", "Koloman", "Vasiľ", "Fero", "Laco", "Jožo", "Maroš", "Slavo", "Bohumil", "Žigmund", "Pali", "Rišo"];
         const FEMALE_NAMES = ["Janka", "Mária", "Zuzana", "Katarína", "Lucia", "Lenka", "Monika", "Petra", "Veronika", "Martina", "Klaudia", "Ružena", "Gitka", "Božena", "Erika", "Vlasta", "Oľga"];
