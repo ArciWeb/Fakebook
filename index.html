@@ -457,6 +457,13 @@
         .chat-send-btn { background: var(--fb-blue); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-weight: bold; }
         .chat-send-btn:disabled { background-color: #ced0d4; cursor: not-allowed; }
         .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border-color); background: var(--bg-card); }
+        .chat-online-dot { width: 11px; height: 11px; min-width: 11px; border-radius: 50%; background: #31a24c; border: 2px solid var(--bg-card); cursor: pointer; box-shadow: 0 0 0 1px rgba(49,162,76,.35); padding: 0; }
+        .chat-online-dot.active { box-shadow: 0 0 0 2px rgba(49,162,76,.20), 0 0 8px rgba(49,162,76,.45); }
+        .chat-active-label { font-size: 0.72rem; color: #31a24c; font-weight: 600; margin-left: 2px; white-space: nowrap; }
+        .chat-web-memory { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; }
+        .chat-web-sources { margin-top: 5px; font-size: 0.7rem; opacity: .85; }
+        .chat-web-sources a { color: inherit; text-decoration: underline; margin-right: 7px; }
+
         
         .fs-section-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; margin-top: 10px; color: var(--fb-blue); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
         .fs-section-title:hover { opacity: 0.8; }
@@ -740,6 +747,8 @@
                     <button style="background:none; border:none; font-size:1.2rem; cursor:pointer; color: var(--global-font-color);" onclick="handleChatBack()">←</button>
                     <div class="avatar" id="chat-friend-avatar" style="width:32px; height:32px; font-size:0.8rem;">P</div>
                     <h4 style="margin:0;" id="chat-friend-name">Priateľ</h4>
+                    <button id="chat-online-dot" class="chat-online-dot" title="Internetový režim" aria-label="Internetový režim" onclick="toggleChatWebMode()"></button>
+                    <span id="chat-active-label" class="chat-active-label" style="display:none;">aktívny</span>
                 </div>
                 <div class="post-options-container">
                     <button class="post-options-btn" style="width:30px; height:30px;" onclick="toggleChatOptions()">⚙️</button>
@@ -1127,6 +1136,9 @@ async function geminiFetch(request) {
     if (!contents.length) throw new Error("CLIENT_REQUEST_INVALID: Gemini nedostala žiadny používateľský obsah.");
 
     const body = { contents, generationConfig: {} };
+    if (req.useWebSearch === true) {
+        body.tools = [{ google_search: {} }];
+    }
     if (Number.isFinite(req.temperature)) body.generationConfig.temperature = req.temperature;
     if (systemInstruction) body.systemInstruction = { parts: [{ text: systemInstruction }] };
     if (req.response_format?.type === 'json_object') body.generationConfig.responseMimeType = 'application/json';
@@ -1211,7 +1223,8 @@ async function geminiFetch(request) {
         throw new Error(`GEMINI_NO_TEXT: Gemini neposlalo textovú odpoveď. finishReason=${reason}${block ? `, blockReason=${block}` : ''}.`);
     }
 
-    return { ok: true, async json() { return { choices: [{ message: { content: text } }] }; } };
+    const groundingMetadata = candidate?.groundingMetadata || null;
+    return { ok: true, async json() { return { choices: [{ message: { content: text } }], groundingMetadata }; } };
 }
 
         const MALE_NAMES = ["Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid", "Dežo", "Gejza", "Koloman", "Vasiľ", "Fero", "Laco", "Jožo", "Maroš", "Slavo", "Bohumil", "Žigmund", "Pali", "Rišo"];
@@ -2160,6 +2173,8 @@ function applyThemeAndFont() {
                         if(!obj.customTopics) obj.customTopics = [];
                         if(obj.profileDescription === undefined) obj.profileDescription = '';
                         if(obj.profilePhoto === undefined) obj.profilePhoto = '';
+                        if(!Array.isArray(obj.webMemory)) obj.webMemory = [];
+                        if(typeof obj.webActive !== 'boolean') obj.webActive = false;
                         if(obj.isBlocked === undefined) obj.isBlocked = false;
                         if(obj.ignoredCount === undefined) obj.ignoredCount = 0;
                         if(obj.unreadCount === undefined) obj.unreadCount = 0;
@@ -2341,7 +2356,7 @@ function applyThemeAndFont() {
                     ghostChance: 5, emojiStyle: emStyle, owedApology: false, isGhostingMe: false,
                     personalities: [randomPersObj.id],
                     grammar: generateRandomGrammar(), messageCountBehavior: generateRandomMsgCount(),
-                    romance: generateRandomRomance(), relationships: ["sight"], favoriteTopics: [], customTopics: [], profileDescription: "", profilePhoto: "",
+                    romance: generateRandomRomance(), relationships: ["sight"], favoriteTopics: [], customTopics: [], profileDescription: "", profilePhoto: "", webMemory: [], webActive: false,
                     isBlocked: false, ignoredCount: 0, unreadCount: 0, dateAdded: Date.now(), contactLevel: 'Poznáme sa'
                 });
                 saveFriendsData();
@@ -3348,6 +3363,8 @@ async function processIncomingMessages() {
             if(!activeChatFriend) return;
             
             document.getElementById('chat-friend-name').innerText = activeChatFriend.name;
+            if (typeof activeChatFriend.webActive !== 'boolean') activeChatFriend.webActive = false;
+            updateChatWebModeUI();
             let av = document.getElementById('chat-friend-avatar');
             av.innerText = activeChatFriend.name.charAt(0).toUpperCase();
             av.style.backgroundColor = generateColor(activeChatFriend.name);
@@ -3401,8 +3418,12 @@ async function processIncomingMessages() {
         function renderChatMessages() {
             if(!activeChatFriend) return;
             const container = document.getElementById('chat-messages-container');
+            setupChatLongPress();
             container.innerHTML = '';
             let msgs = chatData[activeChatFriend.name] || [];
+            let assignedMissingIds = false;
+            msgs.forEach(m => { if (m.from !== 'system' && !m.id) { m.id = 'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8); assignedMissingIds = true; } });
+            if (assignedMissingIds) saveChatsData();
             let unread = activeChatFriend.unreadCount || 0;
             let thresholdIndex = msgs.length - unread;
 
@@ -3410,9 +3431,108 @@ async function processIncomingMessages() {
                 if (unread > 0 && i === thresholdIndex) {
                     container.innerHTML += `<div class="chat-unread-divider">${UI_TEXTS[appLanguage].textNewMessagesDivider}</div>`;
                 }
-                container.innerHTML += `<div class="chat-bubble ${m.from}">${m.text}</div>`;
+                if (m.from === 'system') return;
+                const bubble = document.createElement('div');
+                bubble.className = `chat-bubble ${m.from}`;
+                bubble.dataset.messageId = m.id || '';
+                bubble.innerHTML = m.text || '';
+                container.appendChild(bubble);
+
+                if (m.webSources && m.webSources.length) {
+                    const src = document.createElement('div');
+                    src.className = 'chat-web-sources';
+                    src.innerHTML = '🔎 ' + m.webSources.slice(0,4).map(s => `<a href="${escapeHtmlAttr(s.uri)}" target="_blank" rel="noopener noreferrer">${escapeHtml(s.title || 'Zdroj')}</a>`).join('');
+                    bubble.appendChild(src);
+                }
             });
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 20);
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+        function escapeHtmlAttr(value) { return escapeHtml(value); }
+
+        function updateChatWebModeUI() {
+            if (!activeChatFriend) return;
+            const dot = document.getElementById('chat-online-dot');
+            const label = document.getElementById('chat-active-label');
+            const active = activeChatFriend.webActive === true;
+            if (dot) dot.classList.toggle('active', active);
+            if (label) label.style.display = active ? 'inline' : 'none';
+            if (dot) dot.title = active ? 'Internet aktívny — kliknutím vypnúť' : 'Internet vypnutý — kliknutím zapnúť';
+        }
+
+        function toggleChatWebMode() {
+            if (!activeChatFriend) return;
+            activeChatFriend.webActive = activeChatFriend.webActive !== true;
+            saveFriendsData();
+            updateChatWebModeUI();
+        }
+
+        function extractGroundingSources(metadata) {
+            const chunks = metadata?.groundingChunks || [];
+            return chunks.map(c => c?.web).filter(w => w?.uri).map(w => ({ uri: w.uri, title: w.title || w.uri }));
+        }
+
+        function rememberWebFindings(friend, userPrompt, answerText, groundingMetadata) {
+            if (!friend) return;
+            if (!Array.isArray(friend.webMemory)) friend.webMemory = [];
+            const sources = extractGroundingSources(groundingMetadata);
+            if (!sources.length && !answerText) return;
+            friend.webMemory.push({
+                timestamp: Date.now(),
+                query: String(userPrompt || '').slice(0, 600),
+                finding: String(answerText || '').slice(0, 3500),
+                sources: sources.slice(0, 6)
+            });
+            // Keep durable learned facts compact while allowing several separate events.
+            if (friend.webMemory.length > 12) friend.webMemory = friend.webMemory.slice(-12);
+            saveFriendsData();
+        }
+
+        function buildWebMemoryContext(friend) {
+            if (!friend || !Array.isArray(friend.webMemory) || !friend.webMemory.length) return '';
+            return friend.webMemory.slice(-8).map((m, i) => {
+                const src = (m.sources || []).slice(0,4).map(s => `${s.title} — ${s.uri}`).join(' | ');
+                return `WEB MEMORY ${i+1}: User asked: ${m.query}\nInformation learned while internet mode was active: ${m.finding}${src ? `\nSources: ${src}` : ''}`;
+            }).join('\n\n').slice(0, 14000);
+        }
+
+        let chatMessageHoldTimer = null;
+        let chatMessageHoldTriggered = false;
+        function setupChatLongPress() {
+            const container = document.getElementById('chat-messages-container');
+            if (!container || container.dataset.holdBound) return;
+            container.dataset.holdBound = '1';
+            container.addEventListener('pointerdown', e => {
+                const bubble = e.target.closest('.chat-bubble');
+                if (!bubble || !bubble.dataset.messageId) return;
+                chatMessageHoldTriggered = false;
+                clearTimeout(chatMessageHoldTimer);
+                chatMessageHoldTimer = setTimeout(() => {
+                    chatMessageHoldTriggered = true;
+                    const id = bubble.dataset.messageId;
+                    if (confirm('🗑️ Vymazať túto správu?')) deleteChatMessage(id);
+                }, 650);
+            });
+            ['pointerup','pointercancel','pointerleave'].forEach(ev => container.addEventListener(ev, () => clearTimeout(chatMessageHoldTimer)));
+            container.addEventListener('contextmenu', e => {
+                const bubble = e.target.closest('.chat-bubble');
+                if (!bubble || !bubble.dataset.messageId) return;
+                e.preventDefault();
+                if (confirm('🗑️ Vymazať túto správu?')) deleteChatMessage(bubble.dataset.messageId);
+            });
+        }
+        function deleteChatMessage(messageId) {
+            if (!activeChatFriend) return;
+            const msgs = chatData[activeChatFriend.name] || [];
+            const idx = msgs.findIndex(m => m.id === messageId);
+            if (idx < 0) return;
+            msgs.splice(idx, 1);
+            chatData[activeChatFriend.name] = msgs;
+            saveChatsData();
+            renderChatMessages();
         }
 
         function toggleChatOptions() {
@@ -3443,7 +3563,7 @@ async function processIncomingMessages() {
             if(!text) return;
             
             if(!chatData[activeChatFriend.name]) chatData[activeChatFriend.name] = [];
-            chatData[activeChatFriend.name].push({from: 'me', text: text, timestamp: Date.now()});
+            chatData[activeChatFriend.name].push({id: 'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from: 'me', text: text, timestamp: Date.now()});
             input.value = '';
             
             activeChatFriend.ignoredCount = 0; 
@@ -3480,9 +3600,16 @@ async function processIncomingMessages() {
             if (appLanguage === 'en') langName = "English";
             if (appLanguage === 'sr') langName = "Serbian";
 
+            const webMemoryContext = buildWebMemoryContext(activeChatFriend);
+            const webModeRule = activeChatFriend.webActive === true ? `INTERNET MODE IS ACTIVE. You may use Google Search for current or uncertain facts. Keep your established personality, knowledge, relationship and conversation style. Use web results as additional factual information, not as a replacement for your identity or conversational memory. If the web contradicts an earlier belief, acknowledge the new information naturally.
+${webMemoryContext}` : `INTERNET MODE IS OFF. Do not search the web. You still retain any facts previously learned and stored in WEB MEMORY below; treat them as information you personally learned earlier.
+${webMemoryContext}`;
+            let webSourcesForReply = [];
+
             const sysPrompt = `You are a human friend named ${activeChatFriend.name}. Age: ${activeChatFriend.age}, Gender: ${activeChatFriend.gender}. Person description: ${activeChatFriend.profileDescription || 'none'}.
             Connection: ${relStr}. Current Language parameter: ${appLanguage.toUpperCase()}. All response text MUST be written entirely in ${langName}.
             ${contactRule} ${personalityRule} ${grammarRule} ${romanceRule} ${emojiRule}
+            ${webModeRule}
             CRITICAL AI SELF-AWARENESS DIRECTIVE: Look carefully at the history log provided below. Messages prefixed with "Me:" were written by the user. Messages prefixed with "${activeChatFriend.name}:" were written by you.
             You must only generate your next natural reply. Never continue the conversation on behalf of the user, never answer your own questions, and do not append fictional user text inside your messages array.
             Split your thoughts and reply into exactly ${repCount} elements inside the array.
@@ -3492,14 +3619,20 @@ async function processIncomingMessages() {
             try {
                 const response = await geminiFetch({
                         model: MODEL_NAME,
+                        useWebSearch: activeChatFriend.webActive === true,
                         messages: [ { role: "system", content: sysPrompt }, { role: "user", content: `Chat log:\n${historyLog}\nReply to the last statement now.` } ],
                         response_format: { type: "json_object" }, temperature: 0.85
                     });
                 const jsonRes = await response.json();
+                webSourcesForReply = extractGroundingSources(jsonRes.groundingMetadata);
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
+                if (activeChatFriend.webActive === true && jsonRes.groundingMetadata) {
+                    const learnedText = (parsed && Array.isArray(parsed.messages)) ? parsed.messages.join(' ') : jsonRes.choices[0].message.content;
+                    rememberWebFindings(activeChatFriend, text, learnedText, jsonRes.groundingMetadata);
+                }
                 let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
                 if (parsed && Array.isArray(parsed.messages)) {
-                    parsed.messages.forEach(msg => { chatData[activeChatFriend.name].push({from: 'friend', text: msg, timestamp: Date.now()}); });
+                    parsed.messages.forEach(msg => { chatData[activeChatFriend.name].push({id: 'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from: 'friend', text: msg, timestamp: Date.now(), webSources: webSourcesForReply || []}); });
                     
                     let msgsCheck = chatData[activeChatFriend.name] || [];
                     let fCount = 0;
