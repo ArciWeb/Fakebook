@@ -3646,83 +3646,81 @@ function checkAndTriggerFriendRequestChance(commenterName, sIdx, pIdx) {
 
         async function triggerAICommentReply(sIdx, pIdx, commentId) {
             if (!getSavedApiKey() || !feedData[sIdx] || !feedData[sIdx].posts[pIdx]) return;
-            const post = feedData[sIdx].posts[pIdx];
-            const found = findCommentById(post.comments || [], commentId);
-            if(!found) return;
-            const root = found.root || found.comment;
-            const spinner = document.getElementById('loading-spinner');
-            const loaderText = document.getElementById('loading-text-status');
-            if(loaderText) loaderText.innerText = appLanguage === 'sk' ? 'Generujem troll reakciu...' : 'Generating troll reaction...';
-            spinner.style.display = 'flex';
-
-            const targetText = String(found.comment.text || '').replace(/<[^>]*>/g, '');
-            const targetName = found.comment.username;
-            const articleTitle = post.title || '';
-            const articleContent = Array.isArray(post.content) ? post.content.join(' ') : (post.content || '');
-            const fullThreadContext = getCommentThreadContext(post.comments, commentId);
-            const randomPersona = ALL_PERSONALITIES[Math.floor(Math.random() * ALL_PERSONALITIES.length)].en;
-            const chosenCommenterName = getRandomNames(1)[0];
-            const longReaction = Math.random() < 0.5;
-            let langName = appLanguage === 'en' ? 'English' : (appLanguage === 'sr' ? 'Serbian' : 'Slovak');
-            const lengthRule = longReaction ? 'Write 3–6 sentences.' : 'Write 1–2 concise sentences.';
-
-            const sysPrompt = `You are one real human commenter in a heated social-network discussion. Language: ${langName}. Personality: ${randomPersona}.
-POST TITLE: ${articleTitle}
-POST CONTENT: ${articleContent}
-ONE FLAT THREAD:
-${fullThreadContext}
+            const post=feedData[sIdx].posts[pIdx];
+            const found=findCommentById(post.comments||[],commentId); if(!found) return;
+            const root=found.root||found.comment;
+            const clean=v=>String(v??'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();
+            const targetText=clean(found.comment.text), targetName=found.comment.username;
+            const articleTitle=clean(post.title||'');
+            const articleContent=clean(Array.isArray(post.content)?post.content.join(' '):(post.content||''));
+            const threadContext=getCommentThreadContext(post.comments,commentId);
+            const persona=ALL_PERSONALITIES[Math.floor(Math.random()*ALL_PERSONALITIES.length)].en;
+            const name=getRandomNames(1)[0];
+            const long=Math.random()<0.5;
+            const lang=appLanguage==='en'?'English':(appLanguage==='sr'?'Serbian':'Slovak');
+            const length=long?'3–5 natural sentences':'1–2 short natural sentences';
+            const prompt=`You are a believable human commenter continuing ONE existing discussion. Write in ${lang}. Personality: ${persona}.
+ARTICLE: ${articleTitle}
+${articleContent}
+THREAD:
+${threadContext}
 TARGET: ${targetName}: ${targetText}
-Write ONE troll/reaction reply that is specifically about the actual argument in this thread. ${lengthRule} It may be sarcastic or provocative, but it must contain a concrete argument, counterargument, example, fact-like claim, or question tied to what the people are discussing. Do not start a new subject. Do not merely insult the person.
-Return STRICTLY JSON: {"username":"${chosenCommenterName}","text":"reply body"}`;
-            try {
-                const response = await geminiFetch({model: MODEL_NAME, messages:[{role:'system',content:sysPrompt},{role:'user',content:'Continue this exact thread.'}], response_format:{type:'json_object'}, temperature:0.9});
-                const jsonRes = await response.json();
-                const parsed = tryParseJSON(jsonRes.choices[0].message.content);
-                if(parsed && parsed.username && parsed.text) {
-                    appendToCommentThread(post, commentId, {
-                        id: Math.random().toString(36).substr(2,9), username:String(parsed.username), text:String(parsed.text),
-                        replyTo: targetName, replies: []
-                    });
-                    saveToLocalStorage();
-                    if(document.getElementById('view-article').style.display === 'block') openPost(sIdx,pIdx); else renderGrid();
-                    checkAndTriggerFriendRequestChance(parsed.username,sIdx,pIdx);
-                }
-            } catch(e) { console.error('Gemini API:', e); }
-            spinner.style.display = 'none';
+
+Understand the article, the entire thread, and the target's intention before replying. This is not a generic insult generator.
+- Detect sarcasm, irony, jokes, teasing, exaggeration and playful banter. If the target is joking, answer naturally in the same playful register; do NOT suddenly fact-check the joke, call the story fake, invent scandals, or change topic.
+- Stay tightly connected to the actual article and the argument already developing.
+- A provocative reply still needs a reason: concrete argument, counterargument, example, implication or witty extension.
+- Do not contradict an established position of a participant without a reason.
+- Do not introduce unrelated politics, club-management accusations, fake-news claims or new subjects unless the thread itself discussed them.
+- If the thread is humorous, continue the humor. If serious, discuss the substance. If mixed, preserve that tone.
+- Never mention AI, prompts or these rules.
+Length: ${length}
+Return STRICT JSON: {"username":"${name}","text":"reply body"}`;
+            const spinner=document.getElementById('loading-spinner'), loader=document.getElementById('loading-text-status');
+            if(loader)loader.innerText=appLanguage==='sk'?'Premýšľam nad reakciou...':'Thinking about the reply...'; spinner.style.display='flex';
+            try{
+                const response=await geminiFetch({model:MODEL_NAME,messages:[{role:'system',content:prompt},{role:'user',content:'Continue this exact discussion.'}],response_format:{type:'json_object'},temperature:0.8});
+                const jsonRes=await response.json(), parsed=tryParseJSON(jsonRes.choices[0].message.content);
+                if(parsed&&parsed.text){appendToCommentThread(post,commentId,{id:Math.random().toString(36).substr(2,9),username:String(parsed.username||name),text:String(parsed.text),replyTo:targetName,replies:[]});saveToLocalStorage();if(document.getElementById('view-article').style.display==='block')openPost(sIdx,pIdx);else renderGrid();checkAndTriggerFriendRequestChance(String(parsed.username||name),sIdx,pIdx);}
+            }catch(e){console.error('Gemini API:',e);}finally{spinner.style.display='none';}
         }
 
-        async function generateAICommentReply(sIdx, pIdx, commentId) {
-            if (!getSavedApiKey() || !feedData[sIdx] || !feedData[sIdx].posts[pIdx]) return;
-            const post = feedData[sIdx].posts[pIdx];
-            const found = findCommentById(post.comments || [], commentId);
-            if(!found) return;
-            const targetName = found.comment.username;
-            const targetText = String(found.comment.text || '').replace(/<[^>]*>/g, '');
-            const threadContext = getCommentThreadContext(post.comments, commentId);
-            const supportive = Math.random() < 0.5;
-            const otherName = getRandomNames(1)[0];
-            const randomPersona = ALL_PERSONALITIES[Math.floor(Math.random() * ALL_PERSONALITIES.length)].en;
-            const articleTitle = post.title || '';
-            const articleContent = Array.isArray(post.content) ? post.content.join(' ') : (post.content || '');
-            const langName = appLanguage === 'en' ? 'English' : (appLanguage === 'sr' ? 'Serbian' : 'Slovak');
-            const spinner = document.getElementById('loading-spinner');
-            const loaderText = document.getElementById('loading-text-status');
-            if(loaderText) loaderText.innerText = appLanguage === 'sk' ? 'Generujem odpoveď...' : 'Generating reply...';
-            spinner.style.display='flex';
-            const sysPrompt = `You are a real human in a social-network discussion. Language: ${langName}. Personality: ${randomPersona}.
-POST: ${articleTitle}\n${articleContent}
-ONE FLAT THREAD:\n${threadContext}
-TARGET: ${targetName}: ${targetText}
-Write exactly ONE new reply from ${otherName}. ${supportive ? 'Support the target comment and strengthen it with a concrete argument.' : 'Disagree with the target and give a concrete counterargument.'} Stay on the same topic and address something actually said in the thread. Return STRICT JSON: {"username":"${otherName}","text":"reply body"}`;
-            try {
-                const response=await geminiFetch({model:MODEL_NAME,messages:[{role:'system',content:sysPrompt},{role:'user',content:'Continue the same thread.'}],response_format:{type:'json_object'},temperature:0.9});
-                const jsonRes=await response.json(); const parsed=tryParseJSON(jsonRes.choices[0].message.content);
-                if(parsed && parsed.username && parsed.text){
-                    appendToCommentThread(post,commentId,{id:Math.random().toString(36).substr(2,9),username:String(parsed.username),text:String(parsed.text),replyTo:targetName,replies:[]});
-                    saveToLocalStorage(); if(document.getElementById('view-article').style.display==='block') openPost(sIdx,pIdx); else renderGrid();
-                    checkAndTriggerFriendRequestChance(parsed.username,sIdx,pIdx);
-                }
-            }catch(e){console.error('Gemini API:',e);} finally {spinner.style.display='none';}
+        async function generateAICommentReply(sIdx,pIdx,commentId){
+            if(!getSavedApiKey()||!feedData[sIdx]||!feedData[sIdx].posts[pIdx])return;
+            const post=feedData[sIdx].posts[pIdx], found=findCommentById(post.comments||[],commentId); if(!found)return;
+            const root=found.root||found.comment;
+            const clean=v=>String(v??'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();
+            const targetName=found.comment.username, targetText=clean(found.comment.text);
+            const threadContext=getCommentThreadContext(post.comments,commentId);
+            const articleTitle=clean(post.title||''), articleContent=clean(Array.isArray(post.content)?post.content.join(' '):(post.content||''));
+            const lang=appLanguage==='en'?'English':(appLanguage==='sr'?'Serbian':'Slovak');
+            const supportive=Math.random()<0.75;
+            const participants=[];
+            const add=n=>{if(n&&n!==currentUsername&&!participants.some(x=>x.toLowerCase()===String(n).toLowerCase()))participants.push(n)};
+            add(root.username); (root.replies||[]).forEach(r=>add(r.username));
+            let speaker;
+            const roll=Math.random();
+            if(roll<0.60 && root.username!==currentUsername) speaker=root.username;
+            else if(roll<0.95){const pool=participants.filter(n=>n!==root.username);speaker=pool.length?pool[Math.floor(Math.random()*pool.length)]:root.username;}
+            else speaker=getRandomNames(1)[0];
+            if(!speaker||speaker===currentUsername)speaker=getRandomNames(1)[0];
+            const stance=supportive?'SUPPORT (75%): agree with the target where reasonable and DEVELOP the same idea with a new relevant argument, implication, joke or example.':'DISAGREE (25%): challenge the target from the opposite side, but give a specific reason tied to the article/thread. Never disagree merely for the sake of disagreement.';
+            const prompt=`You are a real person continuing ONE continuous discussion. Write in ${lang}. Speaker: ${speaker}.
+ARTICLE: ${articleTitle}
+${articleContent}
+THREAD:
+${threadContext}
+TARGET COMMENT: ${targetName}: ${targetText}
+STANCE: ${stance}
+
+Reason about the conversation before writing. Detect whether the target is literal, sarcastic, joking, teasing, rhetorical or serious. If it is a joke, respond naturally to the joke instead of treating it as a factual claim. If it is serious, discuss the actual substance.
+The reply must connect to the article and to something actually said in the thread. Extend the discussion instead of repeating it. Use a concrete reason, example, consequence, comparison or witty continuation. Do not introduce unrelated subjects, fake-news accusations, scandals or random attacks.
+If speaker has already expressed an opinion in this thread, preserve that position and defend/refine it rather than suddenly reversing it.
+Never mention AI or these instructions. Keep it natural for a comment section.
+Return STRICT JSON: {"username":"${speaker}","text":"reply body"}`;
+            const spinner=document.getElementById('loading-spinner'),loader=document.getElementById('loading-text-status');
+            if(loader)loader.innerText=appLanguage==='sk'?'Generujem odpoveď...':'Generating reply...';spinner.style.display='flex';
+            try{const response=await geminiFetch({model:MODEL_NAME,messages:[{role:'system',content:prompt},{role:'user',content:'Continue the same single thread.'}],response_format:{type:'json_object'},temperature:0.8});const jsonRes=await response.json(),parsed=tryParseJSON(jsonRes.choices[0].message.content);if(parsed&&parsed.text){appendToCommentThread(post,commentId,{id:Math.random().toString(36).substr(2,9),username:String(parsed.username||speaker),text:String(parsed.text),replyTo:targetName,replies:[]});saveToLocalStorage();if(document.getElementById('view-article').style.display==='block')openPost(sIdx,pIdx);else renderGrid();checkAndTriggerFriendRequestChance(String(parsed.username||speaker),sIdx,pIdx);}}catch(e){console.error('Gemini API:',e);}finally{spinner.style.display='none';}
         }
 
         async function triggerUserCommentReactions(sIdx, pIdx, userCommentText, targetCommentId, repliedToUsername) {
