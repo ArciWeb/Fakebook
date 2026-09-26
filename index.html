@@ -1119,19 +1119,28 @@ async function geminiFetch(request) {
     if (req.response_format?.type === 'json_object') body.generationConfig.responseMimeType = 'application/json';
 
     let response;
-    try {
-        response = await fetch(`${API_URL}${MODEL_NAME}:generateContent`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify(body)
-        });
-    } catch (networkError) {
-        throw new Error(
-            `NETWORK_ERROR: Nepodarilo sa pripojiť na Gemini API. Internet/DNS/CORS/proxy môže blokovať spojenie. Technická chyba: ${networkError?.message || networkError}`
-        );
+    let lastNetworkError = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            response = await fetch(`${API_URL}${MODEL_NAME}:generateContent`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': apiKey
+                },
+                body: JSON.stringify(body)
+            });
+            if (response.ok || ![429, 500, 503, 504].includes(response.status) || attempt === 2) break;
+            const waitMs = Math.min(8000, 1000 * Math.pow(2, attempt)) + Math.floor(Math.random() * 500);
+            await new Promise(resolve => setTimeout(resolve, waitMs));
+        } catch (networkError) {
+            lastNetworkError = networkError;
+            if (attempt === 2) break;
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+        }
+    }
+    if (!response) {
+        throw new Error(`NETWORK_ERROR: Nepodarilo sa pripojiť na Gemini API. Internet/DNS/CORS/proxy môže blokovať spojenie. Technická chyba: ${lastNetworkError?.message || lastNetworkError || 'neznáma chyba'}`);
     }
 
     let gemini;
@@ -1310,7 +1319,7 @@ async function geminiFetch(request) {
                 chatClearConfirm: "Vymazať celú konverzáciu?", chatForgetConfirm: "Donútiť priateľa zabudnúť na minulé témy?", settingsSavedText: "Nastavenia boli úspešne uložené.",
                 noFriendsChat: "Nemáte priateľov na chatovanie.", noFriendsList: "Zatiaľ nemáte pridaných žiadnych priateľov.", placeholderCustomPublisher: "Napíšte vlastný názov...",
                 anonPageName: "Anonymná Stránka", noArticlesFeed: "Na ploche zatiaľ nie sú žiadne články.", friendSharedSuccess: "Priateľ {name} úspešne zdieľal článok na plochu.",
-                friendPermanentSuccess: "Používateľ {name} bol pridaný do zoznamu vašich stálych kamarátov!", validationKeyError: "Chyba. Skontrolujte kľúč Gemini alebo sieťovú konfiguráciu.",
+                friendPermanentSuccess: "Používateľ {name} bol pridaný do zoznamu vašich stálych kamarátov!", validationKeyError: "Gemini API chyba — pozri presnú diagnostiku zobrazenú pod formulárom.",
                 blockedStatusText: "Zablokovaný", textTyping: "Píše...", textNewMessagesDivider: "Nové správy", textFriendRequestText: "diskutujete v komentároch, vám poslal žiadosť o priateľstvo, aby ste mohli pokračovať v konverzácii v Messengeri!",
                 textPublisherSelectLabel: "Nastavenie Vydavateľa príspevku:", textDefaultPoolOption: "Predvolený pool stránok", textContextNameOption: "Kontextovo vygenerovaný názov", textCustomNameOption: "Vlastný unikátny názov stránky",
                 textAdjustCanvasLabel: "Upravte pomer strán potiahnutím boxu:", textPostTitleLabel: "Príspevok", textPostStatusLabel: "Status", textCommentsHeader: "Komentáre",
@@ -1368,7 +1377,7 @@ async function geminiFetch(request) {
                 chatClearConfirm: "Wipe chat log?", chatForgetConfirm: "Wipe AI short-term context memory?", settingsSavedText: "Settings saved.",
                 noFriendsChat: "No friends available to chat.", noFriendsList: "No friends added yet.", placeholderCustomPublisher: "Enter custom name...",
                 anonPageName: "Anonymous Page", noArticlesFeed: "No articles on feed yet.", friendSharedSuccess: "Friend {name} shared the article to the feed.",
-                friendPermanentSuccess: "{name} is now a permanent friend!", validationKeyError: "Error. Please verify key or network constraint configurations.",
+                friendPermanentSuccess: "{name} is now a permanent friend!", validationKeyError: "Gemini API error — see the exact diagnostic shown below the form.",
                 blockedStatusText: "Blocked", textTyping: "Typing...", textNewMessagesDivider: "New Messages", textFriendRequestText: "sent you a friend request from the comment section to continue the debate over Messenger!",
                 textPublisherSelectLabel: "Configure Post Publisher:", textDefaultPoolOption: "Default page pool", textContextNameOption: "Contextually generated name", textCustomNameOption: "Custom unique page name",
                 textAdjustCanvasLabel: "Adjust canvas ratio by scaling boundary box:", textPostTitleLabel: "Post", textPostStatusLabel: "Status", textCommentsHeader: "Comments",
@@ -1426,7 +1435,7 @@ async function geminiFetch(request) {
                 chatClearConfirm: "Obrisati celu konverzaciju?", chatForgetConfirm: "Prisiliti prijatelja da zaboravi prošle teme?", settingsSavedText: "Podešavanja su uspešno sačuvana.",
                 noFriendsChat: "Nemate prijatelja za četovanje.", noFriendsList: "Još uvek nemate dodatih prijatelja.", placeholderCustomPublisher: "Napišite sopstveni naziv...",
                 anonPageName: "Anonimna Stranica", noArticlesFeed: "Na zidu još uvek nema članaka.", friendSharedSuccess: "Prijatelj {name} je uspešno podelio članak na zid.",
-                friendPermanentSuccess: "Korisnik {name} je dodat na listu vaših stalnih prijatelja!", validationKeyError: "Greška. Proverite Gemini ključ ili mrežnu konfiguraciju.",
+                friendPermanentSuccess: "Korisnik {name} je dodat na listu vaših stalnih prijatelja!", validationKeyError: "Gemini API greška — pogledajte tačnu dijagnostiku ispod forme.",
                 blockedStatusText: "Blokiran", textTyping: "Piše...", textNewMessagesDivider: "Nove poruke", textFriendRequestText: "sa kojim diskutujete u komentarima, poslao vam je zahtev za prijateljstvo kako biste nastavili razgovor u Mesindžeru!",
                 textPublisherSelectLabel: "Podešavanje izdavača objave:", textDefaultPoolOption: "Podrazumevani skup stranica", textContextNameOption: "Kontekstualno generisani naziv", textCustomNameOption: "Sopstveni unikatni naziv stranice",
                 textAdjustCanvasLabel: "Podesite razmeru prevlačenjem okvira:", textPostTitleLabel: "Objava", textPostStatusLabel: "Status", textCommentsHeader: "Kometari",
@@ -4109,8 +4118,11 @@ async function geminiFetch(request) {
                 pendingGenerationData = { scenario: promptInput, timestamp: currentGlobalTime, posts: parsedData.posts };
                 openReviewModal();
             } catch (error) {
-                errorDisplay.innerText = UI_TEXTS[appLanguage].validationKeyError;
+                const now = new Date().toLocaleTimeString();
+                const msg = error?.message || String(error);
+                errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
                 errorDisplay.style.display = 'block'; spinner.style.display = 'none';
+                console.error('Gemini diagnostic:', error);
             }
         }
 
