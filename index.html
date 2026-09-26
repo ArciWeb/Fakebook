@@ -1141,7 +1141,7 @@ async function geminiFetch(request) {
     }
     if (Number.isFinite(req.temperature)) body.generationConfig.temperature = req.temperature;
     if (systemInstruction) body.systemInstruction = { parts: [{ text: systemInstruction }] };
-    if (req.response_format?.type === 'json_object') body.generationConfig.responseMimeType = 'application/json';
+    if (req.response_format?.type === 'json_object' && req.useWebSearch !== true) body.generationConfig.responseMimeType = 'application/json';
     if (Number.isFinite(req.max_output_tokens)) body.generationConfig.maxOutputTokens = Math.max(256, Math.min(8192, Math.floor(req.max_output_tokens)));
     // Keep generated responses compact so one action consumes less TPM/quota.
     body.generationConfig.candidateCount = 1;
@@ -3479,11 +3479,13 @@ async function processIncomingMessages() {
             if (!friend) return;
             if (!Array.isArray(friend.webMemory)) friend.webMemory = [];
             const sources = extractGroundingSources(groundingMetadata);
-            if (!sources.length && !answerText) return;
+            const searchQueries = Array.isArray(groundingMetadata?.webSearchQueries) ? groundingMetadata.webSearchQueries : [];
+            if (!sources.length && !searchQueries.length && !answerText) return;
             friend.webMemory.push({
                 timestamp: Date.now(),
                 query: String(userPrompt || '').slice(0, 600),
                 finding: String(answerText || '').slice(0, 3500),
+                searchQueries: searchQueries.slice(0, 6),
                 sources: sources.slice(0, 6)
             });
             // Keep durable learned facts compact while allowing several separate events.
@@ -3495,7 +3497,8 @@ async function processIncomingMessages() {
             if (!friend || !Array.isArray(friend.webMemory) || !friend.webMemory.length) return '';
             return friend.webMemory.slice(-8).map((m, i) => {
                 const src = (m.sources || []).slice(0,4).map(s => `${s.title} — ${s.uri}`).join(' | ');
-                return `WEB MEMORY ${i+1}: User asked: ${m.query}\nInformation learned while internet mode was active: ${m.finding}${src ? `\nSources: ${src}` : ''}`;
+                const queries = (m.searchQueries || []).slice(0,4).join(' | ');
+                return `WEB MEMORY ${i+1}: User asked: ${m.query}\nInformation learned while internet mode was active: ${m.finding}${queries ? `\nSearches actually used: ${queries}` : ''}${src ? `\nSources: ${src}` : ''}`;
             }).join('\n\n').slice(0, 14000);
         }
 
@@ -3601,7 +3604,7 @@ async function processIncomingMessages() {
             if (appLanguage === 'sr') langName = "Serbian";
 
             const webMemoryContext = buildWebMemoryContext(activeChatFriend);
-            const webModeRule = activeChatFriend.webActive === true ? `INTERNET MODE IS ACTIVE. You may use Google Search for current or uncertain facts. Keep your established personality, knowledge, relationship and conversation style. Use web results as additional factual information, not as a replacement for your identity or conversational memory. If the web contradicts an earlier belief, acknowledge the new information naturally.
+            const webModeRule = activeChatFriend.webActive === true ? `INTERNET MODE IS ACTIVE. Google Search is available. If the user's latest message asks for current, recent, changing, uncertain, or verifiable online information (such as today's date, sports fixtures/results, elections, current office holders, prices, weather, news, schedules, or who currently holds a position), USE GOOGLE SEARCH before answering. Do not guess when the answer can be checked online. Keep your established personality, knowledge, relationship and conversation style. Use web results as additional factual information, not as a replacement for your identity or conversational memory. If the web contradicts an earlier belief, acknowledge the new information naturally. When the user is simply chatting and no online verification is useful, answer normally without forcing a search.
 ${webMemoryContext}` : `INTERNET MODE IS OFF. Do not search the web. You still retain any facts previously learned and stored in WEB MEMORY below; treat them as information you personally learned earlier.
 ${webMemoryContext}`;
             let webSourcesForReply = [];
@@ -3625,14 +3628,21 @@ ${webMemoryContext}`;
                     });
                 const jsonRes = await response.json();
                 webSourcesForReply = extractGroundingSources(jsonRes.groundingMetadata);
-                const parsed = tryParseJSON(jsonRes.choices[0].message.content);
-                if (activeChatFriend.webActive === true && jsonRes.groundingMetadata) {
-                    const learnedText = (parsed && Array.isArray(parsed.messages)) ? parsed.messages.join(' ') : jsonRes.choices[0].message.content;
+                const rawReply = jsonRes.choices[0].message.content;
+                const parsed = tryParseJSON(rawReply);
+                // Search-grounded calls intentionally use normal text transport. If Gemini
+                // ignores the JSON formatting instruction, keep the actual answer instead
+                // of silently dropping the response.
+                const safeParsed = (parsed && Array.isArray(parsed.messages) && parsed.messages.length)
+                    ? parsed
+                    : { messages: [String(rawReply || '').trim()].filter(Boolean) };
+                if (activeChatFriend.webActive === true) {
+                    const learnedText = safeParsed.messages.join(' ');
                     rememberWebFindings(activeChatFriend, text, learnedText, jsonRes.groundingMetadata);
                 }
                 let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
-                if (parsed && Array.isArray(parsed.messages)) {
-                    parsed.messages.forEach(msg => { chatData[activeChatFriend.name].push({id: 'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from: 'friend', text: msg, timestamp: Date.now(), webSources: webSourcesForReply || []}); });
+                if (safeParsed && Array.isArray(safeParsed.messages)) {
+                    safeParsed.messages.forEach(msg => { chatData[activeChatFriend.name].push({id: 'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from: 'friend', text: msg, timestamp: Date.now(), webSources: webSourcesForReply || []}); });
                     
                     let msgsCheck = chatData[activeChatFriend.name] || [];
                     let fCount = 0;
@@ -3644,7 +3654,14 @@ ${webMemoryContext}`;
                     
                     saveChatsData(); saveFriendsData(); renderChatMessages();
                 }
-            } catch(e) { let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove(); console.error('Gemini API:', e); }
+            } catch(e) {
+                let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
+                console.error('Gemini API:', e);
+                if (activeChatFriend && chatData[activeChatFriend.name]) {
+                    chatData[activeChatFriend.name].push({id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from:'friend', text:'⚠️ ' + String(e?.message || e), timestamp:Date.now()});
+                    saveChatsData(); renderChatMessages();
+                }
+            }
         }
 
         async function autoGenerateFriendMessage(f, contextPrompt, partsCount = 1) {
