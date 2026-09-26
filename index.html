@@ -1086,7 +1086,7 @@ const MODEL_NAME = "gemini-3.8-flash";
 // Keep requests serialized and spaced out so one user action cannot burst the quota.
 let geminiRequestChain = Promise.resolve();
 let geminiLastRequestAt = 0;
-const GEMINI_MIN_REQUEST_GAP_MS = 3200;
+const GEMINI_MIN_REQUEST_GAP_MS = 4000;
 
 async function geminiFetch(request) {
     const apiKey = getSavedApiKey();
@@ -1123,6 +1123,9 @@ async function geminiFetch(request) {
     if (Number.isFinite(req.temperature)) body.generationConfig.temperature = req.temperature;
     if (systemInstruction) body.systemInstruction = { parts: [{ text: systemInstruction }] };
     if (req.response_format?.type === 'json_object') body.generationConfig.responseMimeType = 'application/json';
+    if (Number.isFinite(req.max_output_tokens)) body.generationConfig.maxOutputTokens = Math.max(256, Math.min(8192, Math.floor(req.max_output_tokens)));
+    // Keep generated responses compact so one action consumes less TPM/quota.
+    body.generationConfig.candidateCount = 1;
 
     let response;
     let lastNetworkError = null;
@@ -4072,18 +4075,28 @@ async function geminiFetch(request) {
             const errorDisplay = document.getElementById('api-error-display');
             if(spinner) spinner.style.display = 'flex';
             errorDisplay.style.display = 'none';
+            const publishBtn = document.getElementById('btn-publish-submit');
+            if (publishBtn) { publishBtn.disabled = true; publishBtn.style.opacity = '0.65'; }
             
-            let contextInstruction = isMemoryEnabled ? `\n\nEVENT HISTORICAL MEMORY LOG: [ ${feedData.map(f => f.scenario).join(" | ")} ]. Refer to past arcs if funny, but focus must be a new story.` : `\n\nIGNORE ALL HISTORY. Completely clean slate initialization.`;
+            // Keep the create-post request intentionally small. Historical context is useful,
+            // but sending the entire feed can consume a large amount of TPM.
+            const compactHistory = feedData.slice(-5).map(f => String(f.scenario || '').slice(0, 180)).filter(Boolean).join(" | ");
+            let contextInstruction = isMemoryEnabled && compactHistory
+                ? `\n\nSHORT MEMORY (last 5 topics only): [ ${compactHistory} ]. Reuse a detail only if it helps the new story.`
+                : `\n\nIGNORE HISTORY. Start a fresh story.`;
             let isFriendContentFocused = (generatedFriendPostType !== "" || isStatusFriendRequest);
-            let commentsRange = isFriendContentFocused ? "1 to 5" : "5 to 30";
+            let commentsRange = isFriendContentFocused ? "1 to 3" : "2 to 5";
             let fChance = isFriendContentFocused ? (1/3) : (1/50);
 
             let injectedFriends = [];
             if (friendsList.length > 0) {
-                friendsList.forEach(f => { if (Math.random() < fChance) injectedFriends.push(f.name); });
+                // At most one extra friend name in the generated post; more names add tokens without much benefit.
+                for (const f of friendsList) {
+                    if (Math.random() < fChance) { injectedFriends.push(f.name); break; }
+                }
             }
-            let friendCommentaryRule = injectedFriends.length > 0 ? `Explicitly include these actual real friends into comment authors pool with character-accurate quotes: ${injectedFriends.join(', ')}.` : "";
-            let commentersContext = generateCommentersContextForPrompt(15);
+            let friendCommentaryRule = injectedFriends.length > 0 ? `Optionally use this real friend as one commenter: ${injectedFriends[0]}.` : "";
+            let commentersContext = generateCommentersContextForPrompt(6);
 
             let selectedPool = PAGES_POOL_SK;
             if (appLanguage === 'en') selectedPool = PAGES_POOL_EN;
@@ -4094,24 +4107,22 @@ async function geminiFetch(request) {
             if (appLanguage === 'en') langName = "English";
             if (appLanguage === 'sr') langName = "Serbian";
 
-            const systemPrompt = `You must compile an array of exactly ${countToGenerate} structural timeline objects inside the root key "posts".
-            Language constraint directive: ${appLanguage.toUpperCase()}. Output all text keys (author_name, title, content paragraphs, comments text) completely in ${langName}.
-            
-            Each element requires: author_name, title, content (array of structural text strings), image_prompt (detailed English text prompt for image generation), comments (array of nested user comments with sub-replies).
-            
-            ${isStatusFriendRequest ? 'CRITICAL: Set title to empty "". Author name is given.' : 'CRITICAL: Author name represents a publisher/satirical page name. Default choice token: "' + defaultRandomPageName + '". Alternatively, you can creatively think of a highly contextual thematic page name matching the news topic (e.g., Tech Leak for electronics).'}
-            
-            Story scale: Long, bulky tabloid style with multiple detailed structural body text strings.
-            Comments scale: ${commentsRange} randomized active debate logs with multiple nested argumentative array indices ('replies').
-            Traits ecosystem: ${commentersContext}.
+            const outputBudget = countToGenerate === 1 ? 2200 : (countToGenerate === 2 ? 3400 : 4400);
+            const systemPrompt = `Create exactly ${countToGenerate} compact timeline post object(s) in root key "posts".
+            Language: ${langName}. Keep the JSON valid and concise.
+            Each post needs: author_name, title, content (2-4 short paragraphs), image_prompt (short English visual prompt, max 25 words), comments.
+            ${isStatusFriendRequest ? 'CRITICAL: Set title to empty "". Author name is given.' : 'Author name is a satirical publisher/page name. Default token: "' + defaultRandomPageName + '".'}
+            Story style: funny, vivid and substantial, but NOT bulky. Avoid repeating the same idea.
+            Comments: ${commentsRange} short comments, one sentence each, NO nested replies. Do not generate more comments than requested.
+            Traits: ${commentersContext}.
             ${friendCommentaryRule} ${contextInstruction}
-            Output MUST represent exclusively a clean JSON object structure matching: {"posts": [{"author_name": "...", "title": "...", "content": ["..."], "image_prompt": "...", "comments": [{"username": "...", "text": "...", "replies": []}]}]}`;
+            Return ONLY this JSON shape: {"posts":[{"author_name":"","title":"","content":["",""],"image_prompt":"","comments":[{"username":"","text":"","replies":[]}]}]}`;
 
             try {
                 const response = await geminiFetch({
                         model: MODEL_NAME,
-                        messages: [ { role: "system", content: systemPrompt }, { role: "user", content: promptInput } ],
-                        response_format: { type: "json_object" }, temperature: 0.8
+                        messages: [ { role: "system", content: systemPrompt }, { role: "user", content: promptInput.slice(0, 1800) } ],
+                        response_format: { type: "json_object" }, temperature: 0.8, max_output_tokens: outputBudget
                     });
                 if (!response.ok) throw new Error();
                 const jsonRes = await response.json();
@@ -4139,9 +4150,11 @@ async function geminiFetch(request) {
             } catch (error) {
                 const now = new Date().toLocaleTimeString();
                 const msg = error?.message || String(error);
-                errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nOchrana kvóty: Gemini volania sú serializované a medzi požiadavkami je minimálne 3,2 s. Automatické retry pri HTTP 429 je vypnuté, aby aplikácia kvótu ďalej nemíňala.\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
+                errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nOchrana kvóty: Gemini volania sú serializované a medzi požiadavkami je minimálne 4 s. Vytváranie príspevku používa 1 API požiadavku a kratší kontext/výstup. Automatické retry pri HTTP 429 je vypnuté, aby aplikácia kvótu ďalej nemíňala.\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
                 errorDisplay.style.display = 'block'; spinner.style.display = 'none';
                 console.error('Gemini diagnostic:', error);
+            } finally {
+                if (publishBtn) { publishBtn.disabled = false; publishBtn.style.opacity = ''; }
             }
         }
 
