@@ -900,12 +900,7 @@
                         </select>
                     </div>
                 </div>
-
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; background: var(--bg-input); padding: 8px 12px; border-radius: 6px;">
-                    <label for="memory-toggle" style="font-weight: 600; font-size: 0.9rem; cursor: pointer;" id="lbl-settings-memory"></label>
-                    <input type="checkbox" id="memory-toggle" onchange="saveMemorySetting()" style="width: auto; margin-bottom: 0; cursor: pointer;">
-                </div>
-            </div>
+</div>
             
             <div id="slots-container" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;"></div>
 
@@ -1258,17 +1253,17 @@ async function geminiFetch(request) {
 
         const DEFAULT_TOPICS_SK = [
             "Šport", "Politika", "Šoubiznis", "Veda", "Celebrity", "Vesmír", "Alkohol", "Bulvár", "Filmy a seriály", 
-            "Ekonomika", "Zo sveta", "Zo Slovenska", "Krypto", "Insider", "Elektro", "Nové vynálezy", "Náboženstvo a cirkev"
+            "Ekonomika", "Zo sveta", "Zo Slovenska", "Krypto", "Insider", "Elektro", "Nové vynálezy", "Náboženstvo a cirkev", "Drogy"
         ];
 
         const DEFAULT_TOPICS_EN = [
             "Sports", "Politics", "Showbiz", "Science", "Celebrities", "Space", "Alcohol", "Tabloid", "Movies & Series",
-            "Economy", "World News", "Slovakia News", "Crypto", "Insider", "Tech & Electronics", "New Inventions", "Religion & Church"
+            "Economy", "World News", "Slovakia News", "Crypto", "Insider", "Tech & Electronics", "New Inventions", "Religion & Church", "Drugs"
         ];
 
         const DEFAULT_TOPICS_SR = [
             "Sport", "Politika", "Šoubiznis", "Nauka", "Poznate ličnosti", "Svemir", "Alkohol", "Tabloid", "Filmovi i serije",
-            "Ekonomija", "Iz sveta", "Iz Srbije", "Kripto", "Insajder", "Tehnologija", "Novi izumi", "Religija i crkva"
+            "Ekonomija", "Iz sveta", "Iz Srbije", "Kripto", "Insajder", "Tehnologija", "Novi izumi", "Religija i crkva", "Droge"
         ];
 
         const RELATIONSHIP_OPTIONS = [
@@ -1371,7 +1366,7 @@ async function geminiFetch(request) {
                 targetStatusPlaceholder: "Vytvárate osobný status pre: {name}. Zadajte tému...", statusLengthTitle: "Dĺžka statusu priateľa:", statusLenShort: "Krátky (1-3 vety)", statusLenMid: "Stredný (3-8 viet)", statusLenLong: "Dlhý (8-15 viet)",
                 slotTitle: "Uložené profily (Sloty)", slotBtnSave: "💾 Uložiť", slotBtnLoad: "📂 Načítať", textStatusNoMsgs: "Zatiaľ žiadne správy", textStatusYou: "Ty: ", textStatusChatWithBlocked: "Zablokovaný",
                 randomTopicSelectDefault: "-- Zvoliť náhodne podľa nastavení profilu --", postReviewTitle: "Príspevok", postReviewStatus: "Status",
-                loadingTextStatusChat: "Spracovávam správy na pozadí...", pwaInstallPrompt: "📱 Chcete si jebnúť aplikáciu Fakebook na plochu?", lblSecTopics: "Obľúbené témy",
+                loadingTextStatusChat: "Spracovávam správy na pozadí...", pwaInstallPrompt: "📱 Chcete si jebnúť aplikáciu Fakebook na plochu?", lblSecTopics: "Obľúbené témy priateľa",
                 privateProfileText: "Tento profil je súkromný.", sendFriendRequestBtn: "Poslať žiadosť o priateľstvo", friendRequestSentAlert: "Žiadosť o priateľstvo bola odoslaná.", friendRequestAcceptedAlert: "Používateľ prijal vašu žiadosť o priateľstvo!", friendRequestRejectedAlert: "Používateľ odmietol vašu žiadosť o priateľstvo.", friendDeleteConfirmText: "Ste si istý, že chcete vymazať tohto priateľa? Tento krok sa nebude dať vrátiť."
             },
             en: {
@@ -1429,7 +1424,7 @@ async function geminiFetch(request) {
                 targetStatusPlaceholder: "Creating personal status for: {name}. Set topic...", statusLengthTitle: "Friend status length:", statusLenShort: "Short (1-3 sentences)", statusLenMid: "Medium (3-8 sentences)", statusLenLong: "Long (8-15 sentences)",
                 slotTitle: "Saved Slots", slotBtnSave: "Sačuvaj", slotBtnLoad: "Učitaj", textStatusNoMsgs: "No messages yet", textStatusYou: "You: ", textStatusChatWithBlocked: "Blocked",
                 randomTopicSelectDefault: "-- Choose randomly from profile interests --", postReviewTitle: "Post", postReviewStatus: "Status",
-                loadingTextStatusChat: "Processing background chat queues...", pwaInstallPrompt: "📱 Do you want to pin the Fakebook app to your home screen?", lblSecTopics: "Favorite Topics",
+                loadingTextStatusChat: "Processing background chat queues...", pwaInstallPrompt: "📱 Do you want to pin the Fakebook app to your home screen?", lblSecTopics: "Friend Favorite Topics",
                 privateProfileText: "This profile is private.", sendFriendRequestBtn: "Send Friend Request", friendRequestSentAlert: "Friend request sent.", friendRequestAcceptedAlert: "User accepted your friend request!", friendRequestRejectedAlert: "User declined your friend request.", friendDeleteConfirmText: "Are you sure you want to delete this friend? This action cannot be undone."
             },
             sr: {
@@ -1487,7 +1482,7 @@ async function geminiFetch(request) {
                 targetStatusPlaceholder: "Kreirate lični status za: {name}. Unesite temu...", statusLengthTitle: "Dužina statusa prijatelja:", statusLenShort: "Kratak (1-3 rečenice)", statusLenMid: "Srednji (3-8 rečenica)", statusLenLong: "Dugačak (8-15 rečenica)",
                 slotTitle: "Sačuvani profili (Slotovi)", slotBtnSave: "Sačuvaj", slotBtnLoad: "Učitaj", textStatusNoMsgs: "Još uvek nema poruka", textStatusYou: "Ti: ", textStatusChatWithBlocked: "Blokiran",
                 randomTopicSelectDefault: "-- Izabrati nasumično prema podešavanjima profila --", postReviewTitle: "Objava", postReviewStatus: "Status",
-                loadingTextStatusChat: "Obrađujem poruke u pozadini...", pwaInstallPrompt: "📱 Želite li da instalirate aplikaciju Fakebook na početni ekran?", lblSecTopics: "Omiljene teme",
+                loadingTextStatusChat: "Obrađujem poruke u pozadini...", pwaInstallPrompt: "📱 Želite li da instalirate aplikaciju Fakebook na početni ekran?", lblSecTopics: "Omiljene teme prijatelja",
                 privateProfileText: "Ovaj profil je privatan.", sendFriendRequestBtn: "Pošalji zahtev za prijateljstvo", friendRequestSentAlert: "Zahtev poslat.", friendRequestAcceptedAlert: "Korisnik je prihvatio zahtev!", friendRequestRejectedAlert: "Korisnik je odbio zahtev.", friendDeleteConfirmText: "Da li ste sigurni da želite da obrišete ovog prijatelja? Ova akcija se ne može poništiti."
             }
         };
@@ -1846,10 +1841,6 @@ async function geminiFetch(request) {
             document.documentElement.style.setProperty('--global-font-family', chosenFamily);
         }
 
-        function saveMemorySetting() {
-            isMemoryEnabled = document.getElementById('memory-toggle').checked;
-            localStorage.setItem('fb_memory_enabled', isMemoryEnabled ? '1' : '0');
-        }
 
         function updateUnreadUI() {
             let totalUnread = 0;
@@ -1985,7 +1976,6 @@ async function geminiFetch(request) {
             document.getElementById('lbl-font-color-choice').innerText = pack.fontColorChoice;
             document.getElementById('lbl-font-size-choice').innerText = pack.fontSizeChoice;
             document.getElementById('lbl-font-family-choice').innerText = pack.fontFamilyChoice;
-            document.getElementById('lbl-settings-memory').innerText = pack.settingsMemory;
             document.getElementById('btn-settings-deleteall').innerText = pack.settingsDeleteAll;
             document.getElementById('btn-profile-editname').innerText = pack.profEditName;
             document.getElementById('lbl-prof-details-title').innerText = pack.profDetailsTitle;
@@ -2059,7 +2049,7 @@ async function geminiFetch(request) {
             currentFontColor = localStorage.getItem('fb_font_color') || 'black';
             currentFontSize = localStorage.getItem('fb_font_size') || 'medium';
             currentFontFamily = localStorage.getItem('fb_font_family') || 'system';
-            isMemoryEnabled = localStorage.getItem('fb_memory_enabled') === '1';
+            isMemoryEnabled = false;
             appLanguage = localStorage.getItem('fb_app_language') || 'sk';
 
             userAge = localStorage.getItem('fb_user_age') || "";
@@ -2074,7 +2064,6 @@ async function geminiFetch(request) {
             document.getElementById('font-color-selector').value = currentFontColor;
             document.getElementById('font-size-selector').value = currentFontSize;
             document.getElementById('font-family-selector').value = currentFontFamily;
-            document.getElementById('memory-toggle').checked = isMemoryEnabled;
             
             applyThemeAndFont();
             populateSelectOptions();
@@ -2119,6 +2108,7 @@ async function geminiFetch(request) {
                             });
                         }
                         if(!obj.favoriteTopics) obj.favoriteTopics = [];
+                        if(!obj.customTopics) obj.customTopics = [];
                         if(obj.isBlocked === undefined) obj.isBlocked = false;
                         if(obj.ignoredCount === undefined) obj.ignoredCount = 0;
                         if(obj.unreadCount === undefined) obj.unreadCount = 0;
@@ -2300,7 +2290,7 @@ async function geminiFetch(request) {
                     ghostChance: 5, emojiStyle: emStyle, owedApology: false, isGhostingMe: false,
                     personalities: [randomPersObj.id],
                     grammar: generateRandomGrammar(), messageCountBehavior: generateRandomMsgCount(),
-                    romance: generateRandomRomance(), relationships: ["sight"], favoriteTopics: [],
+                    romance: generateRandomRomance(), relationships: ["sight"], favoriteTopics: [], customTopics: [],
                     isBlocked: false, ignoredCount: 0, unreadCount: 0, dateAdded: Date.now(), contactLevel: 'Poznáme sa'
                 });
                 saveFriendsData();
@@ -2465,16 +2455,39 @@ async function geminiFetch(request) {
             let pool = DEFAULT_TOPICS_SK;
             if (appLanguage === 'en') pool = DEFAULT_TOPICS_EN;
             if (appLanguage === 'sr') pool = DEFAULT_TOPICS_SR;
-            let allTopics = [...pool, ...userCustomTopics];
-            allTopics.sort().forEach(t => {
-                let isChecked = (friend.favoriteTopics && friend.favoriteTopics.includes(t)) ? 'checked' : '';
+            const custom = Array.isArray(friend.customTopics) ? friend.customTopics : [];
+            const allTopics = [...new Set([...pool, ...userCustomTopics, ...custom])];
+            allTopics.sort((a,b) => a.localeCompare(b)).forEach(t => {
+                const safeValue = String(t).replace(/"/g, '&quot;');
+                const isChecked = (friend.favoriteTopics && friend.favoriteTopics.includes(t)) ? 'checked' : '';
                 container.innerHTML += `
                     <label class="topic-checkbox-label">
-                        <input type="checkbox" value="${t}" ${isChecked} class="fs-topic-checkbox">
+                        <input type="checkbox" value="${safeValue}" ${isChecked} class="fs-topic-checkbox">
                         ${t}
-                    </label>
-                `;
+                    </label>`;
             });
+            const customWrap = document.createElement('div');
+            customWrap.style.cssText = 'display:flex;gap:8px;margin-top:10px;grid-column:1/-1;';
+            customWrap.innerHTML = `
+                <input type="text" id="fs-custom-topic" placeholder="${appLanguage === 'en' ? 'Add a topic for this friend...' : appLanguage === 'sr' ? 'Dodaj temu za ovog prijatelja...' : 'Pridať tému pre tohto priateľa...'}" style="flex:1;margin-bottom:0;padding:7px;">
+                <button class="btn btn-secondary" type="button" onclick="addFriendCustomTopic()">${appLanguage === 'en' ? 'Add' : appLanguage === 'sr' ? 'Dodaj' : 'Pridať'}</button>`;
+            container.appendChild(customWrap);
+        }
+
+        function addFriendCustomTopic() {
+            const idx = document.getElementById('fs-friend-index').value;
+            const friend = friendsList[idx];
+            const input = document.getElementById('fs-custom-topic');
+            if (!friend || !input) return;
+            const val = input.value.trim();
+            if (!val) return;
+            if (!Array.isArray(friend.customTopics)) friend.customTopics = [];
+            if (!friend.customTopics.some(t => t.toLowerCase() === val.toLowerCase())) friend.customTopics.push(val);
+            if (!Array.isArray(friend.favoriteTopics)) friend.favoriteTopics = [];
+            if (!friend.favoriteTopics.includes(val)) friend.favoriteTopics.push(val);
+            input.value = '';
+            saveFriendsData();
+            renderFriendTopics(friend);
         }
 
         function saveFriendSettings() {
@@ -4068,10 +4081,14 @@ async function geminiFetch(request) {
                             isStatusFriendRequest = true; generatedFriendPostType = "status";
                             let lenRand = Math.random();
                             let lenInst = lenRand < 0.33 ? "short (1-3 sentences)" : (lenRand > 0.66 ? "long (8-15 sentences)" : "medium (3-8 sentences)");
-                            promptInput = `Generate a structural status timeline post authored by ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} years old). Length restriction: ${lenInst}. Theme: funny personal scenario.`;
+                            const friendTopicPool = [...(randomFriend.favoriteTopics || []), ...(randomFriend.customTopics || [])];
+                            const friendTopic = friendTopicPool.length ? friendTopicPool[Math.floor(Math.random() * friendTopicPool.length)] : "funny personal scenario";
+                            promptInput = `Generate a structural status timeline post authored by ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} years old). Length restriction: ${lenInst}. Theme: ${friendTopic}. Make it fresh and unique.`;
                         } else {
                             generatedFriendPostType = "article";
-                            promptInput = `Write an extreme, creative, comedic tabloid story starring my friend ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} y.o.). Turn it into a hilarious viral incident.`;
+                            const friendTopicPool = [...(randomFriend.favoriteTopics || []), ...(randomFriend.customTopics || [])];
+                            const friendTopic = friendTopicPool.length ? friendTopicPool[Math.floor(Math.random() * friendTopicPool.length)] : "a completely new funny incident";
+                            promptInput = `Write an extreme, creative, comedic tabloid story starring my friend ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} y.o.). Topic: ${friendTopic}. Turn it into a hilarious viral incident that is fresh and unique.`;
                         }
                     } else {
                         promptInput = `Pick a prominent real world event or trend and warp it into an entirely absurd satirical news scoop.`;
@@ -4085,13 +4102,12 @@ async function geminiFetch(request) {
             errorDisplay.style.display = 'none';
             const publishBtn = document.getElementById('btn-publish-submit');
             if (publishBtn) { publishBtn.disabled = true; publishBtn.style.opacity = '0.65'; }
-            
-            // Keep the create-post request intentionally small. Historical context is useful,
-            // but sending the entire feed can consume a large amount of TPM.
-            const compactHistory = feedData.slice(-5).map(f => String(f.scenario || '').slice(0, 180)).filter(Boolean).join(" | ");
-            let contextInstruction = isMemoryEnabled && compactHistory
-                ? `\n\nSHORT MEMORY (last 5 topics only): [ ${compactHistory} ]. Reuse a detail only if it helps the new story.`
-                : `\n\nIGNORE HISTORY. Start a fresh story.`;
+            // New posts NEVER inspect the old Fakebook feed. Every generation starts clean.
+            // A fresh nonce reinforces that this is a separate event without sending old history.
+            const generationNonce = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+            const contextInstruction = `
+
+FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT recall, copy, paraphrase, imitate, or continue any previous Fakebook feed story. Unique generation ID: ${generationNonce}.`;
             let isFriendContentFocused = (generatedFriendPostType !== "" || isStatusFriendRequest);
             let commentsRange = isFriendContentFocused ? "1 to 3" : "2 to 5";
             let fChance = isFriendContentFocused ? (1/3) : (1/50);
