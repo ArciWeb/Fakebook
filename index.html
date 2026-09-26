@@ -808,7 +808,7 @@
                 </select>
             </div>
 
-            <div class="error-message" id="api-error-display"></div>
+            <div class="error-message" id="api-error-display" style="white-space:pre-wrap;"></div>
             <button class="btn btn-primary" style="width: 100%;" onclick="triggerGeneration()" id="btn-publish-submit"></button>
         </div>
     </div>
@@ -1084,10 +1084,20 @@ const MODEL_NAME = "gemini-3.8-flash";
 
 async function geminiFetch(request) {
     const apiKey = getSavedApiKey();
-    if (!apiKey) throw new Error("Chýba Gemini API kľúč.");
+    if (!apiKey) throw new Error("GEMINI_API_KEY_MISSING: Chýba Gemini API kľúč.");
 
-    const messages = Array.isArray(request.messages) ? request.messages : [];
+    let req = request || {};
+    // Existing application calls use fetch-style init with JSON body.
+    if (req.body) {
+        try {
+            const original = JSON.parse(req.body);
+            req = { ...original, messages: original.messages || [] };
+        } catch (_) {
+            throw new Error("CLIENT_REQUEST_INVALID: Aplikácia vytvorila neplatné JSON dáta pre Gemini.");
+        }
+    }
 
+    const messages = Array.isArray(req.messages) ? req.messages : [];
     const systemInstruction = messages
         .filter(m => m.role === 'system')
         .map(m => typeof m.content === 'string' ? m.content : '')
@@ -1101,20 +1111,12 @@ async function geminiFetch(request) {
             parts: [{ text: typeof m.content === 'string' ? m.content : String(m.content ?? '') }]
         }));
 
-    const body = {
-        contents,
-        generationConfig: {
-            temperature: request.temperature
-        }
-    };
+    if (!contents.length) throw new Error("CLIENT_REQUEST_INVALID: Gemini nedostala žiadny používateľský obsah.");
 
-    if (systemInstruction) {
-        body.systemInstruction = { parts: [{ text: systemInstruction }] };
-    }
-
-    if (request.response_format?.type === 'json_object') {
-        body.generationConfig.responseMimeType = 'application/json';
-    }
+    const body = { contents, generationConfig: {} };
+    if (Number.isFinite(req.temperature)) body.generationConfig.temperature = req.temperature;
+    if (systemInstruction) body.systemInstruction = { parts: [{ text: systemInstruction }] };
+    if (req.response_format?.type === 'json_object') body.generationConfig.responseMimeType = 'application/json';
 
     let response;
     try {
@@ -1128,38 +1130,43 @@ async function geminiFetch(request) {
         });
     } catch (networkError) {
         throw new Error(
-            "Gemini API sa nedá kontaktovať. Skontroluj internet, blokovanie požiadaviek prehliadačom alebo rozšírenie/adblock. " +
-            (networkError?.message || "")
+            `NETWORK_ERROR: Nepodarilo sa pripojiť na Gemini API. Internet/DNS/CORS/proxy môže blokovať spojenie. Technická chyba: ${networkError?.message || networkError}`
         );
     }
 
     let gemini;
-    try {
-        gemini = await response.json();
-    } catch (_) {
-        throw new Error(`Gemini API vrátilo nečitateľnú odpoveď (HTTP ${response.status}).`);
-    }
+    try { gemini = await response.json(); }
+    catch (_) { throw new Error(`HTTP_${response.status}: Gemini vrátilo nečitateľnú odpoveď.`); }
 
     if (!response.ok) {
-        const apiMessage = gemini?.error?.message || `Gemini API error (${response.status})`;
-        throw new Error(`Gemini API: ${apiMessage}`);
+        const e = gemini?.error || {};
+        const code = e.code || response.status;
+        const status = e.status || 'UNKNOWN';
+        const message = e.message || 'Bez podrobnej správy od Googlu.';
+        let diagnosis = '';
+        if (code === 400) diagnosis = 'Požiadavka je neplatná — môže ísť o nesprávny parameter, neplatný formát alebo nepodporovanú funkciu/model.';
+        else if (code === 401) diagnosis = 'API kľúč chýba, je neplatný alebo expirovaný.';
+        else if (code === 402) diagnosis = 'Platba/prepaid kredit je vyčerpaný.';
+        else if (code === 403) diagnosis = 'API kľúč nemá potrebné oprávnenie alebo projekt nemá prístup k zdroju.';
+        else if (code === 404) diagnosis = 'Model alebo API zdroj neexistuje. Skontroluj názov modelu a endpoint.';
+        else if (code === 429) diagnosis = 'Bol prekročený limit RPM/TPM/RPD alebo iný quota/rate limit.';
+        else if (code === 500) diagnosis = 'Interná chyba na strane Google alebo príliš veľký kontext.';
+        else if (code === 503) diagnosis = 'Gemini služba je dočasne preťažená alebo nedostupná.';
+        else if (code === 504) diagnosis = 'Požiadavka nestihla dokončiť spracovanie — často príliš veľký prompt/kontext.';
+        else if (code >= 500) diagnosis = 'Chyba servera Google Gemini.';
+        else diagnosis = 'Gemini požiadavku odmietlo.';
+        throw new Error(`GEMINI_ERROR [HTTP ${code} / ${status}]\n${diagnosis}\nGoogle: ${message}`);
     }
 
-    const text = gemini?.candidates?.[0]?.content?.parts
-        ?.map(part => part.text || '')
-        .join('') || '';
-
+    const candidate = gemini?.candidates?.[0];
+    const text = candidate?.content?.parts?.map(part => part.text || '').join('') || '';
     if (!text) {
-        const finishReason = gemini?.candidates?.[0]?.finishReason || "neznámy dôvod";
-        throw new Error(`Gemini neposlalo textovú odpoveď (${finishReason}).`);
+        const reason = candidate?.finishReason || 'UNKNOWN';
+        const block = gemini?.promptFeedback?.blockReason;
+        throw new Error(`GEMINI_NO_TEXT: Gemini neposlalo textovú odpoveď. finishReason=${reason}${block ? `, blockReason=${block}` : ''}.`);
     }
 
-    return {
-        ok: true,
-        async json() {
-            return { choices: [{ message: { content: text } }] };
-        }
-    };
+    return { ok: true, async json() { return { choices: [{ message: { content: text } }] }; } };
 }
 
         const MALE_NAMES = ["Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid", "Dežo", "Gejza", "Koloman", "Vasiľ", "Fero", "Laco", "Jožo", "Maroš", "Slavo", "Bohumil", "Žigmund", "Pali", "Rišo"];
