@@ -1078,9 +1078,43 @@
             }
         }
 
-// Gemini OpenAI-compatible endpoint: keeps the existing Chat Completions code intact.
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+// Native Gemini API configuration.
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 const MODEL_NAME = "gemini-3.8-flash";
+
+async function geminiFetch(request) {
+    const apiKey = getSavedApiKey();
+    const messages = Array.isArray(request.messages) ? request.messages : [];
+
+    const systemInstruction = messages
+        .filter(m => m.role === 'system')
+        .map(m => typeof m.content === 'string' ? m.content : '')
+        .filter(Boolean)
+        .join("\n\n");
+
+    const contents = messages
+        .filter(m => m.role !== 'system')
+        .map(m => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: typeof m.content === 'string' ? m.content : String(m.content ?? '') }]
+        }));
+
+    const body = { contents, generationConfig: { temperature: request.temperature } };
+    if (systemInstruction) body.systemInstruction = { parts: [{ text: systemInstruction }] };
+    if (request.response_format?.type === 'json_object') body.generationConfig.responseMimeType = 'application/json';
+
+    const response = await fetch(`${API_URL}${MODEL_NAME}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+
+    const gemini = await response.json();
+    if (!response.ok) throw new Error(gemini?.error?.message || `Gemini API error (${response.status})`);
+
+    const text = gemini?.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('') || '';
+    return { ok: true, async json() { return { choices: [{ message: { content: text } }] }; } };
+}
 
         const MALE_NAMES = ["Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid", "Dežo", "Gejza", "Koloman", "Vasiľ", "Fero", "Laco", "Jožo", "Maroš", "Slavo", "Bohumil", "Žigmund", "Pali", "Rišo"];
         const FEMALE_NAMES = ["Janka", "Mária", "Zuzana", "Katarína", "Lucia", "Lenka", "Monika", "Petra", "Veronika", "Martina", "Klaudia", "Ružena", "Gitka", "Božena", "Erika", "Vlasta", "Oľga"];
@@ -3202,15 +3236,11 @@ const MODEL_NAME = "gemini-3.8-flash";
             Return STRICTLY a JSON object with a "messages" array of strings: {"messages": ["part1", "part2"]}`;
 
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                const response = await geminiFetch({
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: sysPrompt }, { role: "user", content: `Chat log:\n${historyLog}\nReply to the last statement now.` } ],
                         response_format: { type: "json_object" }, temperature: 0.85
-                    })
-                });
+                    });
                 const jsonRes = await response.json();
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
                 let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
@@ -3255,15 +3285,11 @@ const MODEL_NAME = "gemini-3.8-flash";
 
             let historyLog = buildChatHistory(f.name);
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                const response = await geminiFetch({
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: sysPrompt }, { role: "user", content: `History context:\n${historyLog}` } ],
                         response_format: { type: "json_object" }, temperature: 0.85
-                    })
-                });
+                    });
                 const jsonRes = await response.json();
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
                 if (parsed && Array.isArray(parsed.messages)) {
@@ -3427,15 +3453,11 @@ const MODEL_NAME = "gemini-3.8-flash";
             Return STRICTLY JSON: { "username": "${chosenCommenterName}", "text": "comment body" }`;
             
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                const response = await geminiFetch({
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: sysPrompt }, { role: "user", content: "Write a comment reaction." } ],
                         response_format: { type: "json_object" }, temperature: 1.0 
-                    })
-                });
+                    });
                 const jsonRes = await response.json();
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
                 
@@ -3458,15 +3480,11 @@ const MODEL_NAME = "gemini-3.8-flash";
                         "${parsed.username}" just insulted you or triggered you by writing: "${parsed.text}".
                         Argue back hard. Return STRICTLY JSON: { "text": "counter-argument text" }`;
                         try {
-                            const response2 = await fetch(API_URL, {
-                                method: 'POST',
-                                headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
+                            const response2 = await geminiFetch({
                                     model: MODEL_NAME,
                                     messages: [ { role: "system", content: sysPrompt2 }, { role: "user", content: "Defend your view." } ],
                                     response_format: { type: "json_object" }, temperature: 0.95
-                                })
-                            });
+                                });
                             const jsonRes2 = await response2.json();
                             const parsed2 = tryParseJSON(jsonRes2.choices[0].message.content);
                             if (parsed2 && parsed2.text) {
@@ -3509,15 +3527,11 @@ const MODEL_NAME = "gemini-3.8-flash";
             Return STRICTLY JSON: {"replies": [{"username": "Name", "text": "body"}]}`;
 
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                const response = await geminiFetch({
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: sysPrompt }, { role: "user", content: "Generate thread replies." } ],
                         response_format: { type: "json_object" }, temperature: 0.9
-                    })
-                });
+                    });
                 const jsonRes = await response.json();
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
                 if (parsed && Array.isArray(parsed.replies)) {
@@ -3565,15 +3579,11 @@ const MODEL_NAME = "gemini-3.8-flash";
             Target context prompt: "${scenario}". Populate author_name, title, content (array of paragraphs), image_prompt, comments.
             Strict layout schema: {"posts": [{"author_name":"", "title":"", "content":[""], "image_prompt":"", "comments":[]}]}`;
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                const response = await geminiFetch({
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: sysPrompt }, { role: "user", content: scenario } ],
                         response_format: { type: "json_object" }, temperature: 0.8
-                    })
-                });
+                    });
                 const jsonRes = await response.json();
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
                 if(parsed && parsed.posts && parsed.posts.length > 0) {
@@ -3604,15 +3614,11 @@ const MODEL_NAME = "gemini-3.8-flash";
             const sysPrompt = `Generate between 5 to 25 intense nested comments to the post "${post.title}". Language: ${appLanguage.toUpperCase()}. Use ${langName}.
             Personas background: ${commentersContext}. Return STRICTLY JSON: { "comments": [ {"username": "Name", "text": "body", "replies": []} ] }`;
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                const response = await geminiFetch({
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: sysPrompt }, { role: "user", content: post.title } ],
                         response_format: { type: "json_object" }, temperature: 0.85
-                    })
-                });
+                    });
                 const jsonRes = await response.json();
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
                 if (parsed && Array.isArray(parsed.comments)) {
@@ -3642,15 +3648,11 @@ const MODEL_NAME = "gemini-3.8-flash";
             const sysPrompt = `Create an alternative view post about: "${scenario}". Language config: ${appLanguage.toUpperCase()}. Output in ${langName}.
             Schema object: { "posts": [ { "author_name":"", "title":"", "content":[""], "image_prompt":"", "comments":[] } ] }`;
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${getSavedApiKey()}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                const response = await geminiFetch({
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: sysPrompt }, { role: "user", content: scenario } ],
                         response_format: { type: "json_object" }, temperature: 0.85
-                    })
-                });
+                    });
                 const jsonRes = await response.json();
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
                 let extractedPost = parsed?.posts?.[0] || parsed?.post || (parsed?.title ? parsed : null);
@@ -4025,15 +4027,11 @@ const MODEL_NAME = "gemini-3.8-flash";
             Output MUST represent exclusively a clean JSON object structure matching: {"posts": [{"author_name": "...", "title": "...", "content": ["..."], "image_prompt": "...", "comments": [{"username": "...", "text": "...", "replies": []}]}]}`;
 
             try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                const response = await geminiFetch({
                         model: MODEL_NAME,
                         messages: [ { role: "system", content: systemPrompt }, { role: "user", content: promptInput } ],
                         response_format: { type: "json_object" }, temperature: 0.8
-                    })
-                });
+                    });
                 if (!response.ok) throw new Error();
                 const jsonRes = await response.json();
                 const parsedData = tryParseJSON(jsonRes.choices[0].message.content);
