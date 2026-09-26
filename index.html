@@ -1294,6 +1294,20 @@ async function geminiFetch(request) {
         const PAGES_POOL_EN = ["The Onion Clone", "Daily Absurdity", "Satire Central", "Meme News Network", "Crypto Kings Gossip", "Bizarre Truths", "The Bored Citizen", "Unreal Post"];
         const PAGES_POOL_SR = ["Naša Borba Satira", "Dnevni Bizar", "Oko Javnosti", "Parodija Vesti", "Kripto Vladari", "Apsurdne Vesti", "Balkanski Špijun Info", "Tračara Ekstremno"];
 
+        // User-created publisher/page names persist between sessions.
+        let customPublisherNames = [];
+        try { customPublisherNames = JSON.parse(localStorage.getItem("fb_custom_publisher_names") || "[]"); } catch(e) { customPublisherNames = []; }
+        if (!Array.isArray(customPublisherNames)) customPublisherNames = [];
+
+        function saveCustomPublisherName(name) {
+            const clean = String(name || "").trim().replace(/\s+/g, " ").slice(0, 80);
+            if (!clean) return;
+            if (!customPublisherNames.some(n => n.toLowerCase() === clean.toLowerCase())) {
+                customPublisherNames.push(clean);
+                localStorage.setItem("fb_custom_publisher_names", JSON.stringify(customPublisherNames));
+            }
+        }
+
         let feedData = [];
         let sharedPosts = [];
         let friendsList = [];
@@ -2114,7 +2128,8 @@ function applyThemeAndFont() {
                     let loaded = JSON.parse(savedFriends); 
                     friendsList = loaded.map(f => {
                         let obj = (typeof f === 'string') ? { name: f, gender: 'male', age: '25' } : f;
-                        if(!obj.msgChances) obj.msgChances = {0:80, 1:10, 2:5, 3:5};
+                        if(!obj.msgChances) obj.msgChances = {0:95, 1:2.5, 2:1.25, 3:1.25};
+                        if(obj.unansweredFollowupChance === undefined) obj.unansweredFollowupChance = 0.1;
                         if(!obj.replyChances) obj.replyChances = {0:5, 1:70, 2:20, 3:5, 4:5};
                         if(obj.ghostChance === undefined) obj.ghostChance = 5;
                         if(!obj.emojiStyle) obj.emojiStyle = 'normal';
@@ -2321,7 +2336,7 @@ function applyThemeAndFont() {
                 let randomPersObj = ALL_PERSONALITIES[Math.floor(Math.random()*ALL_PERSONALITIES.length)];
                 friendsList.push({ 
                     name: name, gender: gender, age: age,
-                    msgChances: {0:80, 1:10, 2:5, 3:5},
+                    msgChances: {0:95, 1:2.5, 2:1.25, 3:1.25}, unansweredFollowupChance: 0.1,
                     replyChances: {0:5, 1:70, 2:20, 3:5, 4:5},
                     ghostChance: 5, emojiStyle: emStyle, owedApology: false, isGhostingMe: false,
                     personalities: [randomPersObj.id],
@@ -2749,7 +2764,7 @@ function applyThemeAndFont() {
 
                     friendsList.push({ 
                         name: commenterName, gender: computedGender, age: computedAge.toString(),
-                        msgChances: {0:70, 1:20, 2:5, 3:5}, replyChances: {0:5, 1:70, 2:20, 3:5, 4:5},
+                        msgChances: {0:95, 1:2.5, 2:1.25, 3:1.25}, unansweredFollowupChance: 0.1, replyChances: {0:5, 1:70, 2:20, 3:5, 4:5},
                         ghostChance: 8, emojiStyle: emStyle, owedApology: false, isGhostingMe: false,
                         personalities: [randomPersObj.id],
                         grammar: generateRandomGrammar(), messageCountBehavior: generateRandomMsgCount(),
@@ -3219,6 +3234,12 @@ async function processIncomingMessages() {
                     if (appLanguage === 'sr') ctxt = "Ranije si me ignorisao. Napiši mi ljutitu ili zabrinutu kratku poruku sa pitanjem gde si bio.";
                     await autoGenerateFriendMessage(f, ctxt);
                 } else {
+                    // If the friend already has an unanswered message, spontaneous follow-ups are extremely rare.
+                    // Default is 0.1% per Messenger-opening check, independently of normal new-message odds.
+                    if (consecutiveFriendCount > 0) {
+                        const unansweredChance = (typeof f.unansweredFollowupChance === 'number') ? f.unansweredFollowupChance : 0.1;
+                        if (Math.random() * 100 >= unansweredChance) continue;
+                    }
                     let msgCount = getRandomFromWeights(f.msgChances);
                     if(msgCount > 0) {
                         let r = Math.random();
@@ -3630,7 +3651,7 @@ function checkAndTriggerFriendRequestChance(commenterName, sIdx, pIdx) {
 
             friendsList.push({ 
                 name: name, gender: gender, age: age,
-                msgChances: {0:70, 1:20, 2:5, 3:5}, replyChances: {0:5, 1:70, 2:20, 3:5, 4:5},
+                msgChances: {0:95, 1:2.5, 2:1.25, 3:1.25}, unansweredFollowupChance: 0.1, replyChances: {0:5, 1:70, 2:20, 3:5, 4:5},
                 ghostChance: 8, emojiStyle: emStyle, owedApology: false, isGhostingMe: false,
                 personalities: [randomPersObj.id],
                 grammar: generateRandomGrammar(), messageCountBehavior: generateRandomMsgCount(),
@@ -3694,33 +3715,85 @@ Return STRICT JSON: {"username":"${name}","text":"reply body"}`;
             const threadContext=getCommentThreadContext(post.comments,commentId);
             const articleTitle=clean(post.title||''), articleContent=clean(Array.isArray(post.content)?post.content.join(' '):(post.content||''));
             const lang=appLanguage==='en'?'English':(appLanguage==='sr'?'Serbian':'Slovak');
-            const supportive=Math.random()<0.75;
+
+            // Conversation mechanics:
+            // - The first AI answer to a root comment must come from somebody else.
+            // - After that, 85% = answer the person this target explicitly replied to,
+            //   5% = introduce a completely new participant, 10% = another existing participant.
+            // This creates a strong chance of sustained two-person conversations.
             const participants=[];
-            const add=n=>{if(n&&n!==currentUsername&&!participants.some(x=>x.toLowerCase()===String(n).toLowerCase()))participants.push(n)};
+            const add=n=>{if(n&&n!==currentUsername&&!participants.some(x=>x.toLowerCase()===String(n).toLowerCase()))participants.push(String(n));};
             add(root.username); (root.replies||[]).forEach(r=>add(r.username));
-            let speaker;
-            const roll=Math.random();
-            if(roll<0.60 && root.username!==currentUsername) speaker=root.username;
-            else if(roll<0.95){const pool=participants.filter(n=>n!==root.username);speaker=pool.length?pool[Math.floor(Math.random()*pool.length)]:root.username;}
-            else speaker=getRandomNames(1)[0];
-            if(!speaker||speaker===currentUsername)speaker=getRandomNames(1)[0];
-            const stance=supportive?'SUPPORT (75%): agree with the target where reasonable and DEVELOP the same idea with a new relevant argument, implication, joke or example.':'DISAGREE (25%): challenge the target from the opposite side, but give a specific reason tied to the article/thread. Never disagree merely for the sake of disagreement.';
-            const prompt=`You are a real person continuing ONE continuous discussion. Write in ${lang}. Speaker: ${speaker}.
-ARTICLE: ${articleTitle}
-${articleContent}
-THREAD:
+            const existingOther=participants.filter(n=>n.toLowerCase()!==String(targetName).toLowerCase());
+            const targetReplyTo = found.comment.replyTo && found.comment.replyTo !== targetName && found.comment.replyTo !== currentUsername ? String(found.comment.replyTo) : null;
+
+            let speaker=null, speakerMode='';
+            if(found.comment.id===root.id){
+                // There is nobody to "answer back" yet, so the first AI response is a new person.
+                speaker=getRandomNames(1)[0];
+                speakerMode='FIRST RESPONSE — different person from the root commenter.';
+            } else {
+                const roll=Math.random();
+                if(roll < 0.85 && targetReplyTo){
+                    speaker=targetReplyTo;
+                    speakerMode='85% — answer the person explicitly addressed by the target comment.';
+                } else if(roll < 0.90){
+                    speaker=getRandomNames(1)[0];
+                    speakerMode='5% — introduce a completely new participant.';
+                } else {
+                    const pool=participants.filter(n=>n.toLowerCase()!==String(targetName).toLowerCase() && n.toLowerCase()!==String(targetReplyTo||'').toLowerCase());
+                    speaker=pool.length?pool[Math.floor(Math.random()*pool.length)]:targetReplyTo;
+                    if(!speaker){ speaker=getRandomNames(1)[0]; speakerMode='10% fallback — new participant because no existing participant is available.'; }
+                    else speakerMode='10% — another participant already present in this thread.';
+                }
+            }
+            if(!speaker || speaker===currentUsername || speaker.toLowerCase()===targetName.toLowerCase()) speaker=getRandomNames(1)[0];
+
+            // Only the very first AI response gets the 50/50 stance coin flip.
+            // Once a relationship is established, later replies derive their stance from the actual history.
+            let stanceRule;
+            if(found.comment.id===root.id){
+                stanceRule = Math.random()<0.50
+                    ? 'INITIAL STANCE 50/50 — SUPPORT: agree with the root comment and develop it with a fresh relevant idea.'
+                    : 'INITIAL STANCE 50/50 — OPPOSE: disagree with the root comment, but directly address its point and give a concrete reason. Do not derail the topic.';
+            } else {
+                stanceRule = `ESTABLISHED CONVERSATION — do NOT roll a new support/oppose probability. Infer ${speaker}'s established position from every earlier message they wrote in this thread. Preserve it. If the target has been agreeing with ${speaker}, continue that shared direction and deepen it; if the target has been challenging ${speaker}, defend/refine the existing position. The longer the disagreement continues, it may naturally become sharper, more sarcastic or mildly vulgar; the longer the agreement continues, it may naturally become warmer, more playful and mutually understanding. Never reverse a position just to create artificial variety.`;
+            }
+
+            const prompt=`You are simulating a believable Facebook-style human conversation. Write in ${lang}. Speaker: ${speaker}.
+ARTICLE TITLE: ${articleTitle}
+ARTICLE CONTENT: ${articleContent}
+ONE FLAT THREAD (root + every reply in chronological order):
 ${threadContext}
 TARGET COMMENT: ${targetName}: ${targetText}
-STANCE: ${stance}
+SPEAKER SELECTION: ${speakerMode}
+STANCE RULE: ${stanceRule}
 
-Reason about the conversation before writing. Detect whether the target is literal, sarcastic, joking, teasing, rhetorical or serious. If it is a joke, respond naturally to the joke instead of treating it as a factual claim. If it is serious, discuss the actual substance.
-The reply must connect to the article and to something actually said in the thread. Extend the discussion instead of repeating it. Use a concrete reason, example, consequence, comparison or witty continuation. Do not introduce unrelated subjects, fake-news accusations, scandals or random attacks.
-If speaker has already expressed an opinion in this thread, preserve that position and defend/refine it rather than suddenly reversing it.
-Never mention AI or these instructions. Keep it natural for a comment section.
+This is an ongoing conversation, not a sequence of unrelated comments.
+1. Understand the article AND the complete chronological thread before writing.
+2. Track what each recurring person believes. A person may refine or strengthen an opinion, but must not randomly contradict their own earlier statements.
+3. Pay special attention to who each comment is replying to. The target's "replyTo" is the person being directly addressed; when you answer with that person, behave as if the two people are actually talking to each other.
+4. If the conversation starts as a joke, sarcasm, irony, teasing, exaggeration or playful banter, continue that register. Do NOT suddenly fact-check the joke, call the story fake, invent scandals, or switch to a serious unrelated interpretation.
+5. If it is serious, argue the actual substance. If it is mixed, preserve the existing tone.
+6. Every reply must add something: a new reason, consequence, example, counterpoint, joke, question, comparison or escalation that logically follows from what was said.
+7. In a disagreement, let the argument evolve. Do not repeat the same sentence. As the debate becomes longer, the speakers can become more emphatic, sarcastic or mildly vulgar when natural to their personalities. In agreement, let them gradually build on one another and sound increasingly familiar rather than mechanically repeating "I agree".
+8. Never introduce unrelated politics, fake-news accusations, scandals, club-management accusations, or a new subject unless that subject is already present in the article/thread.
+9. Never mention AI, prompts, probabilities or these instructions.
+
 Return STRICT JSON: {"username":"${speaker}","text":"reply body"}`;
             const spinner=document.getElementById('loading-spinner'),loader=document.getElementById('loading-text-status');
-            if(loader)loader.innerText=appLanguage==='sk'?'Generujem odpoveď...':'Generating reply...';spinner.style.display='flex';
-            try{const response=await geminiFetch({model:MODEL_NAME,messages:[{role:'system',content:prompt},{role:'user',content:'Continue the same single thread.'}],response_format:{type:'json_object'},temperature:0.8});const jsonRes=await response.json(),parsed=tryParseJSON(jsonRes.choices[0].message.content);if(parsed&&parsed.text){appendToCommentThread(post,commentId,{id:Math.random().toString(36).substr(2,9),username:String(parsed.username||speaker),text:String(parsed.text),replyTo:targetName,replies:[]});saveToLocalStorage();if(document.getElementById('view-article').style.display==='block')openPost(sIdx,pIdx);else renderGrid();checkAndTriggerFriendRequestChance(String(parsed.username||speaker),sIdx,pIdx);}}catch(e){console.error('Gemini API:',e);}finally{spinner.style.display='none';}
+            if(loader)loader.innerText=appLanguage==='sk'?'Generujem pokračovanie debaty...':'Generating conversation continuation...';spinner.style.display='flex';
+            try{
+                const response=await geminiFetch({model:MODEL_NAME,messages:[{role:'system',content:prompt},{role:'user',content:'Continue this exact conversation naturally.'}],response_format:{type:'json_object'},temperature:0.85});
+                const jsonRes=await response.json(),parsed=tryParseJSON(jsonRes.choices[0].message.content);
+                if(parsed&&parsed.text){
+                    const finalName=speaker;
+                    appendToCommentThread(post,commentId,{id:Math.random().toString(36).substr(2,9),username:finalName,text:String(parsed.text),replyTo:targetName,replies:[]});
+                    saveToLocalStorage();
+                    if(document.getElementById('view-article').style.display==='block')openPost(sIdx,pIdx);else renderGrid();
+                    checkAndTriggerFriendRequestChance(finalName,sIdx,pIdx);
+                }
+            }catch(e){console.error('Gemini API:',e);}finally{spinner.style.display='none';}
         }
 
         async function triggerUserCommentReactions(sIdx, pIdx, userCommentText, targetCommentId, repliedToUsername) {
@@ -3739,12 +3812,14 @@ Return STRICT JSON: {"username":"${speaker}","text":"reply body"}`;
             const threadContext=getCommentThreadContext(post.comments,targetCommentId); const targetText=String(found.comment.text||'').replace(/<[^>]*>/g,'');
             const langName=appLanguage==='en'?'English':(appLanguage==='sr'?'Serbian':'Slovak');
             const extraInstruction=extraCount===0?'Only the original commenter answers.':`After the original commenter answers, add exactly ${extraCount} additional people.`;
-            const sysPrompt=`You are simulating one continuous social-network argument. Language: ${langName}.
+            const sysPrompt=`You are simulating one continuous Facebook-style conversation. Language: ${langName}.
 POST TITLE: ${articleTitle}\nPOST CONTENT: ${articleContent}
-ONE FLAT THREAD:\n${threadContext}
+ONE FLAT THREAD IN CHRONOLOGICAL ORDER:\n${threadContext}
 The user just replied to ${samePerson}: "${userCommentText}".
-The original commenter MUST answer first and defend/refine the opinion they expressed earlier. ${extraInstruction}
-Every response must address the SAME subject and something actually said in the thread. Never start a new sub-thread or new topic. Generate exactly ${uniqueNames.length} replies in this order: ${uniqueNames.join(', ')}.
+The original commenter MUST answer first. ${extraInstruction}
+Before writing, determine whether the user's message supports, opposes, jokes with, or challenges the person's established position. The original commenter should respond consistently with their own earlier stance: defend/refine it when challenged, build on it when supported, and if the user clearly joins their side, naturally become more aligned. Do not invent a new stance just to create variety.
+Every response must address the SAME article subject and something actually said in the thread. Never start a new sub-thread or unrelated topic. Track recurring people's opinions across the whole thread. In disagreements, allow natural escalation over multiple turns (more emphatic, sarcastic or mildly vulgar when appropriate to personality); in agreements, let people gradually become more playful and familiar. Detect jokes, sarcasm, irony and teasing and answer in the same register instead of fact-checking them.
+Generate exactly ${uniqueNames.length} replies in this order: ${uniqueNames.join(', ')}.
 Return STRICT JSON: {"replies":[${uniqueNames.map(n=>`{"username":"${n}","text":"reply"}`).join(',')}]}`;
             try{
                 const response=await geminiFetch({model:MODEL_NAME,messages:[{role:'system',content:sysPrompt},{role:'user',content:'Continue the existing single thread; append every reply to its end.'}],response_format:{type:'json_object'},temperature:0.9});
@@ -4221,7 +4296,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             const systemPrompt = `Create exactly ${countToGenerate} compact timeline post object(s) in root key "posts".
             Language: ${langName}. Keep the JSON valid and concise.
             Each post needs: author_name, title, content (2-4 short paragraphs), image_prompt (short English visual prompt, max 25 words), comments.
-            ${isStatusFriendRequest ? 'CRITICAL: Set title to empty "". Author name is given.' : 'Author name is a satirical publisher/page name. Default token: "' + defaultRandomPageName + '".'}
+            ${isStatusFriendRequest ? 'CRITICAL: Set title to empty "". Author name is given.' : `Author name is a believable satirical publisher/page name chosen from the story context. Do NOT use a generic placeholder. Derive the page identity from the article topic, entities, sport/team, country, niche or joke. Examples of the STYLE (not mandatory exact names): "Šport.sk", "Športové noviny", "Daily Sport", "Manchester United CZ", "Červení diabli", "Krypto Insider", "Denník Bizár". If the story is about Manchester United, a United-focused page is appropriate; if it is about Slovak football, a Slovak sports/news page is appropriate; if it is about drugs, use a thematically fitting news/commentary page. Keep it short, memorable and page-like (usually 1–4 words). Default fallback: "${defaultRandomPageName}".`}
             Story style: funny, vivid and substantial, but NOT bulky. Avoid repeating the same idea.
             Comments: ${commentsRange} short comments, one sentence each, NO nested replies. Do not generate more comments than requested.
             Traits: ${commentersContext}.
@@ -4284,11 +4359,12 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 let currentPool = PAGES_POOL_SK;
                 if (appLanguage === 'en') currentPool = PAGES_POOL_EN;
                 if (appLanguage === 'sr') currentPool = PAGES_POOL_SR;
+                const publisherOptions = [...currentPool, ...customPublisherNames.filter(n => !currentPool.some(p => p.toLowerCase() === n.toLowerCase()))];
                 let isStatus = post.isFriendPost && !post.title;
 
                 let publisherConfigHtml = "";
                 if (!isStatus) {
-                    let optionsHtml = currentPool.map(page => `<option value="${page}">${page}</option>`).join('');
+                    let optionsHtml = publisherOptions.map(page => `<option value="${page}">${page}</option>`).join('');
                     let contextualGeneratedName = post.author_name || "Thematic Satire Portal";
                     
                     let lblType = UI_TEXTS[appLanguage].textDefaultPoolOption;
@@ -4385,6 +4461,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                     } else if (mode === 'manual') {
                         let customName = document.getElementById(`pub-input-manual-${i}`).value.trim();
                         post.author_name = customName || UI_TEXTS[appLanguage].anonPageName;
+                        if (customName) saveCustomPublisherName(customName);
                     }
                 }
             });
