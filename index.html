@@ -820,6 +820,18 @@
                 <div class="time-setter-title" style="margin-top: 12px;" id="lbl-topic-choice-title"></div>
                 <select id="create-topic-selector" style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); font-size: 0.9rem; outline: none; margin-bottom: 12px; color: var(--global-font-color);"></select>
 
+                <div class="time-setter-title" id="lbl-post-length-title"></div>
+                <select id="post-length-selector" style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); font-size: 0.9rem; outline: none; margin-bottom: 10px; color: var(--global-font-color);">
+                    <option value="kratky" id="opt-post-len-short"></option>
+                    <option value="stredny" id="opt-post-len-mid" selected></option>
+                    <option value="dlhy" id="opt-post-len-long"></option>
+                </select>
+                <div id="lbl-realism-title" class="time-setter-title"></div>
+                <select id="realism-selector" style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); font-size: 0.9rem; outline: none; margin-bottom: 4px; color: var(--global-font-color);">
+                    <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                </select>
+                <div id="realism-hint" style="font-size:0.72rem;color:var(--text-muted);margin-bottom:12px;line-height:1.3;"></div>
+
                 <div class="time-setter-title" id="lbl-count-choice-title"></div>
                 <select id="generation-count" style="width: 100%; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); font-size: 0.9rem; outline: none; margin-bottom: 0; color: var(--global-font-color);">
                     <option value="1" id="opt-count-1"></option>
@@ -1368,7 +1380,7 @@ async function geminiFetch(request) {
                 fsEmojiNormal: "Normálne (😀)", fsEmojiText: "Textové (:D)", fsEmojiNone: "Žiadne", fsBlockLabel: "Zablokovať priateľa (Nebude možné si písať)", fsSave: "Uložiť nastavenia",
                 chatClear: "Vymazať konverzáciu", chatForget: "Zabudnúť staré témy (Čistý štít)", infoTitle: "Informácie a Návod",
                 createTitle: "Vytvoriť príspevok", createTextareaPlace: "Napíšte tému... (Ak necháte prázdne, vygeneruje sa náhodná téma alebo paródia o priateľovi!)", shiftTimeTitle: "O koľko sa posunie čas od predchádzajúcich udalostí?", shiftHours: "Hodiny", shiftDays: "Dni", shiftWeeks: "Týždne",
-                topicChoiceTitle: "VoLLba témy (ak necháte pole vyššie prázdne)", countChoiceTitle: "Koľko článkov vygenerovať naraz?", btnPublishSubmit: "Publikovať",
+                topicChoiceTitle: "Voľba témy (ak necháte pole vyššie prázdne)", postLengthTitle: "Dĺžka článku:", postLenShort: "Krátka", postLenMid: "Stredná", postLenLong: "Dlhá", realismTitle: "Reálnosť príspevku (1–10):", realismHint: "1 = úplne bláznivé · 3 = ako doteraz · 5 = trochu bláznivé, ale uveriteľné · 7 = skoro reálne · 10 = úplne reálne", countChoiceTitle: "Koľko článkov vygenerovať naraz?", btnPublishSubmit: "Publikovať",
                 reviewTitle: "Úprava vygenerovaných obrázkov a detailov", btnReviewConfirm: "Potvrdiť a Publikovať", settingsTitle: "Nastavenia",
                 settingsInfo: "ℹ️ Informácie a Changelog", saveKey: "Uložiť kľúč", settingsLangThemeTitle: "Nastavenia Jazyka, Témy a Písma",
                 settingsLang: "Hlavný Jazyk systému a generovania (Language):", themeChoice: "Výber témy:", fontColorChoice: "Výber farby:",
@@ -1426,7 +1438,7 @@ async function geminiFetch(request) {
                 fsEmojiNormal: "Normal (😀)", fsEmojiText: "Text-based (:D)", fsEmojiNone: "None", fsBlockLabel: "Block friend (No messaging allowed)", fsSave: "Save Settings",
                 chatClear: "Clear Conversation", chatForget: "Forget Old Topics (Fresh Start)", infoTitle: "Information & Guide",
                 createTitle: "Create Post", createTextareaPlace: "Write a topic... (If left empty, a random topic or a friend parody will be generated!)", shiftTimeTitle: "How much should time shift from previous events?", shiftHours: "Hours", shiftDays: "Days", shiftWeeks: "Weeks",
-                topicChoiceTitle: "Topic Selection (if text field is left empty)", countChoiceTitle: "How many articles to generate at once?", btnPublishSubmit: "Publish",
+                topicChoiceTitle: "Topic Selection (if text field is left empty)", postLengthTitle: "Article length:", postLenShort: "Short", postLenMid: "Medium", postLenLong: "Long", realismTitle: "Post realism (1–10):", realismHint: "1 = completely crazy · 3 = current level · 5 = slightly crazy but believable · 7 = nearly real · 10 = fully real", countChoiceTitle: "How many articles to generate at once?", btnPublishSubmit: "Publish",
                 reviewTitle: "Edit Generated Images & Details", btnReviewConfirm: "Confirm & Publish", settingsTitle: "Settings",
                 settingsInfo: "ℹ️ Information & Changelog", saveKey: "Save Key", settingsLangThemeTitle: "Language, Theme & Font Settings",
                 settingsLang: "System & Generation Language:", themeChoice: "Select Theme:", fontColorChoice: "Select Color:",
@@ -1484,7 +1496,7 @@ async function geminiFetch(request) {
                 fsEmojiNormal: "Normalno (😀)", fsEmojiText: "Tekstualni (:D)", fsEmojiNone: "Nikakvi", fsBlockLabel: "Blokiraj prijatelja (Dopisivanje neće biti moguće)", fsSave: "Sačuvaj podešavanja",
                 chatClear: "Obriši konverzaciju", chatForget: "Zaboravi stare teme (Čist list)", infoTitle: "Informacije i Uputstvo",
                 createTitle: "Kreiraj objavu", createTextareaPlace: "Napišite temu...", shiftTimeTitle: "Za koliko se pomera vreme od prethodnih događaja?", shiftHours: "Sati", shiftDays: "Dana", shiftWeeks: "Nedelja",
-                topicChoiceTitle: "Izbor teme (ako ostavite polje iznad prazno)", countChoiceTitle: "Koliko članaka generisati odjednom?", btnPublishSubmit: "Objavi",
+                topicChoiceTitle: "Izbor teme (ako ostavite polje iznad prazno)", postLengthTitle: "Dužina članka:", postLenShort: "Kratka", postLenMid: "Srednja", postLenLong: "Duga", realismTitle: "Realnost objave (1–10):", realismHint: "1 = potpuno ludo · 3 = sadašnji nivo · 5 = malo ludo ali uverljivo · 7 = skoro stvarno · 10 = potpuno stvarno", countChoiceTitle: "Koliko članaka generisati odjednom?", btnPublishSubmit: "Objavi",
                 reviewTitle: "Uređivanje generisanih slika i detalja", btnReviewConfirm: "Potvrdi i Objavi", settingsTitle: "Podešavanja",
                 settingsInfo: "ℹ️ Informacije i Changelog", saveKey: "Sačuvaj ključ", settingsLangThemeTitle: "Podešavanja jezika, teme i fonta",
                 settingsLang: "Glavni jezik sistema i generisanja:", themeChoice: "Izbor teme:", fontColorChoice: "Izbor boje:",
@@ -2024,6 +2036,12 @@ function applyThemeAndFont() {
             document.getElementById('lbl-shift-days').innerText = pack.shiftDays;
             document.getElementById('lbl-shift-weeks').innerText = pack.shiftWeeks;
             document.getElementById('lbl-topic-choice-title').innerText = pack.topicChoiceTitle;
+            const lenTitleEl = document.getElementById('lbl-post-length-title'); if(lenTitleEl) lenTitleEl.innerText = pack.postLengthTitle;
+            const lenShortEl = document.getElementById('opt-post-len-short'); if(lenShortEl) lenShortEl.innerText = pack.postLenShort;
+            const lenMidEl = document.getElementById('opt-post-len-mid'); if(lenMidEl) lenMidEl.innerText = pack.postLenMid;
+            const lenLongEl = document.getElementById('opt-post-len-long'); if(lenLongEl) lenLongEl.innerText = pack.postLenLong;
+            const realTitleEl = document.getElementById('lbl-realism-title'); if(realTitleEl) realTitleEl.innerText = pack.realismTitle;
+            const realHintEl = document.getElementById('realism-hint'); if(realHintEl) realHintEl.innerText = pack.realismHint;
             document.getElementById('lbl-count-choice-title').innerText = pack.countChoiceTitle;
             document.getElementById('btn-publish-submit').innerText = pack.btnPublishSubmit;
             document.getElementById('lbl-review-title').innerText = pack.reviewTitle;
@@ -2966,33 +2984,10 @@ function applyThemeAndFont() {
             closeFriendsModal();
             openCreateModal();
             document.getElementById('scenario-input').placeholder = UI_TEXTS[appLanguage].targetStatusPlaceholder.replace("{name}", name);
-            
-            const container = document.querySelector('.time-setter-container');
-            let lengthSelector = document.getElementById('status-length-selector');
-            if(!lengthSelector) {
-                const title = document.createElement('div');
-                title.className = 'time-setter-title';
-                title.id = 'status-length-title';
-                title.innerText = UI_TEXTS[appLanguage].statusLengthTitle;
-                title.style.marginTop = "12px";
-                
-                lengthSelector = document.createElement('select');
-                lengthSelector.id = 'status-length-selector';
-                lengthSelector.style.width = '100%';
-                lengthSelector.style.padding = '6px';
-                lengthSelector.style.borderRadius = '4px';
-                lengthSelector.style.border = '1px solid var(--border-color)';
-                lengthSelector.style.background = 'var(--bg-card)';
-                lengthSelector.style.fontSize = '0.9rem';
-                lengthSelector.style.color = 'var(--global-font-color)';
-                lengthSelector.innerHTML = `
-                    <option value="kratky">${UI_TEXTS[appLanguage].statusLenShort}</option>
-                    <option value="stredny">${UI_TEXTS[appLanguage].statusLenMid}</option>
-                    <option value="dlhy">${UI_TEXTS[appLanguage].statusLenLong}</option>
-                `;
-                container.appendChild(title);
-                container.appendChild(lengthSelector);
-            }
+            const lengthSelector = document.getElementById('post-length-selector');
+            if (lengthSelector) lengthSelector.value = 'stredny';
+            const realismSelector = document.getElementById('realism-selector');
+            if (realismSelector) realismSelector.value = '3';
             window.targetStatusFriend = { name: name, gender: gender, age: age, type: 'status' };
         }
 
@@ -3158,6 +3153,8 @@ function applyThemeAndFont() {
             document.getElementById('shift-days').value = '0';
             document.getElementById('shift-weeks').value = '0';
             document.getElementById('generation-count').value = '1';
+            const pl = document.getElementById('post-length-selector'); if(pl) pl.value = 'stredny';
+            const rs = document.getElementById('realism-selector'); if(rs) rs.value = '3';
             updateCreateTopicSelector();
             document.getElementById('api-error-display').style.display = 'none';
         }
@@ -3586,7 +3583,13 @@ async function processIncomingMessages() {
             }
 
             showTypingIndicator();
+            const webCompact = activeChatFriend.webActive === true;
             let historyLog = buildChatHistory(activeChatFriend.name);
+            if (webCompact) {
+                const allChat = chatData[activeChatFriend.name] || [];
+                const compact = allChat.filter(m => m.from === 'me' || m.from === 'friend').slice(-6);
+                historyLog = compact.map(m => (m.from === 'me' ? 'Me: ' : activeChatFriend.name + ': ') + String(m.text || '').slice(0, 500)).join('\n') || UI_TEXTS[appLanguage].chatLogNone;
+            }
             let emojiRule = getEmojiPromptRule(activeChatFriend.emojiStyle);
             let contactRule = getContactLevelRule(activeChatFriend.contactLevel);
             let personalityRule = getPersonalityRule(activeChatFriend.personalities);
@@ -3604,8 +3607,9 @@ async function processIncomingMessages() {
             if (appLanguage === 'sr') langName = "Serbian";
 
             const webMemoryContext = buildWebMemoryContext(activeChatFriend);
+            const compactWebMemoryContext = activeChatFriend.webActive === true ? webMemoryContext.slice(-6500) : webMemoryContext;
             const webModeRule = activeChatFriend.webActive === true ? `INTERNET MODE IS ACTIVE. Google Search is available. If the user's latest message asks for current, recent, changing, uncertain, or verifiable online information (such as today's date, sports fixtures/results, elections, current office holders, prices, weather, news, schedules, or who currently holds a position), USE GOOGLE SEARCH before answering. Do not guess when the answer can be checked online. Keep your established personality, knowledge, relationship and conversation style. Use web results as additional factual information, not as a replacement for your identity or conversational memory. If the web contradicts an earlier belief, acknowledge the new information naturally. When the user is simply chatting and no online verification is useful, answer normally without forcing a search.
-${webMemoryContext}` : `INTERNET MODE IS OFF. Do not search the web. You still retain any facts previously learned and stored in WEB MEMORY below; treat them as information you personally learned earlier.
+${compactWebMemoryContext}` : `INTERNET MODE IS OFF. Do not search the web. You still retain any facts previously learned and stored in WEB MEMORY below; treat them as information you personally learned earlier.
 ${webMemoryContext}`;
             let webSourcesForReply = [];
 
@@ -3615,7 +3619,7 @@ ${webMemoryContext}`;
             ${webModeRule}
             CRITICAL AI SELF-AWARENESS DIRECTIVE: Look carefully at the history log provided below. Messages prefixed with "Me:" were written by the user. Messages prefixed with "${activeChatFriend.name}:" were written by you.
             You must only generate your next natural reply. Never continue the conversation on behalf of the user, never answer your own questions, and do not append fictional user text inside your messages array.
-            Split your thoughts and reply into exactly ${repCount} elements inside the array.
+            Split your reply into exactly ${activeChatFriend.webActive === true ? 1 : repCount} element(s) inside the array.
             ${extraContext}
             Return STRICTLY a JSON object with a "messages" array of strings: {"messages": ["part1", "part2"]}`;
 
@@ -3623,8 +3627,8 @@ ${webMemoryContext}`;
                 const response = await geminiFetch({
                         model: MODEL_NAME,
                         useWebSearch: activeChatFriend.webActive === true,
-                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: `Chat log:\n${historyLog}\nReply to the last statement now.` } ],
-                        response_format: { type: "json_object" }, temperature: 0.85
+                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: `Recent chat:\n${historyLog}\nReply naturally to my last message. If current information is needed, use Google Search now.` } ],
+                        response_format: { type: "json_object" }, temperature: 0.85, max_output_tokens: activeChatFriend.webActive === true ? 700 : 1400
                     });
                 const jsonRes = await response.json();
                 webSourcesForReply = extractGroundingSources(jsonRes.groundingMetadata);
@@ -4399,6 +4403,24 @@ async function addManualComment(sIdx, pIdx) {
             `;
         }
 
+        function getFriendPreviousStatuses(friendName) {
+            const out = [];
+            if (!friendName) return out;
+            const clean = v => String(v ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            for (let i = feedData.length - 1; i >= 0 && out.length < 8; i--) {
+                const slot = feedData[i];
+                if (!slot || !Array.isArray(slot.posts)) continue;
+                for (let j = slot.posts.length - 1; j >= 0 && out.length < 8; j--) {
+                    const p = slot.posts[j];
+                    if (p && p.isFriendPost && !p.title && String(p.author_name || '').toLowerCase() === String(friendName).toLowerCase()) {
+                        const text = clean(Array.isArray(p.content) ? p.content.join(' ') : p.content);
+                        if (text) out.push(text.slice(0, 420));
+                    }
+                }
+            }
+            return out;
+        }
+
         async function triggerGeneration() {
             const apiKey = getSavedApiKey();
             let promptInput = document.getElementById('scenario-input').value.trim();
@@ -4407,9 +4429,10 @@ async function addManualComment(sIdx, pIdx) {
             let selectedCreateTopic = createTopicSel ? createTopicSel.value : 'random';
 
             let isStatusFriendRequest = false;
-            let statusLengthValue = "stredny";
-            const lenSel = document.getElementById('status-length-selector');
-            if (lenSel) statusLengthValue = lenSel.value;
+            const lengthSel = document.getElementById('post-length-selector');
+            const statusLengthValue = lengthSel ? lengthSel.value : 'stredny';
+            const realismSel = document.getElementById('realism-selector');
+            const realismValue = Math.max(1, Math.min(10, parseInt(realismSel ? realismSel.value : '3', 10) || 3));
 
             let forcedFriendName = "";
             let generatedFriendPostType = "";
@@ -4421,7 +4444,9 @@ async function addManualComment(sIdx, pIdx) {
                     let lenInst = "medium (3 to 8 sentences)";
                     if (statusLengthValue === "kratky") lenInst = "short (1 to 3 sentences)";
                     if (statusLengthValue === "dlhy") lenInst = "long (8 to 15 sentences)";
-                    promptInput = `Generate a structural network status post explicitly written by ${tf.name} (${tf.gender}, ${tf.age} y.o.). Length: ${lenInst}. Topic context: ${promptInput || 'crazy personal day moment'}.`;
+                    const previousStatuses = getFriendPreviousStatuses(tf.name);
+                    const statusHistoryInstruction = previousStatuses.length ? `\nPREVIOUS STATUSES ARE BACKGROUND ONLY — do NOT continue, paraphrase, recycle or make the same joke/topic the basis of the new status. The new status must be independently conceived first. Only mention an old detail as a tiny incidental aside if it genuinely fits the NEW status; it is never the main subject. Previous examples:\n${previousStatuses.map((x,i)=>`${i+1}. ${x}`).join('\n')}` : '\nThere are no previous statuses available. Invent a completely independent everyday event.';
+                    promptInput = `Generate a completely new, unique social-network status post explicitly written by ${tf.name} (${tf.gender}, ${tf.age} y.o.). Length: ${lenInst}. Realism level: ${realismValue}/10. Topic context: ${promptInput || 'choose a completely new personal everyday moment based on the person description'}.${statusHistoryInstruction} The old statuses are memory/context about the person, NOT a list of themes to repeat. Avoid recurring jokes, recurring objects and especially repeating the same incident.`;
                 } else if (tf.type === 'clanok') {
                     generatedFriendPostType = "article";
                     promptInput = `Generate a completely bizarre, hilarious parody tabloid news story exclusively focused on my real friend named ${tf.name}, aged ${tf.age}, gender ${tf.gender}. Inflate it into a massive viral clickbait scandal.`;
@@ -4441,11 +4466,12 @@ async function addManualComment(sIdx, pIdx) {
                         forcedFriendName = randomFriend.name;
                         if (rand < 0.98) { 
                             isStatusFriendRequest = true; generatedFriendPostType = "status";
-                            let lenRand = Math.random();
-                            let lenInst = lenRand < 0.33 ? "short (1-3 sentences)" : (lenRand > 0.66 ? "long (8-15 sentences)" : "medium (3-8 sentences)");
+                            let lenInst = statusLengthValue === "kratky" ? "short (1-3 sentences)" : (statusLengthValue === "dlhy" ? "long (8-15 sentences)" : "medium (3-8 sentences)");
                             const friendTopicPool = [...(randomFriend.favoriteTopics || []), ...(randomFriend.customTopics || [])];
-                            const friendTopic = friendTopicPool.length ? friendTopicPool[Math.floor(Math.random() * friendTopicPool.length)] : "funny personal scenario";
-                            promptInput = `Generate a structural status timeline post authored by ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} years old). Person description: ${randomFriend.profileDescription || 'none'}. Length restriction: ${lenInst}. Theme: ${friendTopic}. Make it fresh and unique.`;
+                            const friendTopic = friendTopicPool.length ? friendTopicPool[Math.floor(Math.random() * friendTopicPool.length)] : "a completely new funny personal scenario";
+                            const previousStatuses = getFriendPreviousStatuses(forcedFriendName);
+                            const previousStatusNote = previousStatuses.length ? ` Previous statuses are only background memory. Do NOT repeat their central event, joke, object or wording. Previous examples: ${previousStatuses.slice(0,6).map((x,i)=>`${i+1}) ${x}`).join(' | ')}. Only reference an old detail as an incidental aside if it naturally fits the independently invented new status.` : '';
+                            promptInput = `Generate a completely new and unique status timeline post authored by ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} years old). Person description: ${randomFriend.profileDescription || 'none'}. Length restriction: ${lenInst}. Realism level: ${realismValue}/10. Theme inspiration: ${friendTopic}. Invent a fresh event first; old statuses are context about the person's life, NOT a list of topics to recycle. ${previousStatusNote}`;
                         } else {
                             generatedFriendPostType = "article";
                             const friendTopicPool = [...(randomFriend.favoriteTopics || []), ...(randomFriend.customTopics || [])];
@@ -4471,7 +4497,11 @@ async function addManualComment(sIdx, pIdx) {
 
 FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT recall, copy, paraphrase, imitate, or continue any previous Fakebook feed story. Unique generation ID: ${generationNonce}.`;
             let isFriendContentFocused = (generatedFriendPostType !== "" || isStatusFriendRequest);
-            let commentsRange = isFriendContentFocused ? "1 to 3" : "2 to 5";
+            // Equal probability for every comment count from 1 through 7.
+            const requestedCommentCount = 1 + Math.floor(Math.random() * 7);
+            const commentsRange = String(requestedCommentCount);
+            const lengthInstruction = statusLengthValue === 'kratky' ? 'slightly shorter than the current standard: 1–3 compact paragraphs, roughly 170–280 words' : (statusLengthValue === 'dlhy' ? 'slightly longer than the current standard: 3–5 paragraphs, roughly 300–500 words' : 'the current standard length: 2–4 compact paragraphs, roughly 220–380 words');
+            const realismInstruction = realismValue <= 2 ? 'EXTREMELY ABSURD: make the supporting details wildly implausible and outrageous while still obeying the user\'s core topic.' : realismValue === 3 ? 'CURRENT STYLE: use the same moderately absurd, satirical credibility level as existing Fakebook articles.' : realismValue <= 5 ? 'MOSTLY BELIEVABLE: the core topic is retained, but add a few mildly crazy or unlikely supporting details.' : realismValue <= 7 ? 'NEARLY REAL: write mostly like a plausible news report, with only a small strange/absurd twist in the supporting details.' : realismValue <= 9 ? 'HIGHLY REALISTIC: supporting details should be plausible and restrained; only a subtle unusual element may remain.' : 'FULLY REALISTIC: write a genuinely plausible report about the user\'s described topic. Do not add absurd supporting details; it should be something that could realistically happen.';
             let fChance = isFriendContentFocused ? (1/3) : (1/50);
 
             let injectedFriends = [];
@@ -4493,13 +4523,17 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             if (appLanguage === 'en') langName = "English";
             if (appLanguage === 'sr') langName = "Serbian";
 
-            const outputBudget = countToGenerate === 1 ? 2200 : (countToGenerate === 2 ? 3400 : 4400);
+            const outputBudget = countToGenerate === 1 ? (statusLengthValue === 'dlhy' ? 3000 : statusLengthValue === 'kratky' ? 1800 : 2400) : (countToGenerate === 2 ? 3600 : 4800);
             const systemPrompt = `Create exactly ${countToGenerate} compact timeline post object(s) in root key "posts".
             Language: ${langName}. Keep the JSON valid and concise.
             Each post needs: author_name, title, content (2-4 short paragraphs), image_prompt (short English visual prompt, max 25 words), comments.
             ${isStatusFriendRequest ? 'CRITICAL: Set title to empty "". Author name is given.' : `Author name is a believable satirical publisher/page name chosen from the story context. Do NOT use a generic placeholder. Derive the page identity from the article topic, entities, sport/team, country, niche or joke. Examples of the STYLE (not mandatory exact names): "Šport.sk", "Športové noviny", "Daily Sport", "Manchester United CZ", "Červení diabli", "Krypto Insider", "Denník Bizár". If the story is about Manchester United, a United-focused page is appropriate; if it is about Slovak football, a Slovak sports/news page is appropriate; if it is about drugs, use a thematically fitting news/commentary page. Keep it short, memorable and page-like (usually 1–4 words). Default fallback: "${defaultRandomPageName}".`}
             Story style: funny, vivid and substantial, but NOT bulky. Avoid repeating the same idea.
-            Comments: ${commentsRange} short comments, one sentence each, NO nested replies. Every comment must show comprehension of the article's CENTRAL EVENT/CLAIM or a clearly relevant supporting point. Do not make a decorative side detail the main topic. Do not invent unrelated facts, substances, scandals or motives. For satire, react to the absurd premise itself. Vary the angles while staying on-topic. Do not generate more comments than requested.
+            ARTICLE LENGTH: ${lengthInstruction}. Do not pad the article with repeated filler.
+            REALISM LEVEL ${realismValue}/10: ${realismInstruction}
+            IMPORTANT: The user's prompt/topic is the creative foundation. Realism changes the plausibility of the surrounding details, wording, consequences, quotes and framing; it must NOT replace or ignore the requested central event.
+            PUBLISHER STYLE: At realism 1–4, a fitting tabloid/satirical publisher is appropriate. At realism 5–7, use a plausible thematic media identity. At realism 8–10, prefer a serious, credible-sounding publisher generated from the topic. The review screen automatically prefers a suitable publisher from the predefined pool when one actually fits; otherwise it uses the contextual name.
+            Comments: exactly ${commentsRange} short comments, one sentence each, NO nested replies. Every comment must show comprehension of the article's CENTRAL EVENT/CLAIM or a clearly relevant supporting point. Do not make a decorative side detail the main topic. Do not invent unrelated facts, substances, scandals or motives. For satire, react to the absurd premise itself. Vary the angles while staying on-topic. Do not generate more comments than requested.
             Traits: ${commentersContext}.
             ${friendCommentaryRule} ${contextInstruction}
             Return ONLY this JSON shape: {"posts":[{"author_name":"","title":"","content":["",""],"image_prompt":"","comments":[{"username":"","text":"","replies":[]}]}]}`;
@@ -4531,7 +4565,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 let currentGlobalTime = parseInt(localStorage.getItem('fb_global_time') || '0');
                 currentGlobalTime += addedMinutes;
 
-                pendingGenerationData = { scenario: promptInput, timestamp: currentGlobalTime, posts: parsedData.posts };
+                pendingGenerationData = { scenario: promptInput, timestamp: currentGlobalTime, posts: parsedData.posts, realism: realismValue, postLength: statusLengthValue, requestedCommentCount };
                 openReviewModal();
             } catch (error) {
                 const now = new Date().toLocaleTimeString();
@@ -4542,6 +4576,31 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             } finally {
                 if (publishBtn) { publishBtn.disabled = false; publishBtn.style.opacity = ''; }
             }
+        }
+
+        function chooseAutomaticPublisherMode(post, realism) {
+            const topicText = String(`${post?.title || ''} ${Array.isArray(post?.content) ? post.content.join(' ') : (post?.content || '')} ${post?.author_name || ''}`).toLowerCase();
+            const pool = appLanguage === 'en' ? PAGES_POOL_EN : (appLanguage === 'sr' ? PAGES_POOL_SR : PAGES_POOL_SK);
+            const keywordMap = appLanguage === 'en' ? [
+                ['crypto',['crypto']],['sport',['sport','football','united','premier']],['tabloid',['celebrity','showbiz','gossip','actor','singer']],['absurd',['absurd','bizarre','crazy','satire','parody','unreal']],['politics',['politic','president','government','election']],['science',['science','space','research','physics']],['tech',['tech','electronics','ai','computer']]
+            ] : [
+                ['crypto',['krypto','kryptomen','bitcoin']],['sport',['šport','futbal','manchester','slovan','hokej']],['tabloid',['bulvár','celebr','influencer','herec','spevák','šoubiznis']],['absurd',['absurd','bizár','paród','nezmysel','blázn','satira']],['politics',['polit','prezident','vláda','voľb','premiér']],['science',['veda','vesmír','výskum','fyzik','chém']],['tech',['elektro','technol','počítač','umelá inteligencia','ai']]
+            ];
+            if (Number(realism) >= 8) return { mode: 'context' };
+            let best = null, bestScore = 0;
+            for (const [key, words] of keywordMap) {
+                const score = words.reduce((n,w)=>n + (topicText.includes(w) ? 1 : 0), 0);
+                if (score > bestScore) { bestScore = score; best = key; }
+            }
+            const candidates = pool.filter(p => {
+                const x=p.toLowerCase();
+                if(best==='crypto') return x.includes('krypto');
+                if(best==='absurd') return x.includes('absurd') || x.includes('bizár') || x.includes('nezmys');
+                if(best==='tabloid') return x.includes('časy') || x.includes('koník') || x.includes('trač');
+                if(best==='politics') return x.includes('vysielač') || x.includes('denník') || x.includes('javnosti');
+                return false;
+            });
+            return candidates.length ? {mode:'pool',page:candidates[Math.floor(Math.random()*candidates.length)]} : {mode:'context'};
         }
 
         function openReviewModal() {
@@ -4567,6 +4626,9 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 if (!isStatus) {
                     let optionsHtml = publisherOptions.map(page => `<option value="${page}">${page}</option>`).join('');
                     let contextualGeneratedName = post.author_name || "Thematic Satire Portal";
+                    const autoPublisher = chooseAutomaticPublisherMode(post, pendingGenerationData?.realism || 3);
+                    post._autoPublisherMode = autoPublisher.mode;
+                    post._autoPublisherPage = autoPublisher.page || '';
                     
                     let lblType = UI_TEXTS[appLanguage].textDefaultPoolOption;
                     let lblGen = UI_TEXTS[appLanguage].textContextNameOption;
@@ -4577,10 +4639,10 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                         <div style="background: var(--bg-input); padding: 12px; border-radius: 6px; margin-bottom: 12px;">
                             <strong style="font-size:0.9rem; display:block; margin-bottom:6px; color: var(--global-font-color);">${lblHeadline}</strong>
                             <div style="display:flex; flex-direction:column; gap:8px;">
-                                <label style="font-size:0.8rem; font-weight:600; color: var(--global-font-color);"><input type="radio" name="pub-choice-${i}" value="pool" checked onchange="togglePublisherInputMode(${i})"> ${lblType}</label>
+                                <label style="font-size:0.8rem; font-weight:600; color: var(--global-font-color);"><input type="radio" name="pub-choice-${i}" value="pool" ${autoPublisher.mode === 'pool' ? 'checked' : ''} onchange="togglePublisherInputMode(${i})"> ${lblType}</label>
                                 <select id="pub-select-pool-${i}" style="margin-bottom:4px; padding:6px; font-size:0.9rem; color: var(--global-font-color); background: var(--bg-card);">${optionsHtml}</select>
                                 
-                                <label style="font-size:0.8rem; font-weight:600; color: var(--global-font-color);"><input type="radio" name="pub-choice-${i}" value="context" onchange="togglePublisherInputMode(${i})"> ${lblGen}</label>
+                                <label style="font-size:0.8rem; font-weight:600; color: var(--global-font-color);"><input type="radio" name="pub-choice-${i}" value="context" ${autoPublisher.mode === 'context' ? 'checked' : ''} onchange="togglePublisherInputMode(${i})"> ${lblGen}</label>
                                 <input type="text" id="pub-input-context-${i}" value="${contextualGeneratedName}" disabled style="margin-bottom:4px; padding:6px; font-size:0.9rem; color: var(--global-font-color); background: var(--bg-input);">
                                 
                                 <label style="font-size:0.8rem; font-weight:600; color: var(--global-font-color);"><input type="radio" name="pub-choice-${i}" value="manual" onchange="togglePublisherInputMode(${i})"> ${lblManual}</label>
@@ -4609,10 +4671,11 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 
                 setTimeout(() => {
                     let selectEl = document.getElementById(`pub-select-pool-${i}`);
-                    if (selectEl && selectEl.options.length > 0) {
-                        let randomIdx = Math.floor(Math.random() * selectEl.options.length);
-                        selectEl.selectedIndex = randomIdx;
+                    if (selectEl && selectEl.options.length > 0 && post._autoPublisherPage) {
+                        const idx = Array.from(selectEl.options).findIndex(o => o.value === post._autoPublisherPage);
+                        if (idx >= 0) selectEl.selectedIndex = idx;
                     }
+                    togglePublisherInputMode(i);
                 }, 10);
             });
             document.getElementById('review-modal').style.display = 'flex';
@@ -4693,6 +4756,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                         if (customName) saveCustomPublisherName(customName);
                     }
                 }
+                delete post._autoPublisherMode; delete post._autoPublisherPage;
             });
 
             localStorage.setItem('fb_global_time', pendingGenerationData.timestamp);
