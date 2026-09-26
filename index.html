@@ -1084,6 +1084,8 @@ const MODEL_NAME = "gemini-3.8-flash";
 
 async function geminiFetch(request) {
     const apiKey = getSavedApiKey();
+    if (!apiKey) throw new Error("Chýba Gemini API kľúč.");
+
     const messages = Array.isArray(request.messages) ? request.messages : [];
 
     const systemInstruction = messages
@@ -1099,21 +1101,65 @@ async function geminiFetch(request) {
             parts: [{ text: typeof m.content === 'string' ? m.content : String(m.content ?? '') }]
         }));
 
-    const body = { contents, generationConfig: { temperature: request.temperature } };
-    if (systemInstruction) body.systemInstruction = { parts: [{ text: systemInstruction }] };
-    if (request.response_format?.type === 'json_object') body.generationConfig.responseMimeType = 'application/json';
+    const body = {
+        contents,
+        generationConfig: {
+            temperature: request.temperature
+        }
+    };
 
-    const response = await fetch(`${API_URL}${MODEL_NAME}:generateContent?key=${encodeURIComponent(apiKey)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-    });
+    if (systemInstruction) {
+        body.systemInstruction = { parts: [{ text: systemInstruction }] };
+    }
 
-    const gemini = await response.json();
-    if (!response.ok) throw new Error(gemini?.error?.message || `Gemini API error (${response.status})`);
+    if (request.response_format?.type === 'json_object') {
+        body.generationConfig.responseMimeType = 'application/json';
+    }
 
-    const text = gemini?.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('') || '';
-    return { ok: true, async json() { return { choices: [{ message: { content: text } }] }; } };
+    let response;
+    try {
+        response = await fetch(`${API_URL}${MODEL_NAME}:generateContent`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey
+            },
+            body: JSON.stringify(body)
+        });
+    } catch (networkError) {
+        throw new Error(
+            "Gemini API sa nedá kontaktovať. Skontroluj internet, blokovanie požiadaviek prehliadačom alebo rozšírenie/adblock. " +
+            (networkError?.message || "")
+        );
+    }
+
+    let gemini;
+    try {
+        gemini = await response.json();
+    } catch (_) {
+        throw new Error(`Gemini API vrátilo nečitateľnú odpoveď (HTTP ${response.status}).`);
+    }
+
+    if (!response.ok) {
+        const apiMessage = gemini?.error?.message || `Gemini API error (${response.status})`;
+        throw new Error(`Gemini API: ${apiMessage}`);
+    }
+
+    const text = gemini?.candidates?.[0]?.content?.parts
+        ?.map(part => part.text || '')
+        .join('') || '';
+
+    if (!text) {
+        const finishReason = gemini?.candidates?.[0]?.finishReason || "neznámy dôvod";
+        throw new Error(`Gemini neposlalo textovú odpoveď (${finishReason}).`);
+    }
+
+    return {
+        ok: true,
+        async json() {
+            return { choices: [{ message: { content: text } }] };
+        }
+    };
 }
 
         const MALE_NAMES = ["Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid", "Dežo", "Gejza", "Koloman", "Vasiľ", "Fero", "Laco", "Jožo", "Maroš", "Slavo", "Bohumil", "Žigmund", "Pali", "Rišo"];
@@ -3257,7 +3303,7 @@ async function geminiFetch(request) {
                     
                     saveChatsData(); saveFriendsData(); renderChatMessages();
                 }
-            } catch(e) { let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove(); }
+            } catch(e) { let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove(); console.error('Gemini API:', e); }
         }
 
         async function autoGenerateFriendMessage(f, contextPrompt, partsCount = 1) {
@@ -3315,7 +3361,7 @@ async function geminiFetch(request) {
                         document.getElementById('chat-ignored-message').style.display = f.ignoredCount >= 5 ? 'block' : 'none';
                     }
                 }
-            } catch(e) {}
+            } catch(e) { console.error('Gemini API:', e); }
         }
 
         function buildChatHistory(fName) {
@@ -3493,13 +3539,13 @@ async function geminiFetch(request) {
                                     text: `<span style="color:var(--fb-blue); font-weight:600;">${parsed.username}</span> ${parsed2.text}`, replies: []
                                 });
                             }
-                        } catch(e) {}
+                        } catch(e) { console.error('Gemini API:', e); }
                     }
                     saveToLocalStorage();
                     if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx); else renderGrid();
                     checkAndTriggerFriendRequestChance(parsed.username, sIdx, pIdx);
                 }
-            } catch(e) {}
+            } catch(e) { console.error('Gemini API:', e); }
             spinner.style.display = 'none';
         }
 
@@ -3558,7 +3604,7 @@ async function geminiFetch(request) {
                         }
                     }
                 }
-            } catch(e) {}
+            } catch(e) { console.error('Gemini API:', e); }
             spinner.style.display = 'none';
         }
 
@@ -3594,7 +3640,7 @@ async function geminiFetch(request) {
                     feedData[sIdx].posts[pIdx] = newPost;
                     saveToLocalStorage(); renderGrid();
                 }
-            } catch(e) {}
+            } catch(e) { console.error('Gemini API:', e); }
             spinner.style.display = 'none';
         }
 
@@ -3628,7 +3674,7 @@ async function geminiFetch(request) {
                     saveToLocalStorage();
                     if (document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx); else renderGrid();
                 }
-            } catch(e) {}
+            } catch(e) { console.error('Gemini API:', e); }
             spinner.style.display = 'none';
         }
 
@@ -3663,7 +3709,7 @@ async function geminiFetch(request) {
                     feedData[sIdx].posts.push(extractedPost);
                     saveToLocalStorage(); renderGrid();
                 }
-            } catch(e) {}
+            } catch(e) { console.error('Gemini API:', e); }
             spinner.style.display = 'none';
         }
 
