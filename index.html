@@ -1080,10 +1080,11 @@
 
 // Native Gemini API configuration.
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
-const MODEL_NAME = "gemini-3.8-flash";
+const MODEL_NAME = "gemini-3.5-flash-lite";
+const GEMINI_FALLBACK_MODEL = "gemini-3.8-flash";
 
-// Gemini request pacing: the free tier can enforce a 20-RPM limit for this model.
-// Keep requests serialized and spaced out so one user action cannot burst the quota.
+// Gemini request pacing: keep requests serialized so background features cannot burst the quota.
+// 3.5 Flash-Lite is optimized by Google for high-throughput, low-cost workloads.
 let geminiRequestChain = Promise.resolve();
 let geminiLastRequestAt = 0;
 const GEMINI_MIN_REQUEST_GAP_MS = 4000;
@@ -1140,14 +1141,21 @@ async function geminiFetch(request) {
         geminiLastRequestAt = Date.now();
 
         try {
-            response = await fetch(`${API_URL}${MODEL_NAME}:generateContent`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': apiKey
-                },
-                body: JSON.stringify(body)
-            });
+            // 503/500/504 are transient server-side errors. Retry once only,
+            // after a short backoff. Never retry 429 automatically.
+            const maxAttempts = 2;
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                response = await fetch(`${API_URL}${MODEL_NAME}:generateContent`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKey
+                    },
+                    body: JSON.stringify(body)
+                });
+                if (response.ok || ![500, 503, 504].includes(response.status) || attempt === maxAttempts) break;
+                await new Promise(resolve => setTimeout(resolve, 7000));
+            }
         } catch (networkError) {
             lastNetworkError = networkError;
         }
@@ -1180,7 +1188,7 @@ async function geminiFetch(request) {
         else if (code === 404) diagnosis = 'Model alebo API zdroj neexistuje. Skontroluj názov modelu a endpoint.';
         else if (code === 429) diagnosis = 'Bol prekročený limit RPM/TPM/RPD alebo iný quota/rate limit. Aplikácia už túto požiadavku automaticky neopakuje, aby ďalej nemíňala kvótu.';
         else if (code === 500) diagnosis = 'Interná chyba na strane Google alebo príliš veľký kontext.';
-        else if (code === 503) diagnosis = 'Gemini služba je dočasne preťažená alebo nedostupná.';
+        else if (code === 503) diagnosis = 'Gemini služba/model je dočasne preťažený alebo nedostupný. Aplikácia po 7 s vykoná nanajvýš jedno opakovanie.';
         else if (code === 504) diagnosis = 'Požiadavka nestihla dokončiť spracovanie — často príliš veľký prompt/kontext.';
         else if (code >= 500) diagnosis = 'Chyba servera Google Gemini.';
         else diagnosis = 'Gemini požiadavku odmietlo.';
@@ -4150,7 +4158,7 @@ async function geminiFetch(request) {
             } catch (error) {
                 const now = new Date().toLocaleTimeString();
                 const msg = error?.message || String(error);
-                errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nOchrana kvóty: Gemini volania sú serializované a medzi požiadavkami je minimálne 4 s. Vytváranie príspevku používa 1 API požiadavku a kratší kontext/výstup. Automatické retry pri HTTP 429 je vypnuté, aby aplikácia kvótu ďalej nemíňala.\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
+                errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nOchrana kvóty: Gemini volania sú serializované a medzi požiadavkami je minimálne 4 s. Vytváranie príspevku používa 1 API požiadavku a kratší kontext/výstup. Používa sa Gemini 3.5 Flash-Lite; pri dočasnej chybe 503/500/504 sa vykoná nanajvýš 1 opakovanie po 7 s. HTTP 429 sa automaticky neopakuje, aby aplikácia kvótu ďalej nemíňala.\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
                 errorDisplay.style.display = 'block'; spinner.style.display = 'none';
                 console.error('Gemini diagnostic:', error);
             } finally {
