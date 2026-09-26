@@ -1772,18 +1772,37 @@ async function geminiFetch(request) {
 
         function sanitizeComments(comments) {
             if (!Array.isArray(comments)) return [];
-            const walk = (arr) => arr.map(c => {
+            const makeId = () => Math.random().toString(36).substr(2, 9);
+            const clean = (c, fallbackUser = 'Používateľ') => {
                 const item = c && typeof c === 'object' ? c : {};
-                if (!item.id) item.id = Math.random().toString(36).substr(2, 9);
-                if (!item.username) item.username = 'Používateľ';
+                if (!item.id) item.id = makeId();
+                if (!item.username) item.username = fallbackUser;
                 if (typeof item.text !== 'string') item.text = item.text == null ? '' : String(item.text);
-                item.replies = Array.isArray(item.replies) ? walk(item.replies) : [];
+                item.replies = Array.isArray(item.replies) ? item.replies : [];
                 return item;
+            };
+            return comments.map(rootRaw => {
+                const root = clean(rootRaw);
+                const flatReplies = [];
+                const flatten = (arr, inheritedReplyTo = root.username) => {
+                    if (!Array.isArray(arr)) return;
+                    arr.forEach(raw => {
+                        const r = clean(raw, 'Používateľ');
+                        if (!r.replyTo) r.replyTo = inheritedReplyTo;
+                        if (!r.parentCommentId) r.parentCommentId = root.id;
+                        // All replies belong to ONE flat thread under the root comment.
+                        flatReplies.push(r);
+                        flatten(r.replies, r.username);
+                        r.replies = [];
+                    });
+                };
+                flatten(root.replies, root.username);
+                root.replies = flatReplies;
+                return root;
             });
-            return walk(comments);
         }
 
-        function applyThemeAndFont() {
+function applyThemeAndFont() {
             const themeSel = document.getElementById('theme-selector');
             const fontColorSel = document.getElementById('font-color-selector');
             currentTheme = themeSel.value;
@@ -3163,17 +3182,22 @@ async function geminiFetch(request) {
         }
 
         function findCommentById(comments, id) {
-            for(let i=0; i<comments.length; i++) {
-                if(comments[i].id === id) return {parent: comments, index: i, comment: comments[i]};
-                if(comments[i].replies) {
-                    let found = findCommentById(comments[i].replies, id);
-                    if(found) return found;
+            if (!Array.isArray(comments)) return null;
+            for (let i = 0; i < comments.length; i++) {
+                const c = comments[i];
+                if (c && c.id === id) return { parent: comments, index: i, comment: c, root: c };
+                if (c && Array.isArray(c.replies)) {
+                    for (let j = 0; j < c.replies.length; j++) {
+                        if (c.replies[j] && c.replies[j].id === id) {
+                            return { parent: c.replies, index: j, comment: c.replies[j], root: c };
+                        }
+                    }
                 }
             }
             return null;
         }
 
-        async function processIncomingMessages() {
+async function processIncomingMessages() {
             if(!getSavedApiKey()) return;
             for (let f of friendsList) {
                 if (f.isBlocked) continue;
@@ -3528,20 +3552,9 @@ async function geminiFetch(request) {
 
         function getCommentThreadContext(allComments, targetCommentId) {
             if (!Array.isArray(allComments)) return '';
-
-            let root = null;
-            let target = null;
-            const findRoot = (arr, currentRoot = null) => {
-                for (const c of arr) {
-                    const rootForThis = currentRoot || c;
-                    if (c.id === targetCommentId) { target = c; root = rootForThis; return true; }
-                    if (Array.isArray(c.replies) && findRoot(c.replies, rootForThis)) return true;
-                }
-                return false;
-            };
-            findRoot(allComments);
-            if (!root) return '';
-
+            const found = findCommentById(allComments, targetCommentId);
+            if (!found) return '';
+            const root = found.root || found.comment;
             const stripMarkup = value => String(value ?? '')
                 .replace(/<[^>]*>/g, '')
                 .replace(/&nbsp;/g, ' ')
@@ -3549,36 +3562,30 @@ async function geminiFetch(request) {
                 .replace(/&quot;/g, '"')
                 .replace(/&#39;/g, "'")
                 .trim();
-
             let out = `THREAD ROOT — ${root.username}: ${stripMarkup(root.text)}\n`;
-            const walk = (replies, depth) => {
-                if (!Array.isArray(replies)) return;
-                replies.forEach(r => {
-                    const marker = '  '.repeat(Math.min(depth, 6)) + '↳ ';
-                    out += `${marker}${r.username}: ${stripMarkup(r.text)}${r.id === targetCommentId ? ' [TARGET]' : ''}\n`;
-                    walk(r.replies, depth + 1);
-                });
-            };
-            walk(root.replies, 1);
+            (root.replies || []).forEach(r => {
+                out += `↳ ${r.username} replies to ${r.replyTo || root.username}: ${stripMarkup(r.text)}${r.id === targetCommentId ? ' [TARGET]' : ''}\n`;
+            });
             return out.slice(0, 9000);
         }
 
         function getCommentThreadRoot(comments, targetCommentId) {
-            if (!Array.isArray(comments)) return null;
-            let result = null;
-            const walk = (arr, root = null) => {
-                for (const c of arr) {
-                    const r = root || c;
-                    if (c.id === targetCommentId) { result = r; return true; }
-                    if (Array.isArray(c.replies) && walk(c.replies, r)) return true;
-                }
-                return false;
-            };
-            walk(comments);
-            return result;
+            const found = findCommentById(comments, targetCommentId);
+            return found ? (found.root || found.comment) : null;
         }
 
-        function checkAndTriggerFriendRequestChance(commenterName, sIdx, pIdx) {
+        function appendToCommentThread(post, targetCommentId, replyObj) {
+            if (!post || !Array.isArray(post.comments)) return null;
+            const found = findCommentById(post.comments, targetCommentId);
+            if (!found) return null;
+            const root = found.root || found.comment;
+            if (!Array.isArray(root.replies)) root.replies = [];
+            replyObj.parentCommentId = root.id;
+            root.replies.push(replyObj);
+            return root;
+        }
+
+function checkAndTriggerFriendRequestChance(commenterName, sIdx, pIdx) {
             if (friendsList.some(f => f.name.toLowerCase() === commenterName.toLowerCase())) return; 
             if (Math.random() > 0.10) return; 
 
@@ -3639,59 +3646,46 @@ async function geminiFetch(request) {
 
         async function triggerAICommentReply(sIdx, pIdx, commentId) {
             if (!getSavedApiKey() || !feedData[sIdx] || !feedData[sIdx].posts[pIdx]) return;
-            let post = feedData[sIdx].posts[pIdx];
-            let found = findCommentById(post.comments || [], commentId);
+            const post = feedData[sIdx].posts[pIdx];
+            const found = findCommentById(post.comments || [], commentId);
             if(!found) return;
-
+            const root = found.root || found.comment;
             const spinner = document.getElementById('loading-spinner');
             const loaderText = document.getElementById('loading-text-status');
             if(loaderText) loaderText.innerText = appLanguage === 'sk' ? 'Generujem troll reakciu...' : 'Generating troll reaction...';
             spinner.style.display = 'flex';
 
-            const commentText = String(found.comment.text || '').replace(/<[^>]*>/g, '');
-            const authorName = found.comment.username;
+            const targetText = String(found.comment.text || '').replace(/<[^>]*>/g, '');
+            const targetName = found.comment.username;
             const articleTitle = post.title || '';
             const articleContent = Array.isArray(post.content) ? post.content.join(' ') : (post.content || '');
             const fullThreadContext = getCommentThreadContext(post.comments, commentId);
-            const randomPersObj = ALL_PERSONALITIES[Math.floor(Math.random() * ALL_PERSONALITIES.length)];
-            const randomPersona = randomPersObj.en;
+            const randomPersona = ALL_PERSONALITIES[Math.floor(Math.random() * ALL_PERSONALITIES.length)].en;
             const chosenCommenterName = getRandomNames(1)[0];
             const longReaction = Math.random() < 0.5;
+            let langName = appLanguage === 'en' ? 'English' : (appLanguage === 'sr' ? 'Serbian' : 'Slovak');
+            const lengthRule = longReaction ? 'Write 3–6 sentences.' : 'Write 1–2 concise sentences.';
 
-            let langName = 'Slovak';
-            if (appLanguage === 'en') langName = 'English';
-            if (appLanguage === 'sr') langName = 'Serbian';
-
-            const sysPrompt = `You are one real human commenter in a heated social-network discussion.
-            Language: ${langName}. Personality: ${randomPersona}.
-            POST TITLE: ${articleTitle}
-            POST CONTENT: ${articleContent}
-            FULL COMMENT THREAD:\n${fullThreadContext}
-
-            TARGET COMMENT AUTHOR: ${authorName}
-            TARGET COMMENT: ${commentText}
-            Your task: write ONE direct troll/reaction reply to the TARGET COMMENT. You MUST understand the actual subject being debated from the post AND the whole thread. Continue the existing argument; do not produce a generic insult, generic praise, or unrelated joke. Make a concrete claim, counterclaim, example, question, or argument connected to what the people are discussing. Keep continuity with earlier replies.
-            Length mode: ${longReaction ? 'LONG — 3 to 6 sentences with a developed argument.' : 'SHORT — 1 to 2 punchy sentences.'}
-            Do not mention being AI, prompts, personas, or these instructions. Do not speak for the target author.
-            Return STRICTLY JSON: {"username":"${chosenCommenterName}","text":"reply body"}`;
-
+            const sysPrompt = `You are one real human commenter in a heated social-network discussion. Language: ${langName}. Personality: ${randomPersona}.
+POST TITLE: ${articleTitle}
+POST CONTENT: ${articleContent}
+ONE FLAT THREAD:
+${fullThreadContext}
+TARGET: ${targetName}: ${targetText}
+Write ONE troll/reaction reply that is specifically about the actual argument in this thread. ${lengthRule} It may be sarcastic or provocative, but it must contain a concrete argument, counterargument, example, fact-like claim, or question tied to what the people are discussing. Do not start a new subject. Do not merely insult the person.
+Return STRICTLY JSON: {"username":"${chosenCommenterName}","text":"reply body"}`;
             try {
-                const response = await geminiFetch({
-                    model: MODEL_NAME,
-                    messages: [ { role: 'system', content: sysPrompt }, { role: 'user', content: 'Write the reaction now.' } ],
-                    response_format: { type: 'json_object' }, temperature: 1.0
-                });
+                const response = await geminiFetch({model: MODEL_NAME, messages:[{role:'system',content:sysPrompt},{role:'user',content:'Continue this exact thread.'}], response_format:{type:'json_object'}, temperature:0.9});
                 const jsonRes = await response.json();
                 const parsed = tryParseJSON(jsonRes.choices[0].message.content);
-                if (parsed && parsed.username && parsed.text) {
-                    if(!found.comment.replies) found.comment.replies = [];
-                    found.comment.replies.push({
-                        id: Math.random().toString(36).substr(2, 9), username: parsed.username,
-                        text: parsed.text, replyTo: authorName, parentCommentId: commentId, replies: []
+                if(parsed && parsed.username && parsed.text) {
+                    appendToCommentThread(post, commentId, {
+                        id: Math.random().toString(36).substr(2,9), username:String(parsed.username), text:String(parsed.text),
+                        replyTo: targetName, replies: []
                     });
                     saveToLocalStorage();
-                    if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx); else renderGrid();
-                    checkAndTriggerFriendRequestChance(parsed.username, sIdx, pIdx);
+                    if(document.getElementById('view-article').style.display === 'block') openPost(sIdx,pIdx); else renderGrid();
+                    checkAndTriggerFriendRequestChance(parsed.username,sIdx,pIdx);
                 }
             } catch(e) { console.error('Gemini API:', e); }
             spinner.style.display = 'none';
@@ -3702,129 +3696,75 @@ async function geminiFetch(request) {
             const post = feedData[sIdx].posts[pIdx];
             const found = findCommentById(post.comments || [], commentId);
             if(!found) return;
-
-            const spinner = document.getElementById('loading-spinner');
-            const loaderText = document.getElementById('loading-text-status');
-            if(loaderText) loaderText.innerText = appLanguage === 'sk' ? 'Generujem odpoveď...' : 'Generating reply...';
-            spinner.style.display = 'flex';
-
             const targetName = found.comment.username;
             const targetText = String(found.comment.text || '').replace(/<[^>]*>/g, '');
-            const articleTitle = post.title || '';
-            const articleContent = Array.isArray(post.content) ? post.content.join(' ') : (post.content || '');
             const threadContext = getCommentThreadContext(post.comments, commentId);
             const supportive = Math.random() < 0.5;
             const otherName = getRandomNames(1)[0];
-            const randomPersObj = ALL_PERSONALITIES[Math.floor(Math.random() * ALL_PERSONALITIES.length)];
-            const randomPersona = randomPersObj.en;
-
-            let langName = 'Slovak';
-            if (appLanguage === 'en') langName = 'English';
-            if (appLanguage === 'sr') langName = 'Serbian';
-
-            const sysPrompt = `You are simulating a real human social-network commenter. Language: ${langName}.
-            POST: ${articleTitle}
-            POST CONTENT: ${articleContent}
-            FULL THREAD:\n${threadContext}
-            TARGET COMMENT: ${targetName}: ${targetText}
-            Generate exactly ONE new reply from another person. The reply must be specifically about the subject and argument in this thread, not a generic reaction. ${supportive ? 'Take a SUPPORTIVE position toward the target comment and strengthen its argument with a concrete reason/example.' : 'DISAGREE with the target comment and give a concrete counterargument grounded in the post/thread.'}
-            Persona: ${randomPersona}. Name: ${otherName}.
-            Return STRICTLY JSON: {"username":"${otherName}","text":"reply body"}`;
-
+            const randomPersona = ALL_PERSONALITIES[Math.floor(Math.random() * ALL_PERSONALITIES.length)].en;
+            const articleTitle = post.title || '';
+            const articleContent = Array.isArray(post.content) ? post.content.join(' ') : (post.content || '');
+            const langName = appLanguage === 'en' ? 'English' : (appLanguage === 'sr' ? 'Serbian' : 'Slovak');
+            const spinner = document.getElementById('loading-spinner');
+            const loaderText = document.getElementById('loading-text-status');
+            if(loaderText) loaderText.innerText = appLanguage === 'sk' ? 'Generujem odpoveď...' : 'Generating reply...';
+            spinner.style.display='flex';
+            const sysPrompt = `You are a real human in a social-network discussion. Language: ${langName}. Personality: ${randomPersona}.
+POST: ${articleTitle}\n${articleContent}
+ONE FLAT THREAD:\n${threadContext}
+TARGET: ${targetName}: ${targetText}
+Write exactly ONE new reply from ${otherName}. ${supportive ? 'Support the target comment and strengthen it with a concrete argument.' : 'Disagree with the target and give a concrete counterargument.'} Stay on the same topic and address something actually said in the thread. Return STRICT JSON: {"username":"${otherName}","text":"reply body"}`;
             try {
-                const response = await geminiFetch({
-                    model: MODEL_NAME,
-                    messages: [ { role: 'system', content: sysPrompt }, { role: 'user', content: 'Write exactly one contextual reply.' } ],
-                    response_format: { type: 'json_object' }, temperature: 0.9
-                });
-                const jsonRes = await response.json();
-                const parsed = tryParseJSON(jsonRes.choices[0].message.content);
-                if(parsed && parsed.username && parsed.text) {
-                    if(!found.comment.replies) found.comment.replies = [];
-                    found.comment.replies.push({
-                        id: Math.random().toString(36).substr(2, 9), username: parsed.username,
-                        text: parsed.text, replyTo: targetName, parentCommentId: commentId, replies: []
-                    });
-                    saveToLocalStorage();
-                    if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx); else renderGrid();
-                    checkAndTriggerFriendRequestChance(parsed.username, sIdx, pIdx);
+                const response=await geminiFetch({model:MODEL_NAME,messages:[{role:'system',content:sysPrompt},{role:'user',content:'Continue the same thread.'}],response_format:{type:'json_object'},temperature:0.9});
+                const jsonRes=await response.json(); const parsed=tryParseJSON(jsonRes.choices[0].message.content);
+                if(parsed && parsed.username && parsed.text){
+                    appendToCommentThread(post,commentId,{id:Math.random().toString(36).substr(2,9),username:String(parsed.username),text:String(parsed.text),replyTo:targetName,replies:[]});
+                    saveToLocalStorage(); if(document.getElementById('view-article').style.display==='block') openPost(sIdx,pIdx); else renderGrid();
+                    checkAndTriggerFriendRequestChance(parsed.username,sIdx,pIdx);
                 }
-            } catch(e) { console.error('Gemini API:', e); }
-            spinner.style.display = 'none';
+            }catch(e){console.error('Gemini API:',e);} finally {spinner.style.display='none';}
         }
 
         async function triggerUserCommentReactions(sIdx, pIdx, userCommentText, targetCommentId, repliedToUsername) {
             if(!getSavedApiKey()) return;
-            const post = feedData[sIdx].posts[pIdx];
-            if(!post) return;
-            const found = findCommentById(post.comments || [], targetCommentId);
-            if(!found) return;
-
-            const samePerson = found.comment.username;
-            if(!samePerson || samePerson === currentUsername) return;
-
-            // Exact requested probability: 50% nobody else, 25% one extra person, 25% two extra people.
-            const roll = Math.random();
-            const extraCount = roll < 0.50 ? 0 : (roll < 0.75 ? 1 : 2);
-            const names = [samePerson, ...getRandomNames(extraCount)];
-            const uniqueNames = [];
-            names.forEach(n => { if(n && !uniqueNames.some(x => x.toLowerCase() === n.toLowerCase())) uniqueNames.push(n); });
-
-            const spinner = document.getElementById('loading-spinner');
-            const loaderText = document.getElementById('loading-text-status');
-            if(loaderText) loaderText.innerText = appLanguage === 'sk' ? 'Rozvíjam diskusiu...' : 'Continuing discussion...';
-            spinner.style.display = 'flex';
-
-            const articleTitle = post.title || '';
-            const articleContent = Array.isArray(post.content) ? post.content.join(' ') : (post.content || '');
-            const threadContext = getCommentThreadContext(post.comments, targetCommentId);
-            const targetText = String(found.comment.text || '').replace(/<[^>]*>/g, '');
-
-            let langName = 'Slovak';
-            if (appLanguage === 'en') langName = 'English';
-            if (appLanguage === 'sr') langName = 'Serbian';
-
-            const extraInstruction = extraCount === 0 ? 'Only the original commenter must answer.' : `After the original commenter answers, exactly ${extraCount} additional distinct people may join the same thread.`;
-            const sysPrompt = `You are simulating a continuous, intelligent social-network argument. Language: ${langName}.
-            POST TITLE: ${articleTitle}
-            POST CONTENT: ${articleContent}
-            FULL THREAD BEFORE THE NEW REPLY:\n${threadContext}
-            The user just replied to ${samePerson}: "${userCommentText}".
-            The person who originally wrote the target comment MUST be the first responder and MUST defend or refine the opinion they expressed in that target comment. Do not change their identity or suddenly make them agree without a reason. Their response must directly address the user's reply and use the actual topic/arguments from the thread.
-            ${extraInstruction}
-            Additional participants must also discuss the SAME subject and respond to something actually said in the thread; no generic one-liners.
-            Generate exactly ${uniqueNames.length} replies in this order: ${uniqueNames.join(', ')}.
-            Return STRICTLY JSON: {"replies":[{"username":"${samePerson}","text":"reply"}${extraCount ? ',{"username":"other","text":"reply"}' : ''}]}. Use exactly the names listed and do not invent extra people.`;
-
-            try {
-                const response = await geminiFetch({
-                    model: MODEL_NAME,
-                    messages: [ { role: 'system', content: sysPrompt }, { role: 'user', content: 'Continue the exact argument in the thread.' } ],
-                    response_format: { type: 'json_object' }, temperature: 0.9
-                });
-                const jsonRes = await response.json();
-                const parsed = tryParseJSON(jsonRes.choices[0].message.content);
-                if(parsed && Array.isArray(parsed.replies)) {
-                    parsed.replies.slice(0, uniqueNames.length).forEach((rep, idx) => {
-                        const expectedName = uniqueNames[idx];
-                        const replyName = idx === 0 ? samePerson : expectedName;
-                        if(!rep || !rep.text) return;
-                        if(!found.comment.replies) found.comment.replies = [];
-                        found.comment.replies.push({
-                            id: Math.random().toString(36).substr(2, 9), username: replyName,
-                            text: String(rep.text), replyTo: idx === 0 ? currentUsername : samePerson, parentCommentId: targetCommentId, replies: []
-                        });
+            const post=feedData[sIdx] && feedData[sIdx].posts ? feedData[sIdx].posts[pIdx] : null; if(!post) return;
+            const found=findCommentById(post.comments||[],targetCommentId); if(!found) return;
+            const root=found.root||found.comment;
+            const samePerson=found.comment.username;
+            if(!samePerson || samePerson===currentUsername) return;
+            const roll=Math.random(); const extraCount=roll<0.50?0:(roll<0.75?1:2);
+            const names=[samePerson,...getRandomNames(extraCount)]; const uniqueNames=[];
+            names.forEach(n=>{if(n&&!uniqueNames.some(x=>x.toLowerCase()===n.toLowerCase()))uniqueNames.push(n);});
+            const spinner=document.getElementById('loading-spinner'); const loaderText=document.getElementById('loading-text-status');
+            if(loaderText)loaderText.innerText=appLanguage==='sk'?'Rozvíjam diskusiu...':'Continuing discussion...'; spinner.style.display='flex';
+            const articleTitle=post.title||''; const articleContent=Array.isArray(post.content)?post.content.join(' '):(post.content||'');
+            const threadContext=getCommentThreadContext(post.comments,targetCommentId); const targetText=String(found.comment.text||'').replace(/<[^>]*>/g,'');
+            const langName=appLanguage==='en'?'English':(appLanguage==='sr'?'Serbian':'Slovak');
+            const extraInstruction=extraCount===0?'Only the original commenter answers.':`After the original commenter answers, add exactly ${extraCount} additional people.`;
+            const sysPrompt=`You are simulating one continuous social-network argument. Language: ${langName}.
+POST TITLE: ${articleTitle}\nPOST CONTENT: ${articleContent}
+ONE FLAT THREAD:\n${threadContext}
+The user just replied to ${samePerson}: "${userCommentText}".
+The original commenter MUST answer first and defend/refine the opinion they expressed earlier. ${extraInstruction}
+Every response must address the SAME subject and something actually said in the thread. Never start a new sub-thread or new topic. Generate exactly ${uniqueNames.length} replies in this order: ${uniqueNames.join(', ')}.
+Return STRICT JSON: {"replies":[${uniqueNames.map(n=>`{"username":"${n}","text":"reply"}`).join(',')}]}`;
+            try{
+                const response=await geminiFetch({model:MODEL_NAME,messages:[{role:'system',content:sysPrompt},{role:'user',content:'Continue the existing single thread; append every reply to its end.'}],response_format:{type:'json_object'},temperature:0.9});
+                const jsonRes=await response.json(); const parsed=tryParseJSON(jsonRes.choices[0].message.content);
+                if(parsed&&Array.isArray(parsed.replies)){
+                    parsed.replies.slice(0,uniqueNames.length).forEach((rep,idx)=>{
+                        if(!rep||!rep.text)return;
+                        appendToCommentThread(post,targetCommentId,{id:Math.random().toString(36).substr(2,9),username:idx===0?samePerson:uniqueNames[idx],text:String(rep.text),replyTo:idx===0?currentUsername:samePerson,replies:[]});
                     });
-                    saveToLocalStorage();
-                    if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx); else renderGrid();
-                    const last = parsed.replies[parsed.replies.length - 1];
-                    if(last && last.username) checkAndTriggerFriendRequestChance(last.username, sIdx, pIdx);
+                    saveToLocalStorage(); if(document.getElementById('view-article').style.display==='block')openPost(sIdx,pIdx);else renderGrid();
+                    const last=parsed.replies[parsed.replies.length-1]; if(last&&last.username)checkAndTriggerFriendRequestChance(last.username,sIdx,pIdx);
                 }
-            } catch(e) { console.error('Gemini API:', e); }
-            spinner.style.display = 'none';
+            }catch(e){console.error('Gemini API:',e);}finally{spinner.style.display='none';}
         }
 
-        async function replacePost(sIdx, pIdx) {
+        
+
+async function replacePost(sIdx, pIdx) {
             if (!getSavedApiKey() || !feedData[sIdx]) return;
             const scenario = feedData[sIdx].scenario;
             const spinner = document.getElementById('loading-spinner');
@@ -3966,101 +3906,73 @@ async function geminiFetch(request) {
             if(!box) return;
             const wasHidden = box.style.display === 'none' || !box.style.display;
             box.style.display = wasHidden ? 'flex' : 'none';
-            if(wasHidden) {
-                const input = box.querySelector('input');
-                if(input) setTimeout(() => input.focus(), 0);
-            }
+            if(wasHidden) { const input=box.querySelector('input'); if(input) setTimeout(()=>input.focus(),0); }
         }
 
         function submitReply(sIdx, pIdx, id, replyToName, sendButton) {
-            const item = sendButton && sendButton.closest ? sendButton.closest('.comment-item') : null;
-            const input = item ? item.querySelector('.inline-reply-input') : document.getElementById(`reply-input-${id}`);
-            const text = input ? input.value.trim() : '';
-            if(!text) return;
-            const post = feedData[sIdx] && feedData[sIdx].posts ? feedData[sIdx].posts[pIdx] : null;
-            if(!post) return;
-            const found = findCommentById(post.comments || [], id);
-            if(found) {
-                if(!found.comment.replies) found.comment.replies = [];
-                const newReplyId = Math.random().toString(36).substr(2, 9);
-                found.comment.replies.push({
-                    id: newReplyId, username: currentUsername, text: text, replyTo: replyToName, parentCommentId: id, replies: []
-                });
-                input.value = '';
-                saveToLocalStorage();
-                // Re-render the same view. The reply remains a child of the exact comment clicked.
-                if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx); else renderGrid();
-                triggerUserCommentReactions(sIdx, pIdx, text, id, replyToName);
-            }
+            const item=sendButton&&sendButton.closest?sendButton.closest('.comment-item'):null;
+            const input=item?item.querySelector('.inline-reply-input'):document.getElementById(`reply-input-${id}`);
+            const text=input?input.value.trim():''; if(!text)return;
+            const post=feedData[sIdx]&&feedData[sIdx].posts?feedData[sIdx].posts[pIdx]:null; if(!post)return;
+            const found=findCommentById(post.comments||[],id); if(!found)return;
+            const root=found.root||found.comment;
+            appendToCommentThread(post,id,{id:Math.random().toString(36).substr(2,9),username:currentUsername,text:text,replyTo:replyToName,parentCommentId:root.id,replies:[]});
+            input.value=''; saveToLocalStorage();
+            if(document.getElementById('view-article').style.display==='block')openPost(sIdx,pIdx);else renderGrid();
+            triggerUserCommentReactions(sIdx,pIdx,text,id,replyToName);
         }
 
         function buildPreviewTree(allComments, maxCount = 1) {
             if (!allComments || allComments.length === 0) return [];
-            let result = []; let currentCount = 0;
-            let shuffled = [...allComments].sort(() => 0.5 - Math.random());
-            for (let c of shuffled) {
-                if (currentCount >= maxCount) break;
-                let clonedComment = JSON.parse(JSON.stringify(c));
-                clonedComment.replies = []; result.push(clonedComment); currentCount++;
-            }
+            let result=[]; let currentCount=0; let shuffled=[...allComments].sort(()=>0.5-Math.random());
+            for(let c of shuffled){if(currentCount>=maxCount)break;let cloned=JSON.parse(JSON.stringify(c));cloned.replies=[];result.push(cloned);currentCount++;}
             return result;
         }
 
-        document.getElementById('chat-input-text').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendChatMessage();
-        });
-        document.addEventListener('keydown', function(e) {
-            if(e.key !== 'Enter') return;
-            const el = document.activeElement;
-            if(el && el.classList && el.classList.contains('inline-reply-input')) {
-                e.preventDefault();
-                const item = el.closest('.comment-item');
-                const sendBtn = item ? item.querySelector('.inline-reply-box button') : null;
-                if(sendBtn) sendBtn.click();
-            }
+        document.getElementById('chat-input-text').addEventListener('keypress', function(e){if(e.key==='Enter')sendChatMessage();});
+        document.addEventListener('keydown', function(e){
+            if(e.key!=='Enter')return; const el=document.activeElement;
+            if(el&&el.classList&&el.classList.contains('inline-reply-input')){e.preventDefault();const item=el.closest('.comment-item');const sendBtn=item?item.querySelector('.inline-reply-box button'):null;if(sendBtn)sendBtn.click();}
         });
 
-        function renderComments(commentsArray, sIdx, pIdx, parentId = null) {
-            let html = ''; if(!commentsArray || commentsArray.length === 0) return html;
-            commentsArray.forEach((c) => {
-                if(!c.id) c.id = Math.random().toString(36).substr(2, 9);
-                if(!c.replies) c.replies = [];
-                const cColor = generateColor(c.username);
-                let repliesHtml = (c.replies && c.replies.length > 0) ? `<div id="replies-${c.id}">${renderComments(c.replies, sIdx, pIdx, c.id)}</div>` : '';
-                let actionBtns = '';
-                if(sIdx !== 'prof') {
-                    actionBtns = `
-                        <div class="comment-actions">
-                            <button type="button" style="cursor:pointer; background:none; border:none; padding:0; color:inherit; font:inherit;" onclick="showReplyInput(this)">${UI_TEXTS[appLanguage].btnReplyLabel}</button>
-                            <button type="button" style="cursor:pointer; color: var(--fb-blue); font-weight: 700; background:none; border:none; padding:0; font:inherit;" onclick="generateAICommentReply('${sIdx}', '${pIdx}', '${c.id}')">🤖 ${UI_TEXTS[appLanguage].aiReplyLabel}</button>
-                            <button type="button" style="cursor:pointer; color: #d14; font-weight: 700; background:none; border:none; padding:0; font:inherit;" onclick="triggerAICommentReply('${sIdx}', '${pIdx}', '${c.id}')">🤖 ${UI_TEXTS[appLanguage].aiTrollLabel}</button>
-                            <button type="button" style="cursor:pointer; background:none; border:none; padding:0; color:inherit; font:inherit;" onclick="deleteComment('${sIdx}', '${pIdx}', '${c.id}')">${UI_TEXTS[appLanguage].btnDeleteLabel}</button>
-                        </div>
-                        <div class="inline-reply-box" style="display: none; margin-top: 8px; gap: 8px; align-items:center;">
-                            <input type="text" class="inline-reply-input" placeholder="${UI_TEXTS[appLanguage].textReplyingTo} ${c.username}..." style="flex:1; min-width:0; border-radius: 16px; border: 1px solid var(--border-color); padding: 7px 12px; outline: none; background: var(--bg-input); font-size: 0.85rem; color: var(--global-font-color);">
-                            <button type="button" onclick="submitReply('${sIdx}', '${pIdx}', '${c.id}', '${c.username}', this)" style="background: none; border: none; color: var(--fb-blue); font-weight: bold; cursor:pointer; font-size:0.85rem;">${UI_TEXTS[appLanguage].btnSendLabel}</button>
-                        </div>
-                    `;
+        function renderOneComment(c,sIdx,pIdx,isReply=false,rootId=null){
+            if(!c.id)c.id=Math.random().toString(36).substr(2,9); if(!Array.isArray(c.replies))c.replies=[];
+            const cColor=generateColor(c.username); const targetId=c.id;
+            const actionBtns=sIdx!=='prof'?`<div class="comment-actions">
+                <button type="button" style="cursor:pointer;background:none;border:none;padding:0;color:inherit;font:inherit;" onclick="showReplyInput(this)">${UI_TEXTS[appLanguage].btnReplyLabel}</button>
+                <button type="button" style="cursor:pointer;color:var(--fb-blue);font-weight:700;background:none;border:none;padding:0;font:inherit;" onclick="generateAICommentReply('${sIdx}','${pIdx}','${targetId}')">🤖 ${UI_TEXTS[appLanguage].aiReplyLabel}</button>
+                <button type="button" style="cursor:pointer;color:#d14;font-weight:700;background:none;border:none;padding:0;font:inherit;" onclick="triggerAICommentReply('${sIdx}','${pIdx}','${targetId}')">🤖 ${UI_TEXTS[appLanguage].aiTrollLabel}</button>
+                <button type="button" style="cursor:pointer;background:none;border:none;padding:0;color:inherit;font:inherit;" onclick="deleteComment('${sIdx}','${pIdx}','${targetId}')">${UI_TEXTS[appLanguage].btnDeleteLabel}</button>
+            </div>
+            <div class="inline-reply-box" style="display:none;margin-top:8px;gap:8px;align-items:center;">
+                <input type="text" class="inline-reply-input" placeholder="${UI_TEXTS[appLanguage].textReplyingTo} ${c.username}..." style="flex:1;min-width:0;border-radius:16px;border:1px solid var(--border-color);padding:7px 12px;outline:none;background:var(--bg-input);font-size:0.85rem;color:var(--global-font-color);">
+                <button type="button" onclick="submitReply('${sIdx}','${pIdx}','${targetId}','${String(c.username).replace(/'/g,"\\'")}',this)" style="background:none;border:none;color:var(--fb-blue);font-weight:bold;cursor:pointer;font-size:0.85rem;">${UI_TEXTS[appLanguage].btnSendLabel}</button>
+            </div>`:'';
+            return `<div class="comment-item ${isReply?'thread-reply-item':''}" style="${isReply?'margin-left:28px;margin-top:8px;border-left:2px solid var(--border-color);padding-left:12px;':''}" id="comment-${c.id}">
+                <div class="comment-avatar" style="background-color:${cColor}" onclick="handleCommenterClick('${String(c.username).replace(/'/g,"\\'")}','${sIdx}','${pIdx}')">${String(c.username).charAt(0).toUpperCase()}</div>
+                <div style="flex:1;"><div class="comment-bubble"><div class="comment-user" style="color:var(--global-font-color)!important;" onclick="handleCommenterClick('${String(c.username).replace(/'/g,"\\'")}','${sIdx}','${pIdx}')">${c.username}</div>
+                ${c.replyTo?`<div style="font-size:.72em;color:var(--text-muted);margin-bottom:2px;">↪ ${UI_TEXTS[appLanguage].textReplyingTo} ${c.replyTo}</div>`:''}
+                <div class="comment-text" style="color:var(--global-font-color)!important;">${c.text||''}</div></div>${actionBtns}</div></div>`;
+        }
+
+        function renderComments(commentsArray,sIdx,pIdx,parentId=null){
+            if(!Array.isArray(commentsArray)||!commentsArray.length)return '';
+            let html='';
+            commentsArray.forEach(root=>{
+                if(!root.id)root.id=Math.random().toString(36).substr(2,9); if(!Array.isArray(root.replies))root.replies=[];
+                html+=renderOneComment(root,sIdx,pIdx,false,root.id);
+                if(root.replies.length){
+                    html+=`<div class="comment-thread" id="thread-${root.id}" style="margin-left:18px;padding-left:10px;border-left:2px solid var(--border-color);">`;
+                    root.replies.forEach(r=>{html+=renderOneComment(r,sIdx,pIdx,true,root.id);});
+                    html+='</div>';
                 }
-                html += `
-                <div class="comment-item" style="${parentId ? 'margin-left: 36px; margin-top: 12px; position:relative;' : ''}" id="comment-${c.id}">
-                    ${parentId ? '<div style="position:absolute; left:-24px; top: -10px; width:16px; height:24px; border-left:2px solid var(--border-color); border-bottom:2px solid var(--border-color); border-bottom-left-radius: 8px;"></div>' : ''}
-                    <div class="comment-avatar" style="background-color:${cColor}" onclick="handleCommenterClick('${c.username}', '${sIdx}', '${pIdx}')">${c.username.charAt(0).toUpperCase()}</div>
-                    <div style="flex: 1;">
-                        <div class="comment-bubble">
-                            <div class="comment-user" style="color: var(--global-font-color) !important;" onclick="handleCommenterClick('${c.username}', '${sIdx}', '${pIdx}')">${c.username}</div>
-                            ${c.replyTo ? `<div style="font-size:0.72em; color:var(--text-muted); margin-bottom:2px;">↪ ${UI_TEXTS[appLanguage].textReplyingTo} ${c.replyTo}</div>` : ''}
-                            <div class="comment-text" style="color: var(--global-font-color) !important;">${c.text || ''}</div>
-                        </div>
-                        ${actionBtns}
-                        ${repliesHtml}
-                    </div>
-                </div>`;
             });
             return html;
         }
 
-        async function addManualComment(sIdx, pIdx) {
+        
+
+async function addManualComment(sIdx, pIdx) {
             let input = document.getElementById(`new-comment-${sIdx}-${pIdx}`);
             let text = input.value.trim(); if(!text) return;
             let post = feedData[sIdx].posts[pIdx]; if(!post.comments) post.comments = [];
