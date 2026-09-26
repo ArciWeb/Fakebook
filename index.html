@@ -1082,6 +1082,12 @@
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 const MODEL_NAME = "gemini-3.8-flash";
 
+// Gemini request pacing: the free tier can enforce a 20-RPM limit for this model.
+// Keep requests serialized and spaced out so one user action cannot burst the quota.
+let geminiRequestChain = Promise.resolve();
+let geminiLastRequestAt = 0;
+const GEMINI_MIN_REQUEST_GAP_MS = 3200;
+
 async function geminiFetch(request) {
     const apiKey = getSavedApiKey();
     if (!apiKey) throw new Error("GEMINI_API_KEY_MISSING: Chýba Gemini API kľúč.");
@@ -1120,7 +1126,16 @@ async function geminiFetch(request) {
 
     let response;
     let lastNetworkError = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
+
+    // Serialize Gemini calls and enforce a small gap between them. This prevents
+    // background features (friends/comments/etc.) from bursting past RPM limits.
+    const doRequest = async () => {
+        const elapsed = Date.now() - geminiLastRequestAt;
+        if (elapsed < GEMINI_MIN_REQUEST_GAP_MS) {
+            await new Promise(resolve => setTimeout(resolve, GEMINI_MIN_REQUEST_GAP_MS - elapsed));
+        }
+        geminiLastRequestAt = Date.now();
+
         try {
             response = await fetch(`${API_URL}${MODEL_NAME}:generateContent`, {
                 method: 'POST',
@@ -1130,15 +1145,16 @@ async function geminiFetch(request) {
                 },
                 body: JSON.stringify(body)
             });
-            if (response.ok || ![429, 500, 503, 504].includes(response.status) || attempt === 2) break;
-            const waitMs = Math.min(8000, 1000 * Math.pow(2, attempt)) + Math.floor(Math.random() * 500);
-            await new Promise(resolve => setTimeout(resolve, waitMs));
         } catch (networkError) {
             lastNetworkError = networkError;
-            if (attempt === 2) break;
-            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
         }
-    }
+    };
+
+    // Keep calls in one FIFO queue. A single 429 must NOT be retried automatically:
+    // if Google says to wait 59 seconds, retrying immediately only burns more quota.
+    const queued = geminiRequestChain.then(doRequest, doRequest);
+    geminiRequestChain = queued.catch(() => {});
+    await queued;
     if (!response) {
         throw new Error(`NETWORK_ERROR: Nepodarilo sa pripojiť na Gemini API. Internet/DNS/CORS/proxy môže blokovať spojenie. Technická chyba: ${lastNetworkError?.message || lastNetworkError || 'neznáma chyba'}`);
     }
@@ -1152,19 +1168,22 @@ async function geminiFetch(request) {
         const code = e.code || response.status;
         const status = e.status || 'UNKNOWN';
         const message = e.message || 'Bez podrobnej správy od Googlu.';
+        const retryAfter = response.headers.get('retry-after') || response.headers.get('Retry-After');
         let diagnosis = '';
         if (code === 400) diagnosis = 'Požiadavka je neplatná — môže ísť o nesprávny parameter, neplatný formát alebo nepodporovanú funkciu/model.';
         else if (code === 401) diagnosis = 'API kľúč chýba, je neplatný alebo expirovaný.';
         else if (code === 402) diagnosis = 'Platba/prepaid kredit je vyčerpaný.';
         else if (code === 403) diagnosis = 'API kľúč nemá potrebné oprávnenie alebo projekt nemá prístup k zdroju.';
         else if (code === 404) diagnosis = 'Model alebo API zdroj neexistuje. Skontroluj názov modelu a endpoint.';
-        else if (code === 429) diagnosis = 'Bol prekročený limit RPM/TPM/RPD alebo iný quota/rate limit.';
+        else if (code === 429) diagnosis = 'Bol prekročený limit RPM/TPM/RPD alebo iný quota/rate limit. Aplikácia už túto požiadavku automaticky neopakuje, aby ďalej nemíňala kvótu.';
         else if (code === 500) diagnosis = 'Interná chyba na strane Google alebo príliš veľký kontext.';
         else if (code === 503) diagnosis = 'Gemini služba je dočasne preťažená alebo nedostupná.';
         else if (code === 504) diagnosis = 'Požiadavka nestihla dokončiť spracovanie — často príliš veľký prompt/kontext.';
         else if (code >= 500) diagnosis = 'Chyba servera Google Gemini.';
         else diagnosis = 'Gemini požiadavku odmietlo.';
-        throw new Error(`GEMINI_ERROR [HTTP ${code} / ${status}]\n${diagnosis}\nGoogle: ${message}`);
+        const retryInfo = retryAfter ? `\nRetry-After: ${retryAfter} s` : '';
+        const quotaHint = code === 429 ? '\nOdporúčanie: počkaj podľa údaja „Please retry in …s“ od Googlu a potom skús znova.' : '';
+        throw new Error(`GEMINI_ERROR [HTTP ${code} / ${status}]\n${diagnosis}\nGoogle: ${message}${retryInfo}${quotaHint}`);
     }
 
     const candidate = gemini?.candidates?.[0];
@@ -4120,7 +4139,7 @@ async function geminiFetch(request) {
             } catch (error) {
                 const now = new Date().toLocaleTimeString();
                 const msg = error?.message || String(error);
-                errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
+                errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nOchrana kvóty: Gemini volania sú serializované a medzi požiadavkami je minimálne 3,2 s. Automatické retry pri HTTP 429 je vypnuté, aby aplikácia kvótu ďalej nemíňala.\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
                 errorDisplay.style.display = 'block'; spinner.style.display = 'none';
                 console.error('Gemini diagnostic:', error);
             }
@@ -4253,17 +4272,10 @@ async function geminiFetch(request) {
             });
             saveToLocalStorage(); closeReviewModal(); renderGrid();
             
-            if (getSavedApiKey() && friendsList.length > 0 && Math.random() < 0.15) {
-                let activeFriends = friendsList.filter(f => !f.isBlocked && f.ignoredCount < 5);
-                if(activeFriends.length > 0) {
-                    let randomFriend = activeFriends[Math.floor(Math.random() * activeFriends.length)];
-                    let newArticleTitle = pendingGenerationData.posts[0].title || "new feed post";
-                    setTimeout(() => {
-                        autoGenerateFriendMessage(randomFriend, `I saw the new post regarding "${newArticleTitle}" on my feed. Text me about it now, ask my thoughts.`);
-                        updateUnreadUI();
-                    }, 2000);
-                }
-            }
+            // Publishing itself uses exactly one Gemini generation request.
+            // Automatic post-publication friend messages are intentionally disabled
+            // because they caused a second background Gemini request immediately
+            // after publishing and could exhaust the free RPM quota.
             pendingGenerationData = null; window.targetStatusFriend = null;
         }
 
