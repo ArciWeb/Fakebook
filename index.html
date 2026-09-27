@@ -3623,170 +3623,117 @@ async function processIncomingMessages() {
         async function externalWebSearch(query, options = {}) {
             const q = String(query || '').trim();
             if (!q) throw new Error('ONLINE_SEARCH_EMPTY_QUERY: Prázdna otázka.');
-            const directQueries = Array.isArray(options?.directQueries) ? options.directQueries.map(x=>String(x).trim()).filter(Boolean).slice(0,5) : null;
-
-            // UNIVERSAL WEB SEARCH PIPELINE
-            // 1) Gemini plans several search queries from the actual user intent.
-            // 2) Multiple free/public web routes are queried and deduplicated.
-            // 3) Results are ranked by semantic token overlap, intent words, date clues and source quality.
-            // 4) The caller may perform a second search round when evidence is insufficient.
+            const directQueries = Array.isArray(options?.directQueries) ? options.directQueries.map(x=>String(x).trim()).filter(Boolean).slice(0,5) : [];
+            const intentContext = String(options?.intentContext || '').slice(0,9000);
+            const maxQueries = options?.maxQueries || 3;
             const now = new Date();
             const dateStr = now.toLocaleDateString('sk-SK', { day:'2-digit', month:'2-digit', year:'numeric' });
-            const lower = q.toLowerCase();
 
-            const buildFallbackQueries = () => {
-                const out = [q];
-                const temporal = /(včera|vcera|dnes|dneska|zajtra|zajtra|minul(ý|om)\s+(víkend|vikend|týždeň|tyzden)|tento\s+(víkend|vikend|týždeň|tyzden)|budúci\s+(víkend|vikend|týždeň|tyzden)|pred\s+(týždňom|tyzdnom)|minulý mesiac|tento mesiac|najbližší|najblizsi|posledný|posledny|prvý|prvy|úvodný|uvodny|latest|last|next|upcoming|recent)/i.test(lower);
-                const sports = /(futbal|football|soccer|hokej|hockey|zápas|zapas|match|game|fixture|výsledok|vysledok|skóre|skore|súper|super|liga|league|premier|nhl|nfl|nba|tenis|wimbledon|formula 1|f1)/i.test(lower);
-                if (sports) {
-                    out.push(`${q} výsledok zápasu súpera dátum`);
-                    out.push(`${q} fixture result opponent date`);
-                } else if (temporal) {
-                    out.push(`${q} latest current result news`);
-                    out.push(`${q} exact date source`);
-                } else {
-                    out.push(`${q} official source`);
-                    out.push(`${q} latest reliable information`);
-                }
-                return out;
-            };
-
+            // FAST UNIVERSAL SEARCH:
+            // The ordinary/offline friend engine first supplies identity, relationship and conversation context.
+            // Gemini then acts as the search planner. Web search is only the retrieval layer.
             let plannedQueries = [];
-            if (directQueries?.length) plannedQueries = directQueries;
-            if (!plannedQueries.length) {
-              try {
-                const planPrompt = `You are a web-search query planner. Today is ${dateStr}. The user's question is: "${q}".
-Return ONLY valid JSON in this exact shape: {"queries":["...","...","..."]}.
-Create 3 to 5 short, independent web search queries that maximize the chance of finding the exact answer.
-Rules: preserve names/entities; resolve relative time words such as yesterday/last weekend/next match using today's date when possible; include the relevant year/season when it matters; search for the requested fact rather than generic background; use English queries when that improves international coverage; do not answer the question; do not add commentary.`;
-                const r = await geminiFetch({model: ONLINE_SEARCH_MODEL, useWebSearch:false, messages:[{role:'user',content:planPrompt}], max_output_tokens:220});
+            let searchGoal = q;
+            try {
+                const planPrompt = `You are the web-search planner inside a chat assistant. Today is ${dateStr}.
+The user's exact message is: "${q}"
+
+This is the same friend/personality context that the normal OFFLINE engine uses:
+${intentContext || '(no extra context)'}
+
+Your task is NOT to answer the user. First understand exactly what factual information is being requested.
+Determine the entity, action/fact, time window, geography, and the kind of source most likely to contain the answer.
+Then create up to ${maxQueries} complementary search queries. Prefer one very direct query and one source-oriented query; use English where it improves coverage. Resolve relative dates such as yesterday, last weekend, next week, latest, etc. using today's date.
+If an official/primary source is obvious, include a query targeting it with site:. Do not invent facts.
+Return ONLY JSON: {"goal":"...","queries":["...","..."],"stopHints":["..."]}`;
+                const r = await geminiFetch({model: ONLINE_SEARCH_MODEL, useWebSearch:false, messages:[{role:'user',content:planPrompt}], max_output_tokens:320});
                 const j = await r.json();
                 const txt = String(j?.choices?.[0]?.message?.content || '').trim().replace(/^```json\s*/i,'').replace(/```$/,'').trim();
                 const parsed = JSON.parse(txt);
-                if (Array.isArray(parsed.queries)) plannedQueries = parsed.queries.map(x=>String(x).trim()).filter(Boolean).slice(0,5);
-              } catch(e) {}
+                searchGoal = String(parsed?.goal || q).trim();
+                plannedQueries = Array.isArray(parsed?.queries) ? parsed.queries.map(x=>String(x).trim()).filter(Boolean).slice(0,maxQueries) : [];
+            } catch(e) {}
+
+            if (!plannedQueries.length) {
+                plannedQueries = directQueries.length ? directQueries : [q, `${q} latest result`, `${q} official source`];
             }
-            if (!plannedQueries.length) plannedQueries = buildFallbackQueries();
-            plannedQueries = [...new Set([...(directQueries || []), q, ...plannedQueries])].slice(0,5);
+            plannedQueries = [...new Set([...directQueries, ...plannedQueries])].slice(0,5);
 
+            const cleanHtml = x => String(x || '').replace(/<!\[CDATA\[|\]\]>/g,'').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/\s+/g,' ').trim();
             const parseRss = raw => {
-                const text = String(raw || '').replace(/&amp;/g,'&');
-                const results = [];
-                const itemRe = /<item[\s\S]*?<\/item>/gi;
-                const items = text.match(itemRe) || [];
-                const clean = x => String(x || '').replace(/<!\[CDATA\[|\]\]>/g,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
-                for (const item of items) {
-                    const title = clean((item.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]);
-                    const link = clean((item.match(/<link[^>]*>([\s\S]*?)<\/link>/i)||[])[1]) || clean((item.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i)||[])[1]);
-                    const desc = clean((item.match(/<description[^>]*>([\s\S]*?)<\/description>/i)||[])[1]);
-                    const pub = clean((item.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i)||[])[1]);
-                    if (title && link && /^https?:\/\//i.test(link)) results.push({title, uri:link, text:desc, publishedAt:pub});
+                const results=[];
+                for(const item of String(raw||'').match(/<item[\s\S]*?<\/item>/gi)||[]) {
+                    const title=cleanHtml((item.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]);
+                    const link=cleanHtml((item.match(/<link[^>]*>([\s\S]*?)<\/link>/i)||[])[1]) || cleanHtml((item.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i)||[])[1]);
+                    const desc=cleanHtml((item.match(/<description[^>]*>([\s\S]*?)<\/description>/i)||[])[1]);
+                    const pub=cleanHtml((item.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i)||[])[1]);
+                    if(title && /^https?:\/\//i.test(link)) results.push({title,uri:link,text:desc,publishedAt:pub});
                 }
                 return results;
             };
-
             const parseJinaMarkdown = raw => {
-                const text = String(raw || '').replace(/\r/g,'');
-                const results=[]; const seen=new Set();
-                const re=/\[([^\]]{3,240})\]\((https?:\/\/[^)\s]+)\)/g; let m;
+                const results=[], seen=new Set(), re=/\[([^\]]{3,240})\]\((https?:\/\/[^)\s]+)\)/g;
+                let m; const text=String(raw||'');
                 while((m=re.exec(text))) {
-                    const title=m[1].replace(/\s+/g,' ').trim(), uri=m[2].trim();
-                    if(!title || seen.has(uri)) continue;
-                    seen.add(uri);
-                    const snippet=text.slice(m.index+m[0].length,m.index+m[0].length+900).replace(/\[[^\]]*\]\([^)]*\)/g,' ').replace(/\s+/g,' ').trim();
-                    results.push({title,uri,text:snippet});
+                    const uri=m[2].trim(); if(seen.has(uri)) continue; seen.add(uri);
+                    results.push({title:m[1].replace(/\s+/g,' ').trim(),uri,text:text.slice(m.index+m[0].length,m.index+m[0].length+700).replace(/\[[^\]]*\]\([^)]*\)/g,' ').replace(/\s+/g,' ').trim()});
                 }
                 return results;
             };
+            const parseSearxJson = raw => { try { const j=typeof raw==='string'?JSON.parse(raw):raw; return (j.results||[]).map(x=>({title:String(x.title||'').trim(),uri:String(x.url||'').trim(),text:String(x.content||'').trim(),publishedAt:String(x.publishedDate||'').trim()})).filter(x=>x.title&&/^https?:\/\//i.test(x.uri)); } catch(e){return [];} };
 
-            const parseSearxJson = raw => {
-                try {
-                    const j=typeof raw==='string'?JSON.parse(raw):raw;
-                    return (j.results||[]).map(x=>({title:String(x.title||'').trim(),uri:String(x.url||'').trim(),text:String(x.content||'').trim(),publishedAt:String(x.publishedDate||'').trim()})).filter(x=>x.title&&/^https?:\/\//i.test(x.uri));
-                } catch(e) { return []; }
-            };
-
-            const fetchText = async (url, accept='text/plain, application/rss+xml, application/json, application/xml, text/xml') => {
-                const r = await fetch(url, {method:'GET', headers:{'Accept':accept}, cache:'no-store'});
-                if(!r.ok) throw new Error(`HTTP ${r.status}`);
-                return await r.text();
+            const fetchText = async (url, timeout=4500) => {
+                const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),timeout);
+                try { const r=await fetch(url,{method:'GET',headers:{'Accept':'application/json, application/rss+xml, application/xml, text/xml, text/plain'},cache:'no-store',signal:ctrl.signal}); if(!r.ok) throw new Error(`HTTP ${r.status}`); return await r.text(); }
+                finally { clearTimeout(timer); }
             };
 
             const all=[]; const seen=new Set();
-            const addResults = (list, engine='web') => {
-                for(const x of list || []) {
-                    if(!x?.uri || seen.has(x.uri)) continue;
-                    seen.add(x.uri); all.push({...x, engine});
-                    if(all.length>=60) break;
-                }
-            };
+            const addResults=(list,engine)=>{ for(const x of list||[]){ if(!x?.uri||seen.has(x.uri))continue; seen.add(x.uri); all.push({...x,engine}); } };
 
-            // SearXNG is a genuine metasearch layer. Public instances may disable JSON,
-            // so failures are intentionally ignored and other routes continue.
-            const searxCandidates = [
-                'https://search.bus-hit.me',
-                'https://search.inetol.net',
-                'https://searx.be'
-            ];
-            for(const sq of plannedQueries.slice(0,4)) {
-                let got=false;
-                for(const base of searxCandidates) {
-                    try {
-                        const url=`${base}/search?q=${encodeURIComponent(sq)}&language=auto&safesearch=0&categories=general,news&format=json`;
-                        addResults(parseSearxJson(await fetchText(url,'application/json')), 'searxng');
-                        if(all.length>=20){got=true;break;}
-                    } catch(e) {}
-                }
-                if(all.length>=20) break;
-                if(got) break;
+            // Do not wait sequentially on public metasearch instances. They are optional accelerators.
+            // SearXNG documents that public instances may disable JSON, so a failed instance is simply skipped.
+            const searxCandidates=['https://search.bus-hit.me','https://search.inetol.net','https://searx.be'];
+            const firstWave=[];
+            for(const sq of plannedQueries.slice(0,3)) {
+                firstWave.push(
+                    ...searxCandidates.map(base=>({type:'searx',url:`${base}/search?q=${encodeURIComponent(sq)}&language=auto&safesearch=0&categories=general,news&format=json`})),
+                    {type:'google-news',url:`https://news.google.com/rss/search?q=${encodeURIComponent(sq)}&hl=sk&gl=SK&ceid=SK:sk`},
+                    {type:'google-news-proxy',url:`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://news.google.com/rss/search?q=${encodeURIComponent(sq)}&hl=sk&gl=SK&ceid=SK:sk`)}`},
+                    {type:'bing-rss',url:`https://www.bing.com/search?q=${encodeURIComponent(sq)}&format=rss&mkt=sk-SK`}
+                );
+            }
+            // Run the first wave concurrently; the timeout keeps a dead provider from causing the old two-minute wait.
+            const waveResults=await Promise.allSettled(firstWave.map(x=>fetchText(x.url,4300).then(raw=>({type:x.type,raw}))));
+            for(const rr of waveResults) if(rr.status==='fulfilled') {
+                const {type,raw}=rr.value;
+                if(type==='searx') addResults(parseSearxJson(raw),type);
+                else addResults(parseRss(raw),type);
             }
 
-            // Google News RSS is strong for current events and date-sensitive questions.
-            for(const sq of plannedQueries.slice(0,4)) {
-                const rss=`https://news.google.com/rss/search?q=${encodeURIComponent(sq)}&hl=sk&gl=SK&ceid=SK:sk`;
-                const routes=[rss,`https://api.allorigins.win/raw?url=${encodeURIComponent(rss)}`,`https://corsproxy.io/?${encodeURIComponent(rss)}`];
-                for(const url of routes){ try{addResults(parseRss(await fetchText(url)),'google-news');}catch(e){} if(all.length>=30)break; }
-                if(all.length>=30)break;
+            // One broad Jina/Google fallback only if the first wave did not produce enough material.
+            if(all.length<6) {
+                const jina=await Promise.allSettled(plannedQueries.slice(0,2).map(sq=>fetchText(`https://r.jina.ai/http://www.google.com/search?q=${encodeURIComponent(sq)}&hl=sk`,5000).then(raw=>parseJinaMarkdown(raw))));
+                for(const rr of jina) if(rr.status==='fulfilled') addResults(rr.value,'jina-google');
             }
 
-            // Bing RSS remains a useful independent fallback for direct factual queries.
-            for(const sq of plannedQueries.slice(0,4)) {
-                const rss=`https://www.bing.com/search?q=${encodeURIComponent(sq)}&format=rss&mkt=sk-SK`;
-                const routes=[rss,`https://api.allorigins.win/raw?url=${encodeURIComponent(rss)}`,`https://corsproxy.io/?${encodeURIComponent(rss)}`];
-                for(const url of routes){ try{addResults(parseRss(await fetchText(url)),'bing-rss');}catch(e){} if(all.length>=40)break; }
-                if(all.length>=40)break;
-            }
-
-            // Jina text proxy against Google is the final broad fallback.
-            if(all.length<8) {
-                for(const sq of plannedQueries.slice(0,4)) {
-                    try { addResults(parseJinaMarkdown(await fetchText(`https://r.jina.ai/http://www.google.com/search?q=${encodeURIComponent(sq)}&hl=sk`)),'jina-google'); } catch(e) {}
-                    if(all.length>=20) break;
-                }
-            }
-
+            const lower=q.toLowerCase();
             const tokens=lower.split(/[^a-z0-9áäčďéíľĺňóôŕšťúýž]+/i).filter(t=>t.length>=3);
-            const yearTokens=(lower.match(/\b20\d{2}\b/g)||[]);
-            const relativeIntent=/(včera|vcera|dnes|zajtra|zajtra|minul(ý|om)\s+(víkend|vikend|týždeň|tyzden)|tento\s+(víkend|vikend|týždeň|tyzden)|budúci\s+(víkend|vikend|týždeň|tyzden)|pred\s+(týždňom|tyzdnom)|najbližší|najblizsi|posledný|posledny|prvý|prvy|úvodný|uvodny|latest|last|next|upcoming|recent)/i.test(lower);
-            const score = item => {
-                const hay=`${item.title} ${item.text} ${item.uri}`.toLowerCase(); let n=0;
-                tokens.forEach(t=>{if(hay.includes(t))n+=3;});
-                yearTokens.forEach(y=>{if(hay.includes(y))n+=5;});
-                if(/official|oficiál|oficial|premierleague\.com|uefa\.com|espn\.com|nhl\.com|iihf\.com|manutd\.com|reuters\.com|apnews\.com|bbc\.com|tasr\.sk|tas\.sk/i.test(hay))n+=7;
+            const temporal=/(včera|vcera|dnes|zajtra|minul(ý|om)\s+(víkend|vikend|týždeň|tyzden)|tento\s+(víkend|vikend|týždeň|tyzden)|budúci\s+(víkend|vikend|týždeň|tyzden)|pred\s+(týždňom|tyzdnom)|najbližší|najblizsi|posledný|posledny|prvý|prvy|latest|last|next|upcoming|recent)/i.test(lower);
+            const score=item=>{ const hay=`${item.title} ${item.text} ${item.uri}`.toLowerCase(); let n=0; tokens.forEach(t=>{if(hay.includes(t))n+=3;});
+                if(/official|oficiál|oficial/i.test(hay))n+=8;
+                if(/reuters\.com|apnews\.com|bbc\.com|theguardian\.com|espn\.com|premierleague\.com|uefa\.com|nhl\.com|nfl\.com|nba\.com|manutd\.com|tasr\.sk|ta3\.com/i.test(hay))n+=7;
                 if(/wikipedia\.org/i.test(hay))n+=2;
+                if(temporal && /result|výsled|vysled|fixture|schedule|match|game|zápas|zapas|opponent|súper|super|date|dátum|datum|latest/i.test(hay))n+=6;
+                if(/prediction|odds|tip|transfer|rumour|rumor/i.test(hay))n-=4;
                 if(item.publishedAt)n+=1;
-                if(relativeIntent) {
-                    if(/result|výsled|vysled|fixture|schedule|match|game|zápas|zapas|opponent|súper|super|date|dátum|datum/i.test(hay))n+=5;
-                    if(/generic|preview|prediction|odds|tip|transfer|rumour|rumor/i.test(hay))n-=3;
-                }
-                if(/news\.google\.com/i.test(item.uri))n-=1;
                 return n;
             };
             all.sort((a,b)=>score(b)-score(a));
-            const useful=all.slice(0,16);
-            if(!useful.length) throw new Error('ONLINE_SEARCH_UNAVAILABLE: Externé webové vyhľadávanie je momentálne nedostupné. Skús to znova o chvíľu.');
+            const useful=all.slice(0,18);
+            if(!useful.length) throw new Error('ONLINE_SEARCH_UNAVAILABLE: Externé vyhľadávanie nevrátilo žiadne použiteľné výsledky. Skús to znova o chvíľu.');
             const lines=useful.map((r,i)=>`Výsledok ${i+1}: ${r.title}\nURL: ${r.uri}${r.publishedAt?`\nPublikované: ${r.publishedAt}`:''}${r.text?`\nÚryvok: ${r.text}`:''}`);
-            return {text:`Dátum vyhľadávania: ${dateStr}\nPoužité vyhľadávacie dotazy: ${plannedQueries.join(' | ')}\n\n${lines.join('\n\n')}`.slice(0,30000),sources:useful.map(r=>({uri:r.uri,title:r.title})),queries:plannedQueries};
+            return {text:`Dátum: ${dateStr}\nCieľ hľadania: ${searchGoal}\nDotazy: ${plannedQueries.join(' | ')}\n\n${lines.join('\n\n')}`.slice(0,32000),sources:useful.map(r=>({uri:r.uri,title:r.title})),queries:plannedQueries,goal:searchGoal};
         }
 
         function extractGroundingSources(metadata) {
@@ -3872,6 +3819,8 @@ Rules: preserve names/entities; resolve relative time words such as yesterday/la
 
             if(!getSavedApiKey()) return;
             let repCount = getRandomFromWeights(activeChatFriend.replyChances);
+            // Explicit online questions must always get an answer; offline ghosting probabilities do not suppress search.
+            if (activeChatFriend.webActive === true && repCount === 0) repCount = 1;
             if (repCount === 0) { activeChatFriend.owedApology = true; saveFriendsData(); return; }
             if(activeChatFriend.messageCountBehavior === 'Doubler' && Math.random() < 0.6) repCount = Math.max(2, repCount);
             if(activeChatFriend.messageCountBehavior === 'Tripler' && Math.random() < 0.6) repCount = Math.max(3, repCount);
@@ -3889,7 +3838,17 @@ Rules: preserve names/entities; resolve relative time words such as yesterday/la
             // grounding quota while preserving the requested flow: question -> web -> Gemini -> memory.
             if (activeChatFriend.webActive === true) {
                 try {
-                    const webSearch = await externalWebSearch(text);
+                    // Reuse the normal offline friend engine's context as the first interpretation layer.
+                    const offlineIntentContext = [
+                        `Friend: ${activeChatFriend.name}, age ${activeChatFriend.age || 'unknown'}, gender ${activeChatFriend.gender || 'unknown'}.`,
+                        `Description: ${activeChatFriend.profileDescription || 'none'}`,
+                        `Personality: ${getPersonalityRule(activeChatFriend.personalities)}`,
+                        `Grammar/style: ${typeof getGrammarPromptRule === 'function' ? getGrammarPromptRule(activeChatFriend.grammar) : getGrammarRule(activeChatFriend.grammar)}`,
+                        `Emoji style: ${getEmojiPromptRule(activeChatFriend.emojiStyle)}`,
+                        `Relationship/contact: ${getContactLevelRule(activeChatFriend.contactLevel)}`,
+                        `Conversation history:\n${buildChatHistory(activeChatFriend.name)}`
+                    ].join('\n');
+                    const webSearch = await externalWebSearch(text, {intentContext: offlineIntentContext});
                     if (!webSearch || !webSearch.text) throw new Error('ONLINE_SEARCH_EMPTY: Externé webové vyhľadávanie nevrátilo použiteľné výsledky.');
 
                     // Evidence loop: first answer/evaluate the gathered material. If the evidence is
@@ -3921,7 +3880,7 @@ Do not invent facts. Do not treat generic related pages as evidence for the requ
                         if (judge?.status === 'search_more' && round === 0 && Array.isArray(judge.queries) && judge.queries.length) {
                             const more = judge.queries.map(x=>String(x).trim()).filter(Boolean).slice(0,4);
                             try {
-                                currentSearch = await externalWebSearch(more[0] || text, {directQueries:more});
+                                currentSearch = await externalWebSearch(more[0] || text, {directQueries:more, intentContext:offlineIntentContext, maxQueries:3});
                                 allWebSources = [...allWebSources, ...(currentSearch.sources || [])];
                                 allQueries = [...allQueries, ...(currentSearch.queries || more)];
                                 continue;
