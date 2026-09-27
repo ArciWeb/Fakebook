@@ -3620,40 +3620,54 @@ async function processIncomingMessages() {
             updateChatWebModeUI();
         }
 
-        async function externalWebSearch(query) {
+        async function externalWebSearch(query, options = {}) {
             const q = String(query || '').trim();
             if (!q) throw new Error('ONLINE_SEARCH_EMPTY_QUERY: Prázdna otázka.');
+            const directQueries = Array.isArray(options?.directQueries) ? options.directQueries.map(x=>String(x).trim()).filter(Boolean).slice(0,5) : null;
 
-            // Broad external web search. Gemini itself is NOT used as a search engine here.
-            // We try several public RSS/search routes so one unavailable proxy does not break Online mode.
+            // UNIVERSAL WEB SEARCH PIPELINE
+            // 1) Gemini plans several search queries from the actual user intent.
+            // 2) Multiple free/public web routes are queried and deduplicated.
+            // 3) Results are ranked by semantic token overlap, intent words, date clues and source quality.
+            // 4) The caller may perform a second search round when evidence is insufficient.
             const now = new Date();
             const dateStr = now.toLocaleDateString('sk-SK', { day:'2-digit', month:'2-digit', year:'numeric' });
             const lower = q.toLowerCase();
-            const searches = [];
 
-            const footballWords = /(futbal|football|soccer|zápas|zapas|hra|hrá|hraje|hrať|fixtures?|výsledok|vysledok|premier league|champions league|liga majstrov|la liga|serie a|bundesliga|ligue 1|fa cup|carabao|europa league|conference league|manchester united|man united|liverpool|arsenal|chelsea|man city|barcelona|real madrid|bayern|slovan|spartak|trnava)/i;
-            const hockeyWords = /(hokej|hockey|nhl|iihf|extraliga|tipsport liga|slovenská hokejová|slovenska hokejova|česko|cesko|sparta|košice|kosice|slovan bratislava)/i;
-            const movieWords = /(film|filmy|movie|movies|kino|premiéra|premiera|box office|oscar|oscary|netflix|disney|hbo|max|prime video|trailer)/i;
-            const showbizWords = /(showbiz|celebrity|celebrita|herec|herečka|herecka|spevák|spevak|speváčka|spevacka|hudba|album|koncert|hollywood|taylor swift|beyoncé|beyonce|rihanna|drama)/i;
-            const politicsWords = /(politika|politický|politicky|vláda|vlada|parlament|prezident|voľby|volby|minister|strana|koalícia|koalicia|opozícia|opozicia|európska únia|europska unia|eu|nato|trump|fico|ukrajina|rusko|usa|americké voľby|americke volby)/i;
+            const buildFallbackQueries = () => {
+                const out = [q];
+                const temporal = /(včera|vcera|dnes|dneska|zajtra|zajtra|minul(ý|om)\s+(víkend|vikend|týždeň|tyzden)|tento\s+(víkend|vikend|týždeň|tyzden)|budúci\s+(víkend|vikend|týždeň|tyzden)|pred\s+(týždňom|tyzdnom)|minulý mesiac|tento mesiac|najbližší|najblizsi|posledný|posledny|prvý|prvy|úvodný|uvodny|latest|last|next|upcoming|recent)/i.test(lower);
+                const sports = /(futbal|football|soccer|hokej|hockey|zápas|zapas|match|game|fixture|výsledok|vysledok|skóre|skore|súper|super|liga|league|premier|nhl|nfl|nba|tenis|wimbledon|formula 1|f1)/i.test(lower);
+                if (sports) {
+                    out.push(`${q} výsledok zápasu súpera dátum`);
+                    out.push(`${q} fixture result opponent date`);
+                } else if (temporal) {
+                    out.push(`${q} latest current result news`);
+                    out.push(`${q} exact date source`);
+                } else {
+                    out.push(`${q} official source`);
+                    out.push(`${q} latest reliable information`);
+                }
+                return out;
+            };
 
-            // Keep the user's wording first; add focused variants only as additional searches.
-            searches.push(q);
-            if (footballWords.test(lower)) {
-                searches.push(`${q} najbližší zápas súper dátum výsledok`);
-                searches.push(`${q} next match opponent date result`);
-            } else if (hockeyWords.test(lower)) {
-                searches.push(`${q} najbližší zápas súper dátum výsledok`);
-                searches.push(`${q} next game opponent date result`);
-            } else if (movieWords.test(lower)) {
-                searches.push(`${q} latest film movie news release review`);
-            } else if (showbizWords.test(lower)) {
-                searches.push(`${q} latest entertainment showbiz news`);
-            } else if (politicsWords.test(lower)) {
-                searches.push(`${q} latest politics news`);
-            } else {
-                searches.push(`${q} latest news current information`);
+            let plannedQueries = [];
+            if (directQueries?.length) plannedQueries = directQueries;
+            if (!plannedQueries.length) {
+              try {
+                const planPrompt = `You are a web-search query planner. Today is ${dateStr}. The user's question is: "${q}".
+Return ONLY valid JSON in this exact shape: {"queries":["...","...","..."]}.
+Create 3 to 5 short, independent web search queries that maximize the chance of finding the exact answer.
+Rules: preserve names/entities; resolve relative time words such as yesterday/last weekend/next match using today's date when possible; include the relevant year/season when it matters; search for the requested fact rather than generic background; use English queries when that improves international coverage; do not answer the question; do not add commentary.`;
+                const r = await geminiFetch({model: ONLINE_SEARCH_MODEL, useWebSearch:false, messages:[{role:'user',content:planPrompt}], max_output_tokens:220});
+                const j = await r.json();
+                const txt = String(j?.choices?.[0]?.message?.content || '').trim().replace(/^```json\s*/i,'').replace(/```$/,'').trim();
+                const parsed = JSON.parse(txt);
+                if (Array.isArray(parsed.queries)) plannedQueries = parsed.queries.map(x=>String(x).trim()).filter(Boolean).slice(0,5);
+              } catch(e) {}
             }
+            if (!plannedQueries.length) plannedQueries = buildFallbackQueries();
+            plannedQueries = [...new Set([...(directQueries || []), q, ...plannedQueries])].slice(0,5);
 
             const parseRss = raw => {
                 const text = String(raw || '').replace(/&amp;/g,'&');
@@ -3679,83 +3693,100 @@ async function processIncomingMessages() {
                     const title=m[1].replace(/\s+/g,' ').trim(), uri=m[2].trim();
                     if(!title || seen.has(uri)) continue;
                     seen.add(uri);
-                    const snippet=text.slice(m.index+m[0].length,m.index+m[0].length+700).replace(/\[[^\]]*\]\([^)]*\)/g,' ').replace(/\s+/g,' ').trim();
+                    const snippet=text.slice(m.index+m[0].length,m.index+m[0].length+900).replace(/\[[^\]]*\]\([^)]*\)/g,' ').replace(/\s+/g,' ').trim();
                     results.push({title,uri,text:snippet});
                 }
                 return results;
             };
 
-            const fetchText = async url => {
-                const r = await fetch(url, {method:'GET', headers:{'Accept':'text/plain, application/rss+xml, application/xml, text/xml'}, cache:'no-store'});
+            const parseSearxJson = raw => {
+                try {
+                    const j=typeof raw==='string'?JSON.parse(raw):raw;
+                    return (j.results||[]).map(x=>({title:String(x.title||'').trim(),uri:String(x.url||'').trim(),text:String(x.content||'').trim(),publishedAt:String(x.publishedDate||'').trim()})).filter(x=>x.title&&/^https?:\/\//i.test(x.uri));
+                } catch(e) { return []; }
+            };
+
+            const fetchText = async (url, accept='text/plain, application/rss+xml, application/json, application/xml, text/xml') => {
+                const r = await fetch(url, {method:'GET', headers:{'Accept':accept}, cache:'no-store'});
                 if(!r.ok) throw new Error(`HTTP ${r.status}`);
                 return await r.text();
             };
 
             const all=[]; const seen=new Set();
-            const addResults = list => {
+            const addResults = (list, engine='web') => {
                 for(const x of list || []) {
                     if(!x?.uri || seen.has(x.uri)) continue;
-                    seen.add(x.uri); all.push(x);
-                    if(all.length>=24) break;
+                    seen.add(x.uri); all.push({...x, engine});
+                    if(all.length>=60) break;
                 }
             };
 
-            // Google News RSS: broad current-news coverage without Gemini Search grounding.
-            for(const sq of searches.slice(0,3)) {
-                const rss = `https://news.google.com/rss/search?q=${encodeURIComponent(sq)}&hl=sk&gl=SK&ceid=SK:sk`;
-                const proxies = [
-                    rss,
-                    `https://api.allorigins.win/raw?url=${encodeURIComponent(rss)}`,
-                    `https://corsproxy.io/?${encodeURIComponent(rss)}`
-                ];
-                for(const url of proxies) {
-                    try { addResults(parseRss(await fetchText(url))); } catch(e) {}
-                    if(all.length>=12) break;
-                }
-                if(all.length>=12) break;
-            }
-
-            // Bing RSS fallback is useful for direct factual questions such as fixtures/results.
-            if(all.length < 6) {
-                for(const sq of searches.slice(0,3)) {
-                    const rss = `https://www.bing.com/search?q=${encodeURIComponent(sq)}&format=rss&mkt=sk-SK`;
-                    const proxies = [rss, `https://api.allorigins.win/raw?url=${encodeURIComponent(rss)}`, `https://corsproxy.io/?${encodeURIComponent(rss)}`];
-                    for(const url of proxies) {
-                        try { addResults(parseRss(await fetchText(url))); } catch(e) {}
-                        if(all.length>=12) break;
-                    }
-                    if(all.length>=12) break;
-                }
-            }
-
-            // Last-resort text search through Jina. This is intentionally only a fallback.
-            if(all.length < 4) {
-                for(const sq of searches.slice(0,3)) {
+            // SearXNG is a genuine metasearch layer. Public instances may disable JSON,
+            // so failures are intentionally ignored and other routes continue.
+            const searxCandidates = [
+                'https://search.bus-hit.me',
+                'https://search.inetol.net',
+                'https://searx.be'
+            ];
+            for(const sq of plannedQueries.slice(0,4)) {
+                let got=false;
+                for(const base of searxCandidates) {
                     try {
-                        const url=`https://r.jina.ai/http://www.google.com/search?q=${encodeURIComponent(sq)}&hl=sk`;
-                        addResults(parseJinaMarkdown(await fetchText(url)));
+                        const url=`${base}/search?q=${encodeURIComponent(sq)}&language=auto&safesearch=0&categories=general,news&format=json`;
+                        addResults(parseSearxJson(await fetchText(url,'application/json')), 'searxng');
+                        if(all.length>=20){got=true;break;}
                     } catch(e) {}
-                    if(all.length>=8) break;
+                }
+                if(all.length>=20) break;
+                if(got) break;
+            }
+
+            // Google News RSS is strong for current events and date-sensitive questions.
+            for(const sq of plannedQueries.slice(0,4)) {
+                const rss=`https://news.google.com/rss/search?q=${encodeURIComponent(sq)}&hl=sk&gl=SK&ceid=SK:sk`;
+                const routes=[rss,`https://api.allorigins.win/raw?url=${encodeURIComponent(rss)}`,`https://corsproxy.io/?${encodeURIComponent(rss)}`];
+                for(const url of routes){ try{addResults(parseRss(await fetchText(url)),'google-news');}catch(e){} if(all.length>=30)break; }
+                if(all.length>=30)break;
+            }
+
+            // Bing RSS remains a useful independent fallback for direct factual queries.
+            for(const sq of plannedQueries.slice(0,4)) {
+                const rss=`https://www.bing.com/search?q=${encodeURIComponent(sq)}&format=rss&mkt=sk-SK`;
+                const routes=[rss,`https://api.allorigins.win/raw?url=${encodeURIComponent(rss)}`,`https://corsproxy.io/?${encodeURIComponent(rss)}`];
+                for(const url of routes){ try{addResults(parseRss(await fetchText(url)),'bing-rss');}catch(e){} if(all.length>=40)break; }
+                if(all.length>=40)break;
+            }
+
+            // Jina text proxy against Google is the final broad fallback.
+            if(all.length<8) {
+                for(const sq of plannedQueries.slice(0,4)) {
+                    try { addResults(parseJinaMarkdown(await fetchText(`https://r.jina.ai/http://www.google.com/search?q=${encodeURIComponent(sq)}&hl=sk`)),'jina-google'); } catch(e) {}
+                    if(all.length>=20) break;
                 }
             }
 
-            // Rank by query terms + freshness/useful answer vocabulary + domain quality.
             const tokens=lower.split(/[^a-z0-9áäčďéíľĺňóôŕšťúýž]+/i).filter(t=>t.length>=3);
-            all.sort((a,b)=>{
-                const score=item=>{
-                    const hay=`${item.title} ${item.text} ${item.uri}`.toLowerCase(); let n=0;
-                    tokens.forEach(t=>{if(hay.includes(t)) n+=3;});
-                    if(/next|najbliž|fixtures|schedule|result|výsled|zápas|match|opponent|súper|game/i.test(hay)) n+=4;
-                    if(/premierleague\.com|uefa\.com|espn\.com|nhl\.com|iihf\.com|flashscore|sofascore|manutd\.com|reuters\.com|apnews\.com|bbc\.com|tasr\.sk|variety\.com|deadline\.com/i.test(hay)) n+=4;
-                    if(item.publishedAt) n+=2;
-                    return n;
-                }; return score(b)-score(a);
-            });
-
-            const useful=all.slice(0,10);
+            const yearTokens=(lower.match(/\b20\d{2}\b/g)||[]);
+            const relativeIntent=/(včera|vcera|dnes|zajtra|zajtra|minul(ý|om)\s+(víkend|vikend|týždeň|tyzden)|tento\s+(víkend|vikend|týždeň|tyzden)|budúci\s+(víkend|vikend|týždeň|tyzden)|pred\s+(týždňom|tyzdnom)|najbližší|najblizsi|posledný|posledny|prvý|prvy|úvodný|uvodny|latest|last|next|upcoming|recent)/i.test(lower);
+            const score = item => {
+                const hay=`${item.title} ${item.text} ${item.uri}`.toLowerCase(); let n=0;
+                tokens.forEach(t=>{if(hay.includes(t))n+=3;});
+                yearTokens.forEach(y=>{if(hay.includes(y))n+=5;});
+                if(/official|oficiál|oficial|premierleague\.com|uefa\.com|espn\.com|nhl\.com|iihf\.com|manutd\.com|reuters\.com|apnews\.com|bbc\.com|tasr\.sk|tas\.sk/i.test(hay))n+=7;
+                if(/wikipedia\.org/i.test(hay))n+=2;
+                if(item.publishedAt)n+=1;
+                if(relativeIntent) {
+                    if(/result|výsled|vysled|fixture|schedule|match|game|zápas|zapas|opponent|súper|super|date|dátum|datum/i.test(hay))n+=5;
+                    if(/generic|preview|prediction|odds|tip|transfer|rumour|rumor/i.test(hay))n-=3;
+                }
+                if(/news\.google\.com/i.test(item.uri))n-=1;
+                return n;
+            };
+            all.sort((a,b)=>score(b)-score(a));
+            const useful=all.slice(0,16);
             if(!useful.length) throw new Error('ONLINE_SEARCH_UNAVAILABLE: Externé webové vyhľadávanie je momentálne nedostupné. Skús to znova o chvíľu.');
             const lines=useful.map((r,i)=>`Výsledok ${i+1}: ${r.title}\nURL: ${r.uri}${r.publishedAt?`\nPublikované: ${r.publishedAt}`:''}${r.text?`\nÚryvok: ${r.text}`:''}`);
-            return {text:`Dátum vyhľadávania: ${dateStr}\n\n${lines.join('\n\n')}`.slice(0,24000),sources:useful.map(r=>({uri:r.uri,title:r.title}))};
+            return {text:`Dátum vyhľadávania: ${dateStr}\nPoužité vyhľadávacie dotazy: ${plannedQueries.join(' | ')}\n\n${lines.join('\n\n')}`.slice(0,30000),sources:useful.map(r=>({uri:r.uri,title:r.title})),queries:plannedQueries};
         }
 
         function extractGroundingSources(metadata) {
@@ -3861,22 +3892,54 @@ async function processIncomingMessages() {
                     const webSearch = await externalWebSearch(text);
                     if (!webSearch || !webSearch.text) throw new Error('ONLINE_SEARCH_EMPTY: Externé webové vyhľadávanie nevrátilo použiteľné výsledky.');
 
-                    const searchPrompt = `Použi nasledujúce aktuálne výsledky z internetu ako zdrojové podklady. Odpovedz priamo na otázku používateľa. Nepridávaj informácie, ktoré nie sú v podkladoch alebo ktoré si nevieš rozumne odvodiť. Ak sú výsledky neúplné alebo si odporujú, otvorene to povedz. Odpoveď napíš prirodzene a stručne.\n\nOTÁZKA POUŽÍVATEĽA:\n${text}\n\nVÝSLEDKY WEBOVÉHO VYHĽADÁVANIA:\n${webSearch.text}`;
+                    // Evidence loop: first answer/evaluate the gathered material. If the evidence is
+                    // insufficient, Gemini returns additional search queries instead of prematurely giving up.
+                    let currentSearch = webSearch;
+                    let rawReply = '';
+                    let allWebSources = [...(webSearch.sources || [])];
+                    let allQueries = [...(webSearch.queries || [text])];
 
-                    const response = await geminiFetch({
-                        model: ONLINE_SEARCH_MODEL,
-                        useWebSearch: false,
-                        messages: [{ role: "user", content: searchPrompt }],
-                        max_output_tokens: 256
-                    });
-                    const jsonRes = await response.json();
-                    const rawReply = String(jsonRes?.choices?.[0]?.message?.content || '').trim();
+                    for (let round = 0; round < 2; round++) {
+                        const evidencePrompt = `You are the evidence judge and answer writer for a personal chat. Today is ${new Date().toLocaleDateString('sk-SK')}.
+User question:
+${text}
+
+Web evidence:
+${currentSearch.text}
+
+First determine whether the evidence is sufficient to answer the exact question, including its requested time period, entity and action.
+If sufficient, return ONLY JSON: {"status":"answer","answer":"..."}.
+If insufficient, return ONLY JSON: {"status":"search_more","queries":["...","..."]}.
+For search_more, create 2-4 precise queries that target the missing fact; use English if useful, include exact dates/season when relevant, and do not answer yet.
+Do not invent facts. Do not treat generic related pages as evidence for the requested fact.`;
+                        const response = await geminiFetch({model: ONLINE_SEARCH_MODEL,useWebSearch:false,messages:[{role:'user',content:evidencePrompt}],max_output_tokens:420});
+                        const jsonRes = await response.json();
+                        const rawJudge = String(jsonRes?.choices?.[0]?.message?.content || '').trim().replace(/^```json\s*/i,'').replace(/```$/,'').trim();
+                        let judge;
+                        try { judge = JSON.parse(rawJudge); } catch(e) { judge = {status:'answer',answer:rawJudge}; }
+
+                        if (judge?.status === 'search_more' && round === 0 && Array.isArray(judge.queries) && judge.queries.length) {
+                            const more = judge.queries.map(x=>String(x).trim()).filter(Boolean).slice(0,4);
+                            try {
+                                currentSearch = await externalWebSearch(more[0] || text, {directQueries:more});
+                                allWebSources = [...allWebSources, ...(currentSearch.sources || [])];
+                                allQueries = [...allQueries, ...(currentSearch.queries || more)];
+                                continue;
+                            } catch(e) {
+                                // Keep the first-round evidence if the second search route fails.
+                            }
+                        }
+                        rawReply = String(judge?.answer || rawJudge || '').trim();
+                        break;
+                    }
                     if (!rawReply) throw new Error('GEMINI_EMPTY_WEB_RESPONSE: Gemini nevytvorilo odpoveď z webových výsledkov.');
 
-                    const webSourcesForReply = webSearch.sources || [];
+                    const uniqueWebSources = []; const seenWeb = new Set();
+                    for (const src of allWebSources) { if (src?.uri && !seenWeb.has(src.uri)) { seenWeb.add(src.uri); uniqueWebSources.push(src); } }
+                    const webSourcesForReply = uniqueWebSources.slice(0,8);
                     const webMemoryRecord = {
                         groundingChunks: webSourcesForReply.map(s => ({ web: s })),
-                        webSearchQueries: [text]
+                        webSearchQueries: [...new Set(allQueries)].slice(0,10)
                     };
                     rememberWebFindings(activeChatFriend, text, rawReply, webMemoryRecord);
 
