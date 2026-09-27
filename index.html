@@ -1164,7 +1164,11 @@ const MODEL_NAME = "gemini-3.5-flash-lite";
 const GEMINI_FALLBACK_MODEL = "gemini-3.8-flash";
 // Web-search mode uses a model/tier where Google Search grounding is available.
 // Normal chat/content generation stays on 3.5 Flash-Lite.
-const ONLINE_SEARCH_MODEL = "gemini-3.8-flash";
+const ONLINE_SEARCH_MODEL = MODEL_NAME;
+// Online mode uses a separate public web-search step and then ordinary Gemini.
+// This deliberately avoids Gemini's built-in google_search grounding quota.
+const EXTERNAL_SEARCH_PRIMARY = "https://api.duckduckgo.com/";
+const EXTERNAL_SEARCH_FALLBACK = "https://r.jina.ai/http://www.google.com/search";
 
 // Gemini request pacing: keep requests serialized so background features cannot burst the quota.
 // 3.5 Flash-Lite is optimized by Google for high-throughput, low-cost workloads.
@@ -1204,8 +1208,10 @@ async function geminiFetch(request) {
     if (!contents.length) throw new Error("CLIENT_REQUEST_INVALID: Gemini nedostala žiadny používateľský obsah.");
 
     const body = { contents, generationConfig: {} };
+    // No built-in Google Search tool here. Online mode supplies web results as
+    // ordinary text, so Gemini itself is not charged/quota-limited for Search grounding.
     if (req.useWebSearch === true) {
-        body.tools = [{ google_search: {} }];
+        throw new Error("CLIENT_REQUEST_INVALID: Online vyhľadávanie musí najprv získať externé webové výsledky.");
     }
     if (Number.isFinite(req.temperature)) body.generationConfig.temperature = req.temperature;
     if (systemInstruction) body.systemInstruction = { parts: [{ text: systemInstruction }] };
@@ -3614,6 +3620,69 @@ async function processIncomingMessages() {
             updateChatWebModeUI();
         }
 
+        async function externalWebSearch(query) {
+            const q = String(query || '').trim();
+            if (!q) throw new Error('ONLINE_SEARCH_EMPTY_QUERY: Prázdna otázka.');
+
+            // Primary: DuckDuckGo Instant Answer API (no Gemini Search grounding involved).
+            try {
+                const url = `${EXTERNAL_SEARCH_PRIMARY}?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1&no_redirect=1`;
+                const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                if (res.ok) {
+                    const data = await res.json();
+                    const lines = [];
+                    const sources = [];
+                    const addSource = (title, uri) => {
+                        if (!uri || sources.some(s => s.uri === uri)) return;
+                        sources.push({ uri: String(uri), title: String(title || uri) });
+                    };
+                    if (data.AbstractText) {
+                        lines.push(`Hlavný výsledok: ${data.AbstractText}`);
+                        addSource(data.Heading || data.AbstractSource, data.AbstractURL);
+                    }
+                    if (Array.isArray(data.RelatedTopics)) {
+                        const flat = [];
+                        const flatten = arr => arr.forEach(x => {
+                            if (x?.Topics) flatten(x.Topics);
+                            else if (x?.Text) flat.push(x);
+                        });
+                        flatten(data.RelatedTopics);
+                        flat.slice(0, 8).forEach(x => {
+                            lines.push(`Ďalší výsledok: ${x.Text}`);
+                            addSource(x.FirstURL, x.FirstURL);
+                        });
+                    }
+                    if (lines.length) return { text: lines.join('\n'), sources: sources.slice(0, 8) };
+                }
+            } catch (e) {
+                console.warn('DuckDuckGo search failed:', e);
+            }
+
+            // Fallback: a public text proxy around Google results. This is intentionally
+            // outside Gemini, so it does not consume Gemini Search grounding quota.
+            try {
+                const url = `${EXTERNAL_SEARCH_FALLBACK}?q=${encodeURIComponent(q)}&hl=sk`;
+                const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'text/plain' } });
+                if (res.ok) {
+                    const text = (await res.text()).replace(/\n{3,}/g, '\n\n').slice(0, 18000);
+                    if (text.trim()) {
+                        const sources = [];
+                        const urlRe = /https?:\/\/[^\s)\]}>"']+/g;
+                        for (const match of text.matchAll(urlRe)) {
+                            const uri = match[0].replace(/[.,;]+$/, '');
+                            if (!sources.some(s => s.uri === uri)) sources.push({ uri, title: uri });
+                            if (sources.length >= 8) break;
+                        }
+                        return { text, sources };
+                    }
+                }
+            } catch (e) {
+                console.warn('Google proxy search failed:', e);
+            }
+
+            throw new Error('ONLINE_SEARCH_UNAVAILABLE: Nepodarilo sa získať externé webové výsledky. Skontroluj internetové pripojenie alebo dostupnosť vyhľadávacej služby.');
+        }
+
         function extractGroundingSources(metadata) {
             const chunks = metadata?.groundingChunks || [];
             return chunks.map(c => c?.web).filter(w => w?.uri).map(w => ({ uri: w.uri, title: w.title || w.uri }));
@@ -3709,36 +3778,37 @@ async function processIncomingMessages() {
 
             showTypingIndicator();
 
-            // IMPORTANT: Internet mode is intentionally a completely separate, minimal request.
-            // It must NOT receive the friend's personality, profile, chat history, relationship,
-            // emoji rules, previous messages, or web-memory. The ONLY input sent to Gemini in
-            // this mode is the user's current message. The resulting answer is then stored in
-            // the friend's durable webMemory, while the ordinary chat history remains untouched.
+            // ONLINE mode: first perform a separate web search, then give the retrieved
+            // web material to ordinary Gemini. This avoids Gemini's built-in google_search
+            // grounding quota while preserving the requested flow: question -> web -> Gemini -> memory.
             if (activeChatFriend.webActive === true) {
                 try {
+                    const webSearch = await externalWebSearch(text);
+                    if (!webSearch || !webSearch.text) throw new Error('ONLINE_SEARCH_EMPTY: Externé webové vyhľadávanie nevrátilo použiteľné výsledky.');
+
+                    const searchPrompt = `Použi nasledujúce aktuálne výsledky z internetu ako zdrojové podklady. Odpovedz priamo na otázku používateľa. Nepridávaj informácie, ktoré nie sú v podkladoch alebo ktoré si nevieš rozumne odvodiť. Ak sú výsledky neúplné alebo si odporujú, otvorene to povedz. Odpoveď napíš prirodzene a stručne.\n\nOTÁZKA POUŽÍVATEĽA:\n${text}\n\nVÝSLEDKY WEBOVÉHO VYHĽADÁVANIA:\n${webSearch.text}`;
+
                     const response = await geminiFetch({
                         model: ONLINE_SEARCH_MODEL,
-                        useWebSearch: true,
-                        messages: [{ role: "user", content: text }],
-                        temperature: 0.1,
+                        useWebSearch: false,
+                        messages: [{ role: "user", content: searchPrompt }],
                         max_output_tokens: 256
                     });
                     const jsonRes = await response.json();
-                    // geminiFetch normalizes Gemini's native candidates[] response into choices[].
-                    // Keep the online path on that same normalized shape.
                     const rawReply = String(jsonRes?.choices?.[0]?.message?.content || '').trim();
-                    const groundingMetadata = jsonRes?.groundingMetadata || null;
-                    const webSourcesForReply = extractGroundingSources(groundingMetadata);
-                    if (!rawReply) throw new Error('GEMINI_EMPTY_WEB_RESPONSE: Google Search nevrátilo textovú odpoveď.');
+                    if (!rawReply) throw new Error('GEMINI_EMPTY_WEB_RESPONSE: Gemini nevytvorilo odpoveď z webových výsledkov.');
 
-                    // Save exactly what the web-only request found. This becomes persistent
-                    // knowledge for the friend and is available after Internet mode is turned off.
-                    rememberWebFindings(activeChatFriend, text, rawReply, groundingMetadata);
+                    const webSourcesForReply = webSearch.sources || [];
+                    const webMemoryRecord = {
+                        groundingChunks: webSourcesForReply.map(s => ({ web: s })),
+                        webSearchQueries: [text]
+                    };
+                    rememberWebFindings(activeChatFriend, text, rawReply, webMemoryRecord);
 
                     let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
                     chatData[activeChatFriend.name].push({
                         id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
-                        from:'friend', text: rawReply, timestamp: Date.now(), webSources: webSourcesForReply || []
+                        from:'friend', text: rawReply, timestamp: Date.now(), webSources: webSourcesForReply
                     });
                     let msgsCheck = chatData[activeChatFriend.name] || [];
                     let fCount = 0;
@@ -3751,9 +3821,9 @@ async function processIncomingMessages() {
                     return;
                 } catch(e) {
                     let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
-                    console.error('Gemini web-only API:', e);
+                    console.error('External online search:', e);
                     if (activeChatFriend && chatData[activeChatFriend.name]) {
-                        chatData[activeChatFriend.name].push({id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from:'friend', text:`⚠️ ONLINE SEARCH (${ONLINE_SEARCH_MODEL})\n${String(e?.message || e)}`, timestamp:Date.now()});
+                        chatData[activeChatFriend.name].push({id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from:'friend', text:`⚠️ ONLINE SEARCH (externé vyhľadávanie + ${ONLINE_SEARCH_MODEL})\n${String(e?.message || e)}`, timestamp:Date.now()});
                         saveChatsData(); renderChatMessages();
                     }
                     return;
