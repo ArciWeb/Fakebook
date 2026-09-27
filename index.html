@@ -3624,63 +3624,108 @@ async function processIncomingMessages() {
             const q = String(query || '').trim();
             if (!q) throw new Error('ONLINE_SEARCH_EMPTY_QUERY: Prázdna otázka.');
 
-            // Primary: DuckDuckGo Instant Answer API (no Gemini Search grounding involved).
-            try {
-                const url = `${EXTERNAL_SEARCH_PRIMARY}?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1&no_redirect=1`;
-                const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
-                if (res.ok) {
-                    const data = await res.json();
-                    const lines = [];
-                    const sources = [];
-                    const addSource = (title, uri) => {
-                        if (!uri || sources.some(s => s.uri === uri)) return;
-                        sources.push({ uri: String(uri), title: String(title || uri) });
-                    };
-                    if (data.AbstractText) {
-                        lines.push(`Hlavný výsledok: ${data.AbstractText}`);
-                        addSource(data.Heading || data.AbstractSource, data.AbstractURL);
+            // IMPORTANT: this is deliberately independent from Gemini Search grounding.
+            // We use public web-search HTML through a CORS-friendly proxy because direct
+            // browser requests to search engines are commonly blocked by CORS.
+            const candidates = [
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`)}`,
+                `https://r.jina.ai/http://www.google.com/search?q=${encodeURIComponent(q)}&hl=sk`
+            ];
+
+            const cleanHtml = html => String(html || '')
+                .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+                .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+                .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ');
+
+            const decodeHtml = value => {
+                const el = document.createElement('textarea');
+                el.innerHTML = value;
+                return el.value;
+            };
+
+            const stripTags = value => decodeHtml(String(value || '')
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<[^>]+>/g, ' '))
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            const parseDuckDuckGoHtml = html => {
+                const doc = new DOMParser().parseFromString(cleanHtml(html), 'text/html');
+                const results = [];
+                doc.querySelectorAll('.result').forEach(node => {
+                    const a = node.querySelector('.result__a');
+                    const snippet = node.querySelector('.result__snippet');
+                    if (!a) return;
+                    const title = stripTags(a.innerHTML || a.textContent);
+                    const uri = a.href || '';
+                    const text = stripTags(snippet?.innerHTML || snippet?.textContent || '');
+                    if (title && uri) results.push({ title, uri, text });
+                });
+                return results;
+            };
+
+            const parseJinaText = text => {
+                const lines = String(text || '').split('\n').map(x => x.trim()).filter(Boolean);
+                const results = [];
+                let current = null;
+                for (const line of lines) {
+                    if (/^https?:\/\//i.test(line)) {
+                        if (current) results.push(current);
+                        current = { title: line, uri: line, text: '' };
+                    } else if (current && line.length > 20) {
+                        current.text += (current.text ? ' ' : '') + line;
                     }
-                    if (Array.isArray(data.RelatedTopics)) {
-                        const flat = [];
-                        const flatten = arr => arr.forEach(x => {
-                            if (x?.Topics) flatten(x.Topics);
-                            else if (x?.Text) flat.push(x);
-                        });
-                        flatten(data.RelatedTopics);
-                        flat.slice(0, 8).forEach(x => {
-                            lines.push(`Ďalší výsledok: ${x.Text}`);
-                            addSource(x.FirstURL, x.FirstURL);
-                        });
-                    }
-                    if (lines.length) return { text: lines.join('\n'), sources: sources.slice(0, 8) };
                 }
-            } catch (e) {
-                console.warn('DuckDuckGo search failed:', e);
+                if (current) results.push(current);
+                return results.slice(0, 8);
+            };
+
+            for (let i = 0; i < candidates.length; i++) {
+                try {
+                    const res = await fetch(candidates[i], {
+                        method: 'GET',
+                        headers: { 'Accept': 'text/html,text/plain;q=0.9,*/*;q=0.8' }
+                    });
+                    if (!res.ok) continue;
+                    const raw = await res.text();
+                    const parsed = i === 0 ? parseDuckDuckGoHtml(raw) : parseJinaText(raw);
+                    if (!parsed.length) continue;
+
+                    const useful = parsed.slice(0, 8);
+                    const lines = useful.map((r, idx) =>
+                        `Výsledok ${idx + 1}: ${r.title}\nURL: ${r.uri}${r.text ? `\nZhrnutie: ${r.text}` : ''}`
+                    );
+                    return {
+                        text: lines.join('\n\n').slice(0, 18000),
+                        sources: useful.map(r => ({ uri: r.uri, title: r.title }))
+                    };
+                } catch (e) {
+                    console.warn('External web search candidate failed:', e);
+                }
             }
 
-            // Fallback: a public text proxy around Google results. This is intentionally
-            // outside Gemini, so it does not consume Gemini Search grounding quota.
+            // Last lightweight fallback for factual/entity queries. This is not presented
+            // as full web search; it simply prevents the online mode from failing outright.
             try {
-                const url = `${EXTERNAL_SEARCH_FALLBACK}?q=${encodeURIComponent(q)}&hl=sk`;
-                const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'text/plain' } });
+                const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`;
+                const res = await fetch(wikiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
                 if (res.ok) {
-                    const text = (await res.text()).replace(/\n{3,}/g, '\n\n').slice(0, 18000);
-                    if (text.trim()) {
-                        const sources = [];
-                        const urlRe = /https?:\/\/[^\s)\]}>"']+/g;
-                        for (const match of text.matchAll(urlRe)) {
-                            const uri = match[0].replace(/[.,;]+$/, '');
-                            if (!sources.some(s => s.uri === uri)) sources.push({ uri, title: uri });
-                            if (sources.length >= 8) break;
-                        }
+                    const data = await res.json();
+                    const hits = Array.isArray(data?.query?.search) ? data.query.search.slice(0, 5) : [];
+                    if (hits.length) {
+                        const sources = hits.map(h => ({
+                            uri: `https://en.wikipedia.org/wiki/${encodeURIComponent(String(h.title).replace(/ /g, '_'))}`,
+                            title: String(h.title)
+                        }));
+                        const text = hits.map((h, idx) => `Výsledok ${idx + 1}: ${h.title}\n${stripTags(h.snippet || '')}`).join('\n\n');
                         return { text, sources };
                     }
                 }
             } catch (e) {
-                console.warn('Google proxy search failed:', e);
+                console.warn('Wikipedia fallback failed:', e);
             }
 
-            throw new Error('ONLINE_SEARCH_UNAVAILABLE: Nepodarilo sa získať externé webové výsledky. Skontroluj internetové pripojenie alebo dostupnosť vyhľadávacej služby.');
+            throw new Error('ONLINE_SEARCH_UNAVAILABLE: Externé webové vyhľadávanie je momentálne nedostupné. Skús to znova o chvíľu.');
         }
 
         function extractGroundingSources(metadata) {
