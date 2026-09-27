@@ -1412,7 +1412,7 @@ async function geminiFetch(request) {
                 infoGuideTitle: "Návod na použitie", infoGuideDesc: "<strong>Kľúč Gemini API:</strong> Pre správne fungovanie aplikácie Fakebook budete potrebovať vlastný API Key zo stránky Google AI Studio, ktorý vložíte v nastaveniach (🔑).<br><br><strong>Môj Profil:</strong> Nastavte si svoje vlastné MENO, VEK a POHLAVIE pre personalizovaný zážitok.<br><br><strong>Systém Priateľov (👥):</strong> Pridajte si priateľov zadaním ich mena, pohlavia a veku. Systém im automaticky vygeneruje unikátne VLASTNOSTI, OSOBNOSŤ, GRAMATIKU a SPRÁVANIE, podľa ktorých budú komunikovať. Všetky tieto atribúty môžete kedykoľvek UPRAVIŤ, zmeniť šancu na odpoveď či frekvenciu správ. Priateľom môžete priamo na plochu vygenerovať osobný STATUS, nechať ich ZDIEĽAŤ ľubovoľný článok, vytvoriť o nich bulvárny ČLÁNOK alebo si s nimi PÍSAŤ.<br><br><strong>Messenger (💬) & Autonómne správy:</strong> Priatelia vám môžu napísať aj sami od seba. Pri prechádzaní plochy a otváraní Messengera existuje dynamická šanca, že vám PRÍDE SPRÁVA. Ak nechcete čakať, <u>podržte tlačidlo Messengera na 3 sekundy</u> a správa dorazí okamžite. Priatelia si konverzácie PAMÄTAJÚ a plynule v nich pokračujú.<br><br><strong>Generovanie Článkov:</strong> Kliknite na vrchné pole pre tvorbu statusov. BUĎ napíšte vlastnú tému, ALEBO pole nechajte prázdne a systém vytvorí náhodný virálny príspevok. Môžete nastaviť časový posun, vybrať tému, určiť počet verzií a v review okne flexibilne UPRAVIŤ FOTKU (zmenou pomeru strán a promptu) či NÁZOV STRÁNKY.<br><br><strong>Vojny v komentároch & Algoritmus interakcií:</strong> Každý článok generuje množstvo živých KOMENTÁROV. Na príspevky môžete odpovedať, čím vyvoláte reálnu diskusiu. Existuje šanca, že vám od aktívneho komentujúceho príde ŽIADOSŤ O PRIATEĽSTVO. Tlačidlom <em>🤖 AI Troll Reakcia</em> vyvoláte okamžitú provokatívnu odpoveď na konkrétny komentár, alebo môžete spustiť masívnu <em>VOJNU KOMENTÁROV</em>. Články môžete zdieľať na svoj profil, mazať či generovať ich alternatívy.<br><br><strong>Nastavenia Obľúbených tém:</strong> V profile a nastaveniach priateľa pribudol explicitný popis pre kategóriu 'Obľúbené témy', vďaka čomu môžete lepšie korigovať algoritmus záujmov entít.<br><br><strong>💡 Núdzový Reset:</strong> V prípade akýchkoľvek problémov s prekrývaním okien <u>podržte 5 sekúnd hlavné logo FAKEBOOK</u> v ľavom hornom rohu pre tvrdý reset zobrazenia a tém.",
                 infoVerTitle: "Aktualizácia 3.96: Lokalizácia, Súkromné Profily a Romantická dynamika", infoVerList: "<li><strong>Oprava textu komentárov</strong>: Odstránená chyba zobrazenia textu 'undefined' pri počítadle komentárov na ploche.</li><li><strong>Simulácia súkromných profilov</strong>: Kliknutím na neregistrovaných autorov komentárov sa zobrazí uzamknutý profil s možnosťou poslať žiadosť o priateľstvo (70% šanca na prijatie).</li><li><strong>Poistka proti zmazaniu</strong>: Pridanie potvrdzovacieho dialógu pri odstraňovaní priateľov pre zamedzenie náhodných strát dát.</li><li><strong>Uvedomenie si ignorovania v Messengeri</strong>: Ak priateľ posiela ďalšiu správu bez toho, aby ste mu odpovedali na predošlú, prispôsobí reakciu ľudsky podľa svojej povahy (zmena témy, urazenie sa, otázka čo sa deje).</li>",
                 msgTitleForce: "Vynucujem správu od:", msgAlertForce: "Prišla nová správa od užívateľa", keyInputAlert: "Prosím, vložte najprv API kľúč.", activeFriendsAlert: "Nemáte žiadnych aktívnych priateľov.",
-                statusViewProfile: "Zobrazenie z profilu", statusFullFeedOnly: "Zobrazenie detailu článku je aktívne len z hlavnej plochy.", profileNoPosts: "Zatiaľ tu nie sú žiadne príspevky.", profileActivityOf: "Príspevky, statusy a aktivita používateľa", profileCommentedOn: "komentoval príspevok stránky", profileSharedArticle: "zdieľal príspevok", profileStatusLabel: "Status", profileDescriptionLabel: "Popis osoby", profileDescriptionPlace: "Krátky popis osoby...", profilePhotoLabel: "Profilová fotka", profilePhotoChoose: "Vybrať PNG/JPG", profilePhotoRemove: "Odstrániť fotku",
+                statusViewProfile: "Zobrazenie z profilu", statusFullFeedOnly: "Zobrazenie detailu článku je aktívne len z hlavnej plochy.", profileNoPosts: "Zatiaľ tu nie sú žiadne príspevky.", profileActivityOf: "Príspevky, statusy a aktivita používateľa", profileCommentedOn: "komentoval príspevok stránky", profileSharedArticle: "zdieľal príspevok", profileStatusLabel: "Status", profileOpenFullActivity: "Otvoriť celý príspevok a komentáre", profileDescriptionLabel: "Popis osoby", profileDescriptionPlace: "Krátky popis osoby...", profilePhotoLabel: "Profilová fotka", profilePhotoChoose: "Vybrať PNG/JPG", profilePhotoRemove: "Odstrániť fotku",
                 targetStatusPlaceholder: "Vytvárate osobný status pre: {name}. Zadajte tému...", statusLengthTitle: "Dĺžka statusu priateľa:", statusLenShort: "Krátky (1-3 vety)", statusLenMid: "Stredný (3-8 viet)", statusLenLong: "Dlhý (8-15 viet)",
                 slotTitle: "Uložené profily (Sloty)", slotBtnSave: "💾 Uložiť", slotBtnLoad: "📂 Načítať", textStatusNoMsgs: "Zatiaľ žiadne správy", textStatusYou: "Ty: ", textStatusChatWithBlocked: "Zablokovaný",
                 randomTopicSelectDefault: "-- Zvoliť náhodne podľa nastavení profilu --", postReviewTitle: "Príspevok", postReviewStatus: "Status",
@@ -1473,7 +1473,7 @@ async function geminiFetch(request) {
                 msgTitleForce: "Forcing message from:", msgAlertForce: "New message received from", keyInputAlert: "Please enter your API key first.", activeFriendsAlert: "You have no active friends.",
                 targetStatusPlaceholder: "Creating personal status for: {name}. Set topic...", statusLengthTitle: "Friend status length:", statusLenShort: "Short (1-3 sentences)", statusLenMid: "Medium (3-8 sentences)", statusLenLong: "Long (8-15 sentences)",
                 slotTitle: "Saved Slots", slotBtnSave: "Sačuvaj", slotBtnLoad: "Učitaj", textStatusNoMsgs: "No messages yet", textStatusYou: "You: ", textStatusChatWithBlocked: "Blocked",
-                statusViewProfile: "View from profile", statusFullFeedOnly: "Full article view is available only from the main feed.", profileNoPosts: "No posts yet.", profileActivityOf: "Posts, statuses and activity of", profileCommentedOn: "commented on a post by page", profileSharedArticle: "shared a post", profileStatusLabel: "Status", profileDescriptionLabel: "Person description", profileDescriptionPlace: "Short description of this person...", profilePhotoLabel: "Profile photo", profilePhotoChoose: "Choose PNG/JPG", profilePhotoRemove: "Remove photo", randomTopicSelectDefault: "-- Choose randomly from profile interests --", postReviewTitle: "Post", postReviewStatus: "Status",
+                statusViewProfile: "View from profile", statusFullFeedOnly: "Full article view is available only from the main feed.", profileNoPosts: "No posts yet.", profileActivityOf: "Posts, statuses and activity of", profileCommentedOn: "commented on a post by page", profileSharedArticle: "shared a post", profileStatusLabel: "Status", profileOpenFullActivity: "Open full post and comments", profileDescriptionLabel: "Person description", profileDescriptionPlace: "Short description of this person...", profilePhotoLabel: "Profile photo", profilePhotoChoose: "Choose PNG/JPG", profilePhotoRemove: "Remove photo", randomTopicSelectDefault: "-- Choose randomly from profile interests --", postReviewTitle: "Post", postReviewStatus: "Status",
                 loadingTextStatusChat: "Processing background chat queues...", pwaInstallPrompt: "📱 Do you want to pin the Fakebook app to your home screen?", lblSecTopics: "Friend Favorite Topics",
                 privateProfileText: "This profile is private.", sendFriendRequestBtn: "Send Friend Request", friendRequestSentAlert: "Friend request sent.", friendRequestAcceptedAlert: "User accepted your friend request!", friendRequestRejectedAlert: "User declined your friend request.", friendDeleteConfirmText: "Are you sure you want to delete this friend? This action cannot be undone."
             },
@@ -1531,7 +1531,7 @@ async function geminiFetch(request) {
                 msgTitleForce: "Prisiljavam poruku od:", msgAlertForce: "Stigla je nova poruka od korisnika", keyInputAlert: "Molimo vas da prvo unesete API ključ.", activeFriendsAlert: "Nemate nijednog aktivnog prijatelja.",
                 targetStatusPlaceholder: "Kreirate lični status za: {name}. Unesite temu...", statusLengthTitle: "Dužina statusa prijatelja:", statusLenShort: "Kratak (1-3 rečenice)", statusLenMid: "Srednji (3-8 rečenica)", statusLenLong: "Dugačak (8-15 rečenica)",
                 slotTitle: "Sačuvani profili (Slotovi)", slotBtnSave: "Sačuvaj", slotBtnLoad: "Učitaj", textStatusNoMsgs: "Još uvek nema poruka", textStatusYou: "Ti: ", textStatusChatWithBlocked: "Blokiran",
-                statusViewProfile: "Prikaz sa profila", statusFullFeedOnly: "Detaljan prikaz članka je dostupan samo sa glavnog feeda.", profileNoPosts: "Još nema objava.", profileActivityOf: "Objave, statusi i aktivnost korisnika", profileCommentedOn: "komentarisao je objavu stranice", profileSharedArticle: "podelio je objavu", profileStatusLabel: "Status", profileDescriptionLabel: "Opis osobe", profileDescriptionPlace: "Kratak opis osobe...", profilePhotoLabel: "Profilna fotografija", profilePhotoChoose: "Izaberi PNG/JPG", profilePhotoRemove: "Ukloni fotografiju", randomTopicSelectDefault: "-- Izabrati nasumično prema podešavanjima profila --", postReviewTitle: "Objava", postReviewStatus: "Status",
+                statusViewProfile: "Prikaz sa profila", statusFullFeedOnly: "Detaljan prikaz članka je dostupan samo sa glavnog feeda.", profileNoPosts: "Još nema objava.", profileActivityOf: "Objave, statusi i aktivnost korisnika", profileCommentedOn: "komentarisao je objavu stranice", profileSharedArticle: "podelio je objavu", profileStatusLabel: "Status", profileOpenFullActivity: "Otvoriti celu objavu i komentare", profileDescriptionLabel: "Opis osobe", profileDescriptionPlace: "Kratak opis osobe...", profilePhotoLabel: "Profilna fotografija", profilePhotoChoose: "Izaberi PNG/JPG", profilePhotoRemove: "Ukloni fotografiju", randomTopicSelectDefault: "-- Izabrati nasumično prema podešavanjima profila --", postReviewTitle: "Objava", postReviewStatus: "Status",
                 loadingTextStatusChat: "Obrađujem poruke u pozadini...", pwaInstallPrompt: "📱 Želite li da instalirate aplikaciju Fakebook na početni ekran?", lblSecTopics: "Omiljene teme prijatelja",
                 privateProfileText: "Ovaj profil je privatan.", sendFriendRequestBtn: "Pošalji zahtev za prijateljstvo", friendRequestSentAlert: "Zahtev poslat.", friendRequestAcceptedAlert: "Korisnik je prihvatio zahtev!", friendRequestRejectedAlert: "Korisnik je odbio zahtev.", friendDeleteConfirmText: "Da li ste sigurni da želite da obrišete ovog prijatelja? Ova akcija se ne može poništiti."
             }
@@ -2866,6 +2866,10 @@ function applyThemeAndFont() {
                     prefixHtml = `<div style="padding: 8px 16px; font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color); background: var(--bg-input); color: var(--global-font-color);">${UI_TEXTS[appLanguage].profileStatusLabel}</div>`;
                 }
 
+                const openFullActivityHtml = (activity.isStatus || activity.isSharedOnly)
+                    ? `<div style="padding:9px 14px; border-top:1px solid var(--border-color); color:var(--fb-blue); font-weight:700; font-size:.86rem; cursor:pointer;" onclick="event.stopPropagation(); openProfileActivityArticle(${activity.sIdx},${activity.pIdx})">${UI_TEXTS[appLanguage].profileOpenFullActivity || 'Otvoriť celý príspevok a komentáre'} →</div>`
+                    : '';
+
                 card.innerHTML = `
                     ${prefixHtml}
                     <div class="post-header">
@@ -2890,6 +2894,7 @@ function applyThemeAndFont() {
                         ${commentsHtml}
                         ${numComments > 3 ? `<div class="view-more-comments-label" onclick="alert('${UI_TEXTS[appLanguage].statusFullFeedOnly}')">${UI_TEXTS[appLanguage].viewMoreCommentsLabel} (${numComments})</div>` : ''}
                     </div>
+                    ${openFullActivityHtml}
                 `;
                 container.appendChild(card);
             });
@@ -3583,13 +3588,57 @@ async function processIncomingMessages() {
             }
 
             showTypingIndicator();
-            const webCompact = activeChatFriend.webActive === true;
-            let historyLog = buildChatHistory(activeChatFriend.name);
-            if (webCompact) {
-                const allChat = chatData[activeChatFriend.name] || [];
-                const compact = allChat.filter(m => m.from === 'me' || m.from === 'friend').slice(-6);
-                historyLog = compact.map(m => (m.from === 'me' ? 'Me: ' : activeChatFriend.name + ': ') + String(m.text || '').slice(0, 500)).join('\n') || UI_TEXTS[appLanguage].chatLogNone;
+
+            // IMPORTANT: Internet mode is intentionally a completely separate, minimal request.
+            // It must NOT receive the friend's personality, profile, chat history, relationship,
+            // emoji rules, previous messages, or web-memory. The ONLY input sent to Gemini in
+            // this mode is the user's current message. The resulting answer is then stored in
+            // the friend's durable webMemory, while the ordinary chat history remains untouched.
+            if (activeChatFriend.webActive === true) {
+                try {
+                    const response = await geminiFetch({
+                        model: MODEL_NAME,
+                        useWebSearch: true,
+                        messages: [{ role: "user", content: text }],
+                        temperature: 0.2,
+                        max_output_tokens: 320
+                    });
+                    const jsonRes = await response.json();
+                    const rawReply = String(jsonRes?.candidates?.[0]?.content?.parts?.map(p => p?.text || '').join('') || '').trim();
+                    const webSourcesForReply = extractGroundingSources(jsonRes?.candidates?.[0]?.groundingMetadata);
+                    if (!rawReply) throw new Error('GEMINI_EMPTY_WEB_RESPONSE: Google Search nevrátilo textovú odpoveď.');
+
+                    // Save exactly what the web-only request found. This becomes persistent
+                    // knowledge for the friend and is available after Internet mode is turned off.
+                    rememberWebFindings(activeChatFriend, text, rawReply, jsonRes?.candidates?.[0]?.groundingMetadata);
+
+                    let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
+                    chatData[activeChatFriend.name].push({
+                        id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
+                        from:'friend', text: rawReply, timestamp: Date.now(), webSources: webSourcesForReply || []
+                    });
+                    let msgsCheck = chatData[activeChatFriend.name] || [];
+                    let fCount = 0;
+                    for(let i=msgsCheck.length-1; i>=0; i--) {
+                        if(msgsCheck[i].from === 'friend') fCount++;
+                        else if(msgsCheck[i].from === 'me') break;
+                    }
+                    activeChatFriend.ignoredCount = fCount;
+                    saveChatsData(); saveFriendsData(); renderChatMessages();
+                    return;
+                } catch(e) {
+                    let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
+                    console.error('Gemini web-only API:', e);
+                    if (activeChatFriend && chatData[activeChatFriend.name]) {
+                        chatData[activeChatFriend.name].push({id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from:'friend', text:'⚠️ ' + String(e?.message || e), timestamp:Date.now()});
+                        saveChatsData(); renderChatMessages();
+                    }
+                    return;
+                }
             }
+
+            // OFFLINE MODE: the normal friend engine keeps the full personality/history behavior.
+            let historyLog = buildChatHistory(activeChatFriend.name);
             let emojiRule = getEmojiPromptRule(activeChatFriend.emojiStyle);
             let contactRule = getContactLevelRule(activeChatFriend.contactLevel);
             let personalityRule = getPersonalityRule(activeChatFriend.personalities);
@@ -3607,9 +3656,7 @@ async function processIncomingMessages() {
             if (appLanguage === 'sr') langName = "Serbian";
 
             const webMemoryContext = buildWebMemoryContext(activeChatFriend);
-            const compactWebMemoryContext = activeChatFriend.webActive === true ? webMemoryContext.slice(-6500) : webMemoryContext;
-            const webModeRule = activeChatFriend.webActive === true ? `INTERNET MODE IS ACTIVE. Google Search is available. If the user's latest message asks for current, recent, changing, uncertain, or verifiable online information (such as today's date, sports fixtures/results, elections, current office holders, prices, weather, news, schedules, or who currently holds a position), USE GOOGLE SEARCH before answering. Do not guess when the answer can be checked online. Keep your established personality, knowledge, relationship and conversation style. Use web results as additional factual information, not as a replacement for your identity or conversational memory. If the web contradicts an earlier belief, acknowledge the new information naturally. When the user is simply chatting and no online verification is useful, answer normally without forcing a search.
-${compactWebMemoryContext}` : `INTERNET MODE IS OFF. Do not search the web. You still retain any facts previously learned and stored in WEB MEMORY below; treat them as information you personally learned earlier.
+            const webModeRule = `INTERNET MODE IS OFF. Do not search the web. You may use WEB MEMORY below as facts the friend previously learned while Internet mode was active. Do not pretend to have searched now.
 ${webMemoryContext}`;
             let webSourcesForReply = [];
 
@@ -3619,31 +3666,23 @@ ${webMemoryContext}`;
             ${webModeRule}
             CRITICAL AI SELF-AWARENESS DIRECTIVE: Look carefully at the history log provided below. Messages prefixed with "Me:" were written by the user. Messages prefixed with "${activeChatFriend.name}:" were written by you.
             You must only generate your next natural reply. Never continue the conversation on behalf of the user, never answer your own questions, and do not append fictional user text inside your messages array.
-            Split your reply into exactly ${activeChatFriend.webActive === true ? 1 : repCount} element(s) inside the array.
+            Split your reply into exactly ${repCount} element(s) inside the array.
             ${extraContext}
             Return STRICTLY a JSON object with a "messages" array of strings: {"messages": ["part1", "part2"]}`;
 
             try {
                 const response = await geminiFetch({
                         model: MODEL_NAME,
-                        useWebSearch: activeChatFriend.webActive === true,
-                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: `Recent chat:\n${historyLog}\nReply naturally to my last message. If current information is needed, use Google Search now.` } ],
-                        response_format: { type: "json_object" }, temperature: 0.85, max_output_tokens: activeChatFriend.webActive === true ? 700 : 1400
+                        useWebSearch: false,
+                        messages: [ { role: "system", content: sysPrompt }, { role: "user", content: `Recent chat:\n${historyLog}\nReply naturally to my last message.` } ],
+                        response_format: { type: "json_object" }, temperature: 0.85, max_output_tokens: 1400
                     });
                 const jsonRes = await response.json();
-                webSourcesForReply = extractGroundingSources(jsonRes.groundingMetadata);
                 const rawReply = jsonRes.choices[0].message.content;
                 const parsed = tryParseJSON(rawReply);
-                // Search-grounded calls intentionally use normal text transport. If Gemini
-                // ignores the JSON formatting instruction, keep the actual answer instead
-                // of silently dropping the response.
                 const safeParsed = (parsed && Array.isArray(parsed.messages) && parsed.messages.length)
                     ? parsed
                     : { messages: [String(rawReply || '').trim()].filter(Boolean) };
-                if (activeChatFriend.webActive === true) {
-                    const learnedText = safeParsed.messages.join(' ');
-                    rememberWebFindings(activeChatFriend, text, learnedText, jsonRes.groundingMetadata);
-                }
                 let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
                 if (safeParsed && Array.isArray(safeParsed.messages)) {
                     safeParsed.messages.forEach(msg => { chatData[activeChatFriend.name].push({id: 'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from: 'friend', text: msg, timestamp: Date.now(), webSources: webSourcesForReply || []}); });
