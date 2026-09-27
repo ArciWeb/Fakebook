@@ -515,6 +515,16 @@
         /* 3.98: larger, phone-friendly overlays and friend profile media */
         .modal-content { max-width: min(94vw, 760px); width: 94vw; max-height: 94vh; }
         #friends-modal .modal-content, #friend-settings-modal .modal-content, #user-profile-modal .modal-content, #info-modal .modal-content, #create-modal .modal-content, #review-modal .modal-content { max-width: min(94vw, 860px) !important; }
+        /* 3.99: Friends and profiles are full-page views, not popups. */
+        #friends-modal, #user-profile-modal { padding: 0 !important; align-items: stretch !important; justify-content: stretch !important; }
+        #friends-modal .modal-content, #user-profile-modal .modal-content { width: 100vw !important; max-width: none !important; height: 100vh !important; max-height: none !important; border-radius: 0 !important; margin: 0 !important; overflow-y: auto !important; }
+        #friends-modal .modal-content { padding: 22px clamp(16px, 4vw, 48px) !important; }
+        #friends-list-container { max-height: none !important; overflow: visible !important; }
+        #user-profile-modal .modal-content { padding: 0 0 36px 0 !important; }
+        #user-profile-modal .profile-header-card, #user-profile-modal #my-profile-settings-block, #user-profile-modal #friend-profile-common-area, #user-profile-modal #profile-section-title, #user-profile-modal #shared-posts-container, #user-profile-modal #private-profile-notice { width: min(100% - 32px, 980px); margin-left: auto; margin-right: auto; }
+        #user-profile-modal .profile-header-card { margin-top: 0; }
+        #friends-modal .close-modal-btn, #user-profile-modal .close-modal-btn { position: sticky !important; top: 8px !important; float: right !important; z-index: 5 !important; }
+        @media (max-width: 600px) { #friends-modal .modal-content { padding: 14px !important; } #user-profile-modal #profile-section-title, #user-profile-modal #shared-posts-container { width: calc(100% - 20px); } }
         #messenger-modal .modal-content, #chat-modal .modal-content { max-width: min(94vw, 760px) !important; width: 94vw !important; height: 88vh !important; }
         .friend-cover-preview { width:100%; height:120px; object-fit:cover; border-radius:8px; border:1px solid var(--border-color); }
         .profile-cover.has-image { background-size:cover; background-position:center; }
@@ -1154,7 +1164,7 @@ const MODEL_NAME = "gemini-3.5-flash-lite";
 const GEMINI_FALLBACK_MODEL = "gemini-3.8-flash";
 // Web-search mode uses a model/tier where Google Search grounding is available.
 // Normal chat/content generation stays on 3.5 Flash-Lite.
-const ONLINE_SEARCH_MODEL = "gemini-2.5-flash-lite";
+const ONLINE_SEARCH_MODEL = "gemini-2.5-flash";
 
 // Gemini request pacing: keep requests serialized so background features cannot burst the quota.
 // 3.5 Flash-Lite is optimized by Google for high-throughput, low-cost workloads.
@@ -1463,7 +1473,7 @@ async function geminiFetch(request) {
                 chatHeaderFriend: "Priateľ", chatClearConv: "Vymazať konverzáciu", chatForgetThemes: "Zabudnúť staré témy (Čistý štít)", chatInputPlace: "Napíšte správu...",
                 chatBlockedBanner: "Tento používateľ je zablokovaný. Ak ho chcete odblokovať, prejdite na jeho nastavenia.", chatIgnoredBanner: "Priateľ vám poslal už 5 správ bez vašej odpovede. Nové správy nebude posielať, kým neodpíšete.",
                 infoGuideTitle: "Návod na použitie", infoGuideDesc: "<strong>Kľúč Gemini API:</strong> Pre správne fungovanie aplikácie Fakebook budete potrebovať vlastný API Key zo stránky Google AI Studio, ktorý vložíte v nastaveniach (🔑).<br><br><strong>Môj Profil:</strong> Nastavte si svoje vlastné MENO, VEK a POHLAVIE pre personalizovaný zážitok.<br><br><strong>Systém Priateľov (👥):</strong> Pridajte si priateľov zadaním ich mena, pohlavia a veku. Systém im automaticky vygeneruje unikátne VLASTNOSTI, OSOBNOSŤ, GRAMATIKU a SPRÁVANIE, podľa ktorých budú komunikovať. Všetky tieto atribúty môžete kedykoľvek UPRAVIŤ, zmeniť šancu na odpoveď či frekvenciu správ. Priateľom môžete priamo na plochu vygenerovať osobný STATUS, nechať ich ZDIEĽAŤ ľubovoľný článok, vytvoriť o nich bulvárny ČLÁNOK alebo si s nimi PÍSAŤ.<br><br><strong>Messenger (💬) & Autonómne správy:</strong> Priatelia vám môžu napísať aj sami od seba. Pri prechádzaní plochy a otváraní Messengera existuje dynamická šanca, že vám PRÍDE SPRÁVA. Ak nechcete čakať, <u>podržte tlačidlo Messengera na 3 sekundy</u> a správa dorazí okamžite. Priatelia si konverzácie PAMÄTAJÚ a plynule v nich pokračujú.<br><br><strong>Generovanie Článkov:</strong> Kliknite na vrchné pole pre tvorbu statusov. BUĎ napíšte vlastnú tému, ALEBO pole nechajte prázdne a systém vytvorí náhodný virálny príspevok. Môžete nastaviť časový posun, vybrať tému, určiť počet verzií a v review okne flexibilne UPRAVIŤ FOTKU (zmenou pomeru strán a promptu) či NÁZOV STRÁNKY.<br><br><strong>Vojny v komentároch & Algoritmus interakcií:</strong> Každý článok generuje množstvo živých KOMENTÁROV. Na príspevky môžete odpovedať, čím vyvoláte reálnu diskusiu. Existuje šanca, že vám od aktívneho komentujúceho príde ŽIADOSŤ O PRIATEĽSTVO. Tlačidlom <em>🤖 AI Troll Reakcia</em> vyvoláte okamžitú provokatívnu odpoveď na konkrétny komentár, alebo môžete spustiť masívnu <em>VOJNU KOMENTÁROV</em>. Články môžete zdieľať na svoj profil, mazať či generovať ich alternatívy.<br><br><strong>Nastavenia Obľúbených tém:</strong> V profile a nastaveniach priateľa pribudol explicitný popis pre kategóriu 'Obľúbené témy', vďaka čomu môžete lepšie korigovať algoritmus záujmov entít.<br><br><strong>💡 Núdzový Reset:</strong> V prípade akýchkoľvek problémov s prekrývaním okien <u>podržte 5 sekúnd hlavné logo FAKEBOOK</u> v ľavom hornom rohu pre tvrdý reset zobrazenia a tém.",
-                infoVerTitle: "Aktualizácia 3.98: Prechod na Gemini, Nastavenia a profil priateľov, veľa drobných uprav.", infoVerList: "<li><strong>Prechod z Groq/Llama na Gemini</strong>: generovanie článkov, statusov, komentárov a Messengeru beží cez Gemini API; pridané diagnostiky chýb 400/401/403/404/429/500/503/504 a ochrana pred zbytočným opakovaním kvóty.</li><li><strong>Nový online režim Messengera</strong>: bodka pri mene prepína „aktívny“ režim; webové overenie používa iba aktuálnu správu, bez osobnosti a starej histórie, výsledok sa však uloží do trvalej pamäti priateľa.</li><li><strong>Messenger a profily</strong>: klik na meno v hlavičke otvorí profil, správy sa dajú podržať a kopírovať alebo vymazať.</li><li><strong>Priatelia a profily</strong>: popis osoby a profilová fotka, nová fotka pozadia, spoločné kontakty, chronologická aktivita a otváranie statusov/zdieľaní/komentovaných článkov s návratom späť na profil.</li><li><strong>Generovanie článkov</strong>: Voľba témy, krátka/stredná/dlhá dĺžka, reálnosť 1–10, automatický výber vhodného názvu stránky a 1–7 komentárov s dôrazom na hlavnú pointu článku.</li><li><strong>Statusy priateľov</strong>: reálnosť 1–10, 0–6 komentárov, unikátne nové statusy bez opakovania starej hlavnej témy; staršie statusy slúžia len ako osobná kontinuita.</li><li><strong>Inteligentné komentovanie a zdieľanie</strong>: vyššia priorita priateľov a spoločných priateľov, nastaviteľná šanca komentovania, maximálne jedno automatické zdieľanie článku s krátkym názorom; ak sa článok zdieľa, pôvodná samostatná kópia sa nezobrazuje.</li><li><strong>AI diskusie</strong>: ploché vlákna, lepšie chápanie hlavnej pointy článku, kontinuita názorov a prirodzenejšie pokračovanie debaty.</li><li><strong>Vzhľad a použiteľnosť</strong>: väčšie popup okná, vylepšené profily, zachované nastavenia tém, jazykov, fontov, slotov a ďalšie drobné opravy.</li>",
+                infoVerTitle: "Aktualizácia 3.98: Prechod na Gemini, Nastavenia a profil priateľov, veľa drobných uprav.", infoVerList: "<li><strong>Gemini namiesto Groq/Llama</strong>: hľadanie vhodného Gemini modelu pre generovanie článkov, statusov, komentárov a Messengeru; diagnostika API chýb, kvót a ochrana pred zbytočnými opakovaniami. Online vyhľadávanie je oddelené cez Gemini 2.5 Flash s Google Search groundingom, ktorý má podľa aktuálnej dostupnosti bezplatnú dennú kvótu pre Search.</li><li><strong>Messenger a internetový režim</strong>: zelená bodka prepína „aktívny“ režim; online požiadavka je zámerne úplne oddelená od osobnosti a histórie a obsahuje iba aktuálnu správu + webové vyhľadávanie; výsledok sa uloží do trvalej webovej pamäte priateľa a zostane dostupný aj po vypnutí režimu.</li><li><strong>Messenger správy</strong>: klik na meno v hlavičke otvorí profil, dlhé podržanie správy ponúka kopírovanie a vymazanie konkrétnej správy.</li><li><strong>Priatelia a profily</strong>: priatelia a profily sú zobrazené na celej obrazovke; profil sa dá otvoriť aj kliknutím na meno; profilová fotka, fotka pozadia, popis osoby, spoločné kontakty a chronologická aktivita.</li><li><strong>Spoloční priatelia</strong>: výber spoločných priateľov v nastavení, zobrazenie počtu a prvých troch mien s možnosťou rozbaliť celý zoznam.</li><li><strong>Osobnosti priateľov v komentároch</strong>: komentujúci priatelia teraz používajú svoje skutočné nastavené profily, osobnosti, gramatiku, emoji štýl, vzťahy a popis osoby; pri statusoch majú spoloční priatelia výraznú prioritu.</li><li><strong>Generovanie článkov</strong>: „Voľba témy“, krátka/stredná/dlhá dĺžka, reálnosť 1–10, automatický výber vhodného názvu stránky z poolu alebo kontextovo generovaného názvu a náhodný počet 1–7 komentárov.</li><li><strong>Statusy priateľov</strong>: reálnosť 1–10, náhodný počet 0–6 komentárov a dôraz na úplne nové statusy; staršie statusy sú iba osobná kontinuita, nie témy na opakovanie.</li><li><strong>Komentovanie a zdieľanie</strong>: nastaviteľná šanca komentovania každého priateľa, vyššia priorita spoločných priateľov pri statusoch, maximálne jedno automatické zdieľanie článku s krátkym názorom a bez duplicitného pôvodného príspevku.</li><li><strong>AI diskusie</strong>: ploché vlákna, pochopenie hlavnej pointy článku, zachovanie ustálených názorov a prirodzenejšie pokračovanie debaty.</li><li><strong>Profily a navigácia</strong>: chronologické statusy, zdieľania a komentované články; otvorenie celej publikácie s komentármi a návrat späť na pôvodný profil.</li><li><strong>Vzhľad</strong>: väčšie popupy tam, kde zostávajú, full-screen priatelia a profily, profilové fotografie a pozadia a ďalšie drobné opravy použiteľnosti.</li>",
                 msgTitleForce: "Vynucujem správu od:", msgAlertForce: "Prišla nová správa od užívateľa", keyInputAlert: "Prosím, vložte najprv API kľúč.", activeFriendsAlert: "Nemáte žiadnych aktívnych priateľov.",
                 statusViewProfile: "Zobrazenie z profilu", statusFullFeedOnly: "Zobrazenie detailu článku je aktívne len z hlavnej plochy.", profileNoPosts: "Zatiaľ tu nie sú žiadne príspevky.", profileActivityOf: "Príspevky, statusy a aktivita používateľa", profileCommentedOn: "komentoval príspevok stránky", profileSharedArticle: "zdieľal príspevok", profileStatusLabel: "Status", profileOpenFullActivity: "Otvoriť celý príspevok a komentáre", profileDescriptionLabel: "Popis osoby", profileDescriptionPlace: "Krátky popis osoby...", profilePhotoLabel: "Profilová fotka", profilePhotoChoose: "Vybrať PNG/JPG", profilePhotoRemove: "Odstrániť fotku",
                 targetStatusPlaceholder: "Vytvárate osobný status pre: {name}. Zadajte tému...", statusLengthTitle: "Dĺžka statusu priateľa:", statusLenShort: "Krátky (1-3 vety)", statusLenMid: "Stredný (3-8 viet)", statusLenLong: "Dlhý (8-15 viet)",
@@ -2796,7 +2806,7 @@ function applyThemeAndFont() {
                             <div style="display: flex; flex-direction: column; gap: 2px;">
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     ${friend.profilePhoto ? `<img src="${friend.profilePhoto}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;">` : ''}
-                                    <div><div style="font-weight: 600; font-size: 0.95rem; color: var(--global-font-color);">${friend.name} ${blockedBadge}</div>
+                                    <div><div style="font-weight: 600; font-size: 0.95rem; color: var(--global-font-color); cursor:pointer;" onclick="openSelectedFriendProfile('${String(friend.name).replace(/'/g,"\\'")}')" title="Profil">${friend.name} ${blockedBadge}</div>
                                     <span style="font-size: 0.8rem; color: var(--text-muted);">${translatedGender}, ${blockedLabel} | ${translatedPers}</span></div>
                                 </div>
                             </div>
@@ -2828,6 +2838,7 @@ function applyThemeAndFont() {
         }
 
         function openPrivateProfile(commenterName, sIdx, pIdx) {
+            profileReturnMode = null; profileReturnChatFriendName = null;
             document.getElementById('user-profile-modal').style.display = 'flex';
             pushModalState();
             document.getElementById('profile-username-edit').style.display = 'none';
@@ -2991,6 +3002,9 @@ function applyThemeAndFont() {
         }
 
         let profileReturnFriendName = null;
+        let profileReturnMode = null;
+        let profileReturnChatFriendName = null;
+        let profileReturnChatViewMode = 'messenger';
         function openProfileActivityArticle(sIdx, pIdx) {
             profileReturnFriendName = document.getElementById('profile-display-name')?.innerText || null;
             closeProfile();
@@ -3000,6 +3014,9 @@ function applyThemeAndFont() {
         }
 
         function openSelectedFriendProfile(friendName) {
+            const openedFromFriends = document.getElementById('friends-modal')?.style.display === 'flex';
+            if (openedFromFriends) profileReturnMode = 'friends';
+            else if (profileReturnMode !== 'friends' && !profileReturnChatFriendName) profileReturnMode = null;
             closeFriendsModal();
             document.getElementById('user-profile-modal').style.display = 'flex';
             pushModalState();
@@ -3072,6 +3089,7 @@ function applyThemeAndFont() {
         }
 
         function openProfile() {
+            profileReturnMode = null; profileReturnFriendName = null; profileReturnChatFriendName = null;
             const coverEl=document.getElementById('profile-cover-image'); if(coverEl){ coverEl.style.backgroundImage=''; coverEl.classList.remove('has-image'); }
             document.getElementById('user-profile-modal').style.display = 'flex';
             pushModalState();
@@ -3085,7 +3103,19 @@ function applyThemeAndFont() {
             const container = document.getElementById('shared-posts-container');
             renderProfilePosts(sharedPosts, container);
         }
-        function closeProfile() { document.getElementById('user-profile-modal').style.display = 'none'; }
+        function closeProfile() {
+            document.getElementById('user-profile-modal').style.display = 'none';
+            const returnChat = profileReturnChatFriendName;
+            const returnChatMode = profileReturnChatViewMode;
+            const returnFriends = profileReturnMode === 'friends';
+            profileReturnChatFriendName = null; profileReturnMode = null;
+            if (returnChat) {
+                if (returnChatMode === 'messenger') openChatFromMessenger(returnChat);
+                else openChatFromFriendsList(returnChat);
+            } else if (returnFriends) {
+                openFriendsModal();
+            }
+        }
 
         function triggerAddStatusPrompt(name, gender, age) {
             closeFriendsModal();
@@ -3510,7 +3540,15 @@ async function processIncomingMessages() {
             inputText.blur(); 
         }
         
-        function openChatFriendProfile(){ if(!activeChatFriend) return; const n=activeChatFriend.name; closeChatModal(); openSelectedFriendProfile(n); }
+        function openChatFriendProfile(){
+            if(!activeChatFriend) return;
+            const n=activeChatFriend.name;
+            profileReturnChatFriendName = n;
+            profileReturnChatViewMode = chatViewMode;
+            profileReturnMode = null;
+            closeChatModal();
+            openSelectedFriendProfile(n);
+        }
 
         function handleChatBack() {
             closeChatModal();
@@ -4635,7 +4673,16 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 mutualNames.forEach(n=>{ if(injectedFriends.length < requestedCommentCount && !injectedFriends.includes(n) && Math.random()<0.75) injectedFriends.push(n); });
             }
             injectedFriends=injectedFriends.slice(0,requestedCommentCount);
-            let friendCommentaryRule = injectedFriends.length > 0 ? `Prefer these real friends as commenters when there are enough generated comments: ${injectedFriends.join(', ')}. For a friend's status, mutual friends are strongly prioritized.` : "";
+            const injectedFriendProfiles = injectedFriends.map(name => {
+                const f = friendsList.find(x => String(x.name).toLowerCase() === String(name).toLowerCase());
+                if (!f) return `${name}: profile unavailable`;
+                const pers = getPersonalityRule(f.personalities);
+                const gram = getGrammarRule(f.grammar);
+                const emoji = getEmojiPromptRule(f.emojiStyle);
+                const rel = (f.relationships || []).map(id => (RELATIONSHIP_OPTIONS.find(r=>r.id===id)?.en || id)).join(', ') || 'Acquaintance';
+                return `${f.name} — age ${f.age}, gender ${f.gender}; description: ${f.profileDescription || 'none'}; personality: ${pers}; grammar: ${gram}; emojis: ${emoji}; relationship: ${rel}`;
+            }).join('\n');
+            let friendCommentaryRule = injectedFriends.length > 0 ? `These are REAL configured friends and must be used for the first ${injectedFriends.length} generated comments, in this exact order: ${injectedFriends.join(', ')}. For each of these commenters, FOLLOW THEIR INDIVIDUAL PROFILE below — personality, grammar, emoji style, relationship and description are mandatory. Do not replace their personality with a generic commenter persona.\n${injectedFriendProfiles}` : "";
             let commentersContext = generateCommentersContextForPrompt(6);
 
             let selectedPool = PAGES_POOL_SK;
@@ -4657,7 +4704,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             REALISM LEVEL ${realismValue}/10: ${realismInstruction}
             IMPORTANT: The user's prompt/topic is the creative foundation. Realism changes the plausibility of the surrounding details, wording, consequences, quotes and framing; it must NOT replace or ignore the requested central event.
             PUBLISHER STYLE: At realism 1–4, a fitting tabloid/satirical publisher is appropriate. At realism 5–7, use a plausible thematic media identity. At realism 8–10, prefer a serious, credible-sounding publisher generated from the topic. The review screen automatically prefers a suitable publisher from the predefined pool when one actually fits; otherwise it uses the contextual name.
-            Comments: exactly ${commentsRange} short comments, one sentence each, NO nested replies. Every comment must show comprehension of the article's CENTRAL EVENT/CLAIM or a clearly relevant supporting point. Do not make a decorative side detail the main topic. Do not invent unrelated facts, substances, scandals or motives. For satire, react to the absurd premise itself. Vary the angles while staying on-topic. Do not generate more comments than requested.
+            Comments: exactly ${commentsRange} short comments, one sentence each, NO nested replies. Every comment must show comprehension of the article's CENTRAL EVENT/CLAIM or a clearly relevant supporting point. When a commenter is a configured friend, write that comment using that friend's actual configured personality, grammar, relationship, emoji style and person description; never use a generic random personality for that friend. Do not make a decorative side detail the main topic. Do not invent unrelated facts, substances, scandals or motives. For satire, react to the absurd premise itself. Vary the angles while staying on-topic. Do not generate more comments than requested.
             Traits: ${commentersContext}.
             ${friendCommentaryRule} ${contextInstruction}
             Return ONLY this JSON shape: {"posts":[{"author_name":"","title":"","content":["",""],"image_prompt":"","comments":[{"username":"","text":"","replies":[]}]}]}`;
@@ -4696,7 +4743,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             } catch (error) {
                 const now = new Date().toLocaleTimeString();
                 const msg = error?.message || String(error);
-                errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nOchrana kvóty: Gemini volania sú serializované a medzi požiadavkami je minimálne 4 s. Vytváranie príspevku používa 1 API požiadavku a kratší kontext/výstup. Používa sa Gemini 3.5 Flash-Lite; pri dočasnej chybe 503/500/504 sa vykoná nanajvýš 1 opakovanie po 7 s. HTTP 429 sa automaticky neopakuje, aby aplikácia kvótu ďalej nemíňala.\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
+                errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nOchrana kvóty: Gemini volania sú serializované a medzi požiadavkami je minimálne 4 s. Vytváranie príspevku používa 1 API požiadavku a kratší kontext/výstup. Bežné generovanie používa Gemini 3.5 Flash-Lite; online režim používa samostatný Search model. Pri dočasnej chybe 503/500/504 sa vykoná nanajvýš 1 opakovanie po 7 s. HTTP 429 sa automaticky neopakuje, aby aplikácia kvótu ďalej nemíňala.\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
                 errorDisplay.style.display = 'block'; spinner.style.display = 'none';
                 console.error('Gemini diagnostic:', error);
             } finally {
