@@ -3624,108 +3624,134 @@ async function processIncomingMessages() {
             const q = String(query || '').trim();
             if (!q) throw new Error('ONLINE_SEARCH_EMPTY_QUERY: Prázdna otázka.');
 
-            // IMPORTANT: this is deliberately independent from Gemini Search grounding.
-            // We use public web-search HTML through a CORS-friendly proxy because direct
-            // browser requests to search engines are commonly blocked by CORS.
-            const candidates = [
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`)}`,
-                `https://r.jina.ai/http://www.google.com/search?q=${encodeURIComponent(q)}&hl=sk`
-            ];
+            // Online search is deliberately independent from Gemini Search grounding.
+            // We build a few targeted Google queries, then fetch the search pages through
+            // Jina's text proxy so this single-file app does not depend on Gemini Search quota.
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('sk-SK', { day:'2-digit', month:'2-digit', year:'numeric' });
+            const lower = q.toLowerCase();
+            const searches = [];
 
-            const cleanHtml = html => String(html || '')
-                .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-                .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-                .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ');
-
-            const decodeHtml = value => {
-                const el = document.createElement('textarea');
-                el.innerHTML = value;
-                return el.value;
+            const addSearch = (text, domains=[]) => {
+                const domainPart = domains.length ? ' ' + domains.map(d => `site:${d}`).join(' OR ') : '';
+                searches.push(`${text} ${dateStr}${domainPart}`.trim());
             };
 
-            const stripTags = value => decodeHtml(String(value || '')
-                .replace(/<br\s*\/?>/gi, '\n')
-                .replace(/<[^>]+>/g, ' '))
-                .replace(/\s+/g, ' ')
-                .trim();
+            const footballWords = /(futbal|football|soccer|zápas|zapas|hra|hrá|hraje|hrať|fixtures?|výsledok|vysledok|premier league|champions league|liga majstrov|la liga|serie a|bundesliga|ligue 1|fa cup|carabao|europa league|conference league|manchester united|man united|liverpool|arsenal|chelsea|man city|barcelona|real madrid|bayern|slovan|spartak|trnava)/i;
+            const hockeyWords = /(hokej|hockey|nhl|iihf|extraliga|tipsport liga|slovenská hokejová|slovenska hokejova|česko|cesko|sparta|košice|kosice|slovan bratislava)/i;
+            const movieWords = /(film|filmy|movie|movies|kino|premiéra|premiera|box office|oscar|oscary|netflix|disney|hbo|max|prime video|trailer)/i;
+            const showbizWords = /(showbiz|celebrity|celebrita|herec|herečka|herecka|spevák|spevak|speváčka|spevacka|hudba|album|koncert|hollywood|taylor swift|beyoncé|beyonce|rihanna|drama)/i;
+            const politicsWords = /(politika|politický|politicky|vláda|vlada|parlament|prezident|voľby|volby|minister|strana|koalícia|koalicia|opozícia|opozicia|európska únia|europska unia|eu|nato|trump|fico|ukrajina|rusko|usa|americké voľby|americke volby)/i;
 
-            const parseDuckDuckGoHtml = html => {
-                const doc = new DOMParser().parseFromString(cleanHtml(html), 'text/html');
-                const results = [];
-                doc.querySelectorAll('.result').forEach(node => {
-                    const a = node.querySelector('.result__a');
-                    const snippet = node.querySelector('.result__snippet');
-                    if (!a) return;
-                    const title = stripTags(a.innerHTML || a.textContent);
-                    const uri = a.href || '';
-                    const text = stripTags(snippet?.innerHTML || snippet?.textContent || '');
-                    if (title && uri) results.push({ title, uri, text });
-                });
-                return results;
-            };
+            if (footballWords.test(lower)) {
+                addSearch(`"${q}" najbližší zápas súper výsledok termín`, ['premierleague.com','uefa.com','espn.com','flashscore.sk','sofascore.com']);
+                addSearch(`${q} fixtures results next match opponent`, ['manutd.com','bbc.com','skysports.com','espn.com']);
+            } else if (hockeyWords.test(lower)) {
+                addSearch(`"${q}" najbližší zápas súper výsledok termín`, ['nhl.com','flashscore.sk','sofascore.com','iihf.com']);
+                addSearch(`${q} fixtures results next game opponent`, ['nhl.com','hockeyslovakia.sk','sportnet.sme.sk','flashscore.sk']);
+            } else if (movieWords.test(lower)) {
+                addSearch(`"${q}" latest movie film release review 2026`, ['variety.com','deadline.com','hollywoodreporter.com','ew.com','imdb.com']);
+                addSearch(`${q} latest film news September 2026`, ['rottentomatoes.com','empireonline.com','moviefone.com']);
+            } else if (showbizWords.test(lower)) {
+                addSearch(`"${q}" latest celebrity entertainment news 2026`, ['variety.com','deadline.com','people.com','bbc.com']);
+                addSearch(`${q} latest showbiz entertainment news September 2026`, ['eonline.com','hollywoodreporter.com','ew.com']);
+            } else if (politicsWords.test(lower)) {
+                addSearch(`"${q}" latest politics news September 2026`, ['reuters.com','apnews.com','bbc.com','tasr.sk']);
+                addSearch(`${q} latest political news 2026`, ['euractiv.com','politico.eu','theguardian.com']);
+            } else {
+                addSearch(`"${q}" latest news 2026`, ['reuters.com','bbc.com','apnews.com']);
+                addSearch(`${q} current information 2026`);
+            }
 
-            const parseJinaText = text => {
-                const lines = String(text || '').split('\n').map(x => x.trim()).filter(Boolean);
+            // General fallback keeps the user's exact wording prominent.
+            addSearch(q);
+
+            const parseSearchText = raw => {
+                const text = String(raw || '').replace(/\r/g, '');
                 const results = [];
-                let current = null;
-                for (const line of lines) {
-                    if (/^https?:\/\//i.test(line)) {
-                        if (current) results.push(current);
-                        current = { title: line, uri: line, text: '' };
-                    } else if (current && line.length > 20) {
-                        current.text += (current.text ? ' ' : '') + line;
-                    }
+                const seen = new Set();
+
+                // Jina commonly returns Markdown links: [Title](URL) followed by snippets.
+                const mdRe = /\[([^\]]{3,240})\]\((https?:\/\/[^)\s]+)\)/g;
+                let m;
+                while ((m = mdRe.exec(text))) {
+                    const title = m[1].replace(/\s+/g, ' ').trim();
+                    const uri = m[2].trim();
+                    if (!title || !uri || seen.has(uri)) continue;
+                    seen.add(uri);
+                    const after = text.slice(m.index + m[0].length, m.index + m[0].length + 500)
+                        .replace(/\[[^\]]*\]\([^)]*\)/g, ' ')
+                        .replace(/\s+/g, ' ').trim();
+                    results.push({ title, uri, text: after });
                 }
-                if (current) results.push(current);
-                return results.slice(0, 8);
+
+                // Also support plain URL blocks returned by the proxy.
+                if (!results.length) {
+                    const lines = text.split('\n').map(x => x.trim()).filter(Boolean);
+                    let current = null;
+                    for (const line of lines) {
+                        const urlMatch = line.match(/https?:\/\/[^\s)]+/i);
+                        if (urlMatch) {
+                            if (current) results.push(current);
+                            current = { title: line.replace(urlMatch[0], '').replace(/^[-*•]\s*/, '').trim() || urlMatch[0], uri: urlMatch[0], text: '' };
+                        } else if (current && line.length > 20) {
+                            current.text += (current.text ? ' ' : '') + line.replace(/\[[^\]]*\]\([^)]*\)/g, ' ');
+                        }
+                    }
+                    if (current) results.push(current);
+                }
+
+                return results.slice(0, 12);
             };
 
-            for (let i = 0; i < candidates.length; i++) {
+            const all = [];
+            const seen = new Set();
+            for (const searchQuery of searches.slice(0, 5)) {
                 try {
-                    const res = await fetch(candidates[i], {
-                        method: 'GET',
-                        headers: { 'Accept': 'text/html,text/plain;q=0.9,*/*;q=0.8' }
-                    });
+                    const url = `https://r.jina.ai/http://www.google.com/search?q=${encodeURIComponent(searchQuery)}&hl=sk`;
+                    const res = await fetch(url, { method:'GET', headers:{'Accept':'text/plain'} });
                     if (!res.ok) continue;
                     const raw = await res.text();
-                    const parsed = i === 0 ? parseDuckDuckGoHtml(raw) : parseJinaText(raw);
-                    if (!parsed.length) continue;
-
-                    const useful = parsed.slice(0, 8);
-                    const lines = useful.map((r, idx) =>
-                        `Výsledok ${idx + 1}: ${r.title}\nURL: ${r.uri}${r.text ? `\nZhrnutie: ${r.text}` : ''}`
-                    );
-                    return {
-                        text: lines.join('\n\n').slice(0, 18000),
-                        sources: useful.map(r => ({ uri: r.uri, title: r.title }))
-                    };
-                } catch (e) {
-                    console.warn('External web search candidate failed:', e);
-                }
-            }
-
-            // Last lightweight fallback for factual/entity queries. This is not presented
-            // as full web search; it simply prevents the online mode from failing outright.
-            try {
-                const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*`;
-                const res = await fetch(wikiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
-                if (res.ok) {
-                    const data = await res.json();
-                    const hits = Array.isArray(data?.query?.search) ? data.query.search.slice(0, 5) : [];
-                    if (hits.length) {
-                        const sources = hits.map(h => ({
-                            uri: `https://en.wikipedia.org/wiki/${encodeURIComponent(String(h.title).replace(/ /g, '_'))}`,
-                            title: String(h.title)
-                        }));
-                        const text = hits.map((h, idx) => `Výsledok ${idx + 1}: ${h.title}\n${stripTags(h.snippet || '')}`).join('\n\n');
-                        return { text, sources };
+                    for (const item of parseSearchText(raw)) {
+                        if (seen.has(item.uri)) continue;
+                        seen.add(item.uri);
+                        all.push(item);
+                        if (all.length >= 18) break;
                     }
+                    if (all.length >= 12) break;
+                } catch (e) {
+                    console.warn('Targeted external search failed:', searchQuery, e);
                 }
-            } catch (e) {
-                console.warn('Wikipedia fallback failed:', e);
             }
 
-            throw new Error('ONLINE_SEARCH_UNAVAILABLE: Externé webové vyhľadávanie je momentálne nedostupné. Skús to znova o chvíľu.');
+            // Prefer sources whose URL/title matches the requested topic. This is
+            // especially important for fixtures: a generic fixture landing page is
+            // less useful than a result containing the actual opponent/date.
+            const topicTokens = lower.split(/[^a-z0-9áäčďéíľĺňóôŕšťúýž]+/i).filter(t => t.length >= 4);
+            all.sort((a,b) => {
+                const score = item => {
+                    const hay = `${item.title} ${item.text} ${item.uri}`.toLowerCase();
+                    let n = 0;
+                    topicTokens.forEach(t => { if (hay.includes(t)) n += 2; });
+                    if (/next|najbliž|fixtures|schedule|result|zápas|match|opponent|súper/i.test(hay)) n += 3;
+                    if (/premierleague\.com|uefa\.com|nhl\.com|iihf\.com|manutd\.com|reuters\.com|apnews\.com|bbc\.com|tasr\.sk|variety\.com|deadline\.com/i.test(hay)) n += 3;
+                    return n;
+                };
+                return score(b) - score(a);
+            });
+
+            const useful = all.slice(0, 10);
+            if (!useful.length) {
+                throw new Error('ONLINE_SEARCH_UNAVAILABLE: Nepodarilo sa získať externé webové výsledky. Skontroluj internetové pripojenie alebo dostupnosť vyhľadávacej služby.');
+            }
+
+            const lines = useful.map((r, idx) =>
+                `Výsledok ${idx + 1}: ${r.title}\nURL: ${r.uri}${r.text ? `\nÚryvok: ${r.text}` : ''}`
+            );
+            return {
+                text: `Dátum vyhľadávania: ${dateStr}\n\n${lines.join('\n\n')}`.slice(0, 24000),
+                sources: useful.map(r => ({ uri:r.uri, title:r.title }))
+            };
         }
 
         function extractGroundingSources(metadata) {
