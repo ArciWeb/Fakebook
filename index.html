@@ -707,10 +707,10 @@
 
 
             <div class="fs-section-title" onclick="toggleFsSection('fs-common-sec')">
-                <span>Spoloční priatelia</span> <span id="icon-fs-common-sec">▼</span>
+                <span id="lbl-fs-common-title"></span> <span id="icon-fs-common-sec">▼</span>
             </div>
             <div id="fs-common-sec" style="display:none; padding-bottom:12px;">
-                <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:8px;">Vyber priateľov, ktorých máte spoločných.</div>
+                <div id="lbl-fs-common-desc" style="font-size:.82rem;color:var(--text-muted);margin-bottom:8px;"></div>
                 <div id="fs-common-friends-container" style="display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto;"></div>
             </div>
 
@@ -1021,6 +1021,24 @@
                         </select>
                         <input type="number" id="my-profile-age" placeholder="" style="flex: 1; margin-bottom: 0;" onchange="saveMyDetails()">
                     </div>
+                </div>
+
+                <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="margin: 0 0 10px 0;" id="lbl-prof-media-title"></h4>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <label for="my-profile-photo-input" style="font-weight:600; font-size:.88rem;" id="lbl-my-profile-photo"></label>
+                        <input type="file" id="my-profile-photo-input" accept="image/png,image/jpeg" onchange="handleMyProfilePhotoUpload(this)">
+                        <button class="btn btn-secondary" type="button" onclick="removeMyProfilePhoto()" id="btn-my-profile-remove-photo"></button>
+                        <label for="my-profile-cover-input" style="font-weight:600; font-size:.88rem;" id="lbl-my-profile-cover"></label>
+                        <input type="file" id="my-profile-cover-input" accept="image/png,image/jpeg" onchange="handleMyProfileCoverUpload(this)">
+                        <button class="btn btn-secondary" type="button" onclick="removeMyProfileCover()" id="btn-my-profile-remove-cover"></button>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="margin: 0 0 10px 0;" id="lbl-my-status-title"></h4>
+                    <textarea id="my-status-input" rows="3" placeholder=""></textarea>
+                    <button class="btn btn-primary" type="button" onclick="createMyProfileStatus()" id="btn-my-status-publish"></button>
                 </div>
 
                 <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
@@ -1446,7 +1464,7 @@ async function geminiFetch(request) {
                 chance0: "Nepríde správa:", chance1: "Príde 1 správa:", chance2: "Príde 2 správy:", chance3: "Príde 3 správy:",
                 fsReplyChance: "Šanca na odpoveď (keď mu napíšete):", reply0: "Neodpovie (Ignor):", reply1: "1 správa:", reply2: "2 správy:", reply3: "3 správy:", reply4: "4 správy:",
                 fsGhostTitle: "Šanca, že sa pripomenie:", fsGhostLabel: "Po ignorácii:", fsEmojiTitle: "Používanie smajlíkov:",
-                fsEmojiNormal: "Normálne (😀)", fsEmojiText: "Textové (:D)", fsEmojiNone: "Žiadne", fsBlockLabel: "Zablokovať priateľa (Nebude možné si písať)", fsSave: "Uložiť nastavenia",
+                fsEmojiNormal: "Normálne (😀)", fsEmojiText: "Textové (:D)", fsEmojiNone: "Žiadne", fsBlockLabel: "Zablokovať priateľa (Nebude možné si písať)", fsSave: "Uložiť nastavenia", commonFriendsTitle: "Spoloční priatelia", commonFriendsDesc: "Vyberte priateľov, ktorých máte spoločných.", commonFriendsMore: "a {n} ďalší",
                 chatClear: "Vymazať konverzáciu", chatForget: "Zabudnúť staré témy (Čistý štít)", infoTitle: "Informácie a Návod",
                 createTitle: "Vytvoriť príspevok", createTextareaPlace: "Napíšte tému... (Ak necháte prázdne, vygeneruje sa náhodná téma alebo paródia o priateľovi!)", shiftTimeTitle: "O koľko sa posunie čas od predchádzajúcich udalostí?", shiftHours: "Hodiny", shiftDays: "Dni", shiftWeeks: "Týždne",
                 topicChoiceTitle: "Voľba témy (ak necháte pole vyššie prázdne)", postLengthTitle: "Dĺžka článku:", postLenShort: "Krátka", postLenMid: "Stredná", postLenLong: "Dlhá", realismTitle: "Reálnosť príspevku (1–10):", realismHint: "1 = úplne bláznivé · 3 = ako doteraz · 5 = trochu bláznivé, ale uveriteľné · 7 = skoro reálne · 10 = úplne reálne", countChoiceTitle: "Koľko článkov vygenerovať naraz?", btnPublishSubmit: "Publikovať",
@@ -1454,7 +1472,7 @@ async function geminiFetch(request) {
                 settingsInfo: "ℹ️ Informácie a Changelog", saveKey: "Uložiť kľúč", settingsLangThemeTitle: "Nastavenia Jazyka, Témy a Písma",
                 settingsLang: "Hlavný Jazyk systému a generovania (Language):", themeChoice: "Výber témy:", fontColorChoice: "Výber farby:",
                 fontSizeChoice: "Veľkosť písma:", fontFamilyChoice: "Typ písma (Font):", settingsMemory: "Povoliť pamäť histórie udalostí",
-                settingsDeleteAll: "Vymazať všetky články a údaje", profEditName: "Upraviť", profDetailsTitle: "Osobné údaje",
+                settingsDeleteAll: "Vymazať všetky články a údaje", profEditName: "Upraviť", profDetailsTitle: "Osobné údaje", profMediaTitle: "Fotka a pozadie profilu", myProfilePhotoLabel: "Profilová fotka", myProfileCoverLabel: "Fotka pozadia", myProfileRemovePhoto: "Odstrániť profilovú fotku", myProfileRemoveCover: "Odstrániť fotku pozadia", myStatusTitle: "Môj status", myStatusPlace: "Čo máte na mysli?", myStatusPublish: "Pridať status",
                 profTopicsTitle: "Moje obľúbené témy", profTopicsPrioritize: "Pri náhodnom generovaní uprednostniť výber z mojich obľúbených mien",
                 profAddTopic: "Pridať", backFeed: "← Späť na Fakebook", now: "Práve teraz", hoursAgo: "Pred {n} hodinami", daysAgo: "Pred {n} dňami",
                 weeksAgo: "Pred {n} týždňami", monthsAgo: "Pred {n} mesiacmi",
@@ -1481,7 +1499,7 @@ async function geminiFetch(request) {
                 infoGuideTitle: "Návod na použitie", infoGuideDesc: "<strong>Kľúč Gemini API:</strong> Pre správne fungovanie aplikácie Fakebook budete potrebovať vlastný API Key zo stránky Google AI Studio, ktorý vložíte v nastaveniach (🔑).<br><br><strong>Môj Profil:</strong> Nastavte si svoje vlastné MENO, VEK a POHLAVIE pre personalizovaný zážitok.<br><br><strong>Systém Priateľov (👥):</strong> Pridajte si priateľov zadaním ich mena, pohlavia a veku. Systém im automaticky vygeneruje unikátne VLASTNOSTI, OSOBNOSŤ, GRAMATIKU a SPRÁVANIE, podľa ktorých budú komunikovať. Všetky tieto atribúty môžete kedykoľvek UPRAVIŤ, zmeniť šancu na odpoveď či frekvenciu správ. Priateľom môžete priamo na plochu vygenerovať osobný STATUS, nechať ich ZDIEĽAŤ ľubovoľný článok, vytvoriť o nich bulvárny ČLÁNOK alebo si s nimi PÍSAŤ.<br><br><strong>Messenger (💬) & Autonómne správy:</strong> Priatelia vám môžu napísať aj sami od seba. Pri prechádzaní plochy a otváraní Messengera existuje dynamická šanca, že vám PRÍDE SPRÁVA. Ak nechcete čakať, <u>podržte tlačidlo Messengera na 3 sekundy</u> a správa dorazí okamžite. Priatelia si konverzácie PAMÄTAJÚ a plynule v nich pokračujú.<br><br><strong>Generovanie Článkov:</strong> Kliknite na vrchné pole pre tvorbu statusov. BUĎ napíšte vlastnú tému, ALEBO pole nechajte prázdne a systém vytvorí náhodný virálny príspevok. Môžete nastaviť časový posun, vybrať tému, určiť počet verzií a v review okne flexibilne UPRAVIŤ FOTKU (zmenou pomeru strán a promptu) či NÁZOV STRÁNKY.<br><br><strong>Vojny v komentároch & Algoritmus interakcií:</strong> Každý článok generuje množstvo živých KOMENTÁROV. Na príspevky môžete odpovedať, čím vyvoláte reálnu diskusiu. Existuje šanca, že vám od aktívneho komentujúceho príde ŽIADOSŤ O PRIATEĽSTVO. Tlačidlom <em>🤖 AI Troll Reakcia</em> vyvoláte okamžitú provokatívnu odpoveď na konkrétny komentár, alebo môžete spustiť masívnu <em>VOJNU KOMENTÁROV</em>. Články môžete zdieľať na svoj profil, mazať či generovať ich alternatívy.<br><br><strong>Nastavenia Obľúbených tém:</strong> V profile a nastaveniach priateľa pribudol explicitný popis pre kategóriu 'Obľúbené témy', vďaka čomu môžete lepšie korigovať algoritmus záujmov entít.<br><br><strong>💡 Núdzový Reset:</strong> V prípade akýchkoľvek problémov s prekrývaním okien <u>podržte 5 sekúnd hlavné logo FAKEBOOK</u> v ľavom hornom rohu pre tvrdý reset zobrazenia a tém.",
                 infoVerTitle: "Aktualizácia 4.01: Univerzálne online vyhľadávanie a práca na pozadí.", infoVerList: "<li><strong>Gemini namiesto Groq/Llama</strong>: hľadanie vhodného Gemini modelu pre generovanie článkov, statusov, komentárov a Messengeru; diagnostika API chýb, kvót a ochrana pred zbytočnými opakovaniami. Online vyhľadávanie používa Gemini 3.5 Flash-Lite iba na pochopenie otázky a overenie výsledkov; samotné dáta získava z viacerých externých webových zdrojov.</li><li><strong>Messenger a internetový režim</strong>: zelená bodka prepína „aktívny“ režim; online požiadavka je zámerne úplne oddelená od osobnosti a histórie a obsahuje iba aktuálnu správu + webové vyhľadávanie; výsledok sa uloží do trvalej webovej pamäte priateľa a zostane dostupný aj po vypnutí režimu.</li><li><strong>Univerzálne online vyhľadávanie</strong>: priateľ najprv použije svoj bežný offline kontext na pochopenie otázky, potom vytvorí plán vyhľadávania, paralelne skúsi viac webových zdrojov a pokračuje druhým kolom iba vtedy, keď prvé výsledky nestačia. Interný plán ani JSON sa používateľovi nezobrazujú.</li><li><strong>Vyhľadávanie na pozadí</strong>: ak sa vrátite z konverzácie, online hľadanie pokračuje; po návrate do chatu zostane zobrazené „Píše...“ alebo už hotová odpoveď.</li><li><strong>Messenger správy</strong>: klik na meno v hlavičke otvorí profil, dlhé podržanie správy ponúka kopírovanie a vymazanie konkrétnej správy.</li><li><strong>Priatelia a profily</strong>: priatelia a profily sú zobrazené na celej obrazovke; profil sa dá otvoriť aj kliknutím na meno; profilová fotka, fotka pozadia, popis osoby, spoločné kontakty a chronologická aktivita.</li><li><strong>Spoloční priatelia</strong>: výber spoločných priateľov v nastavení, zobrazenie počtu a prvých troch mien s možnosťou rozbaliť celý zoznam.</li><li><strong>Osobnosti priateľov v komentároch</strong>: komentujúci priatelia teraz používajú svoje skutočné nastavené profily, osobnosti, gramatiku, emoji štýl, vzťahy a popis osoby; pri statusoch majú spoloční priatelia výraznú prioritu.</li><li><strong>Generovanie článkov</strong>: „Voľba témy“, krátka/stredná/dlhá dĺžka, reálnosť 1–10, automatický výber vhodného názvu stránky z poolu alebo kontextovo generovaného názvu a náhodný počet 1–7 komentárov.</li><li><strong>Statusy priateľov</strong>: reálnosť 1–10, náhodný počet 0–6 komentárov a dôraz na úplne nové statusy; staršie statusy sú iba osobná kontinuita, nie témy na opakovanie.</li><li><strong>Komentovanie a zdieľanie</strong>: nastaviteľná šanca komentovania každého priateľa, vyššia priorita spoločných priateľov pri statusoch, maximálne jedno automatické zdieľanie článku s krátkym názorom a bez duplicitného pôvodného príspevku.</li><li><strong>AI diskusie</strong>: ploché vlákna, pochopenie hlavnej pointy článku, zachovanie ustálených názorov a prirodzenejšie pokračovanie debaty.</li><li><strong>Profily a navigácia</strong>: chronologické statusy, zdieľania a komentované články; otvorenie celej publikácie s komentármi a návrat späť na pôvodný profil.</li><li><strong>Vzhľad</strong>: väčšie popupy tam, kde zostávajú, full-screen priatelia a profily, profilové fotografie a pozadia a ďalšie drobné opravy použiteľnosti.</li>",
                 msgTitleForce: "Vynucujem správu od:", msgAlertForce: "Prišla nová správa od užívateľa", keyInputAlert: "Prosím, vložte najprv API kľúč.", activeFriendsAlert: "Nemáte žiadnych aktívnych priateľov.",
-                statusViewProfile: "Zobrazenie z profilu", statusFullFeedOnly: "Zobrazenie detailu článku je aktívne len z hlavnej plochy.", profileNoPosts: "Zatiaľ tu nie sú žiadne príspevky.", profileActivityOf: "Príspevky, statusy a aktivita používateľa", profileCommentedOn: "komentoval príspevok stránky", profileSharedArticle: "zdieľal príspevok", profileStatusLabel: "Status", profileOpenFullActivity: "Otvoriť celý príspevok a komentáre", profileDescriptionLabel: "Popis osoby", profileDescriptionPlace: "Krátky popis osoby...", profilePhotoLabel: "Profilová fotka", profilePhotoChoose: "Vybrať PNG/JPG", profilePhotoRemove: "Odstrániť fotku",
+                statusViewProfile: "Zobrazenie z profilu", statusFullFeedOnly: "Zobrazenie detailu článku je aktívne len z hlavnej plochy.", profileNoPosts: "Zatiaľ tu nie sú žiadne príspevky.", profileActivityOf: "Príspevky, statusy a aktivita používateľa", profileCommentedOn: "komentoval príspevok stránky", profileSharedArticle: "zdieľal príspevok", profileStatusLabel: "Status", profileLikedArticle: "Páči sa mi príspevok", profileActivityTime: "Aktivita", profileOpenFullActivity: "Otvoriť celý príspevok a komentáre", profileDescriptionLabel: "Popis osoby", profileDescriptionPlace: "Krátky popis osoby...", profilePhotoLabel: "Profilová fotka", profilePhotoChoose: "Vybrať PNG/JPG", profilePhotoRemove: "Odstrániť fotku",
                 targetStatusPlaceholder: "Vytvárate osobný status pre: {name}. Zadajte tému...", statusLengthTitle: "Dĺžka statusu priateľa:", statusLenShort: "Krátky (1-3 vety)", statusLenMid: "Stredný (3-8 viet)", statusLenLong: "Dlhý (8-15 viet)",
                 slotTitle: "Uložené profily (Sloty)", slotBtnSave: "💾 Uložiť", slotBtnLoad: "📂 Načítať", textStatusNoMsgs: "Zatiaľ žiadne správy", textStatusYou: "Ty: ", textStatusChatWithBlocked: "Zablokovaný",
                 randomTopicSelectDefault: "-- Zvoliť náhodne podľa nastavení profilu --", postReviewTitle: "Príspevok", postReviewStatus: "Status",
@@ -1504,7 +1522,7 @@ async function geminiFetch(request) {
                 chance0: "No message:", chance1: "1 message:", chance2: "2 messages:", chance3: "3 messages:",
                 fsReplyChance: "Reply chance (when you write to them):", reply0: "No reply (Ignore):", reply1: "1 message:", reply2: "2 messages:", reply3: "3 messages:", reply4: "4 messages:",
                 fsGhostTitle: "Chance to self-remind:", fsGhostLabel: "After being ignored:", fsEmojiTitle: "Emoji Style:",
-                fsEmojiNormal: "Normal (😀)", fsEmojiText: "Text-based (:D)", fsEmojiNone: "None", fsBlockLabel: "Block friend (No messaging allowed)", fsSave: "Save Settings",
+                fsEmojiNormal: "Normal (😀)", fsEmojiText: "Text-based (:D)", fsEmojiNone: "None", fsBlockLabel: "Block friend (No messaging allowed)", fsSave: "Save Settings", commonFriendsTitle: "Mutual friends", commonFriendsDesc: "Choose friends you have in common.", commonFriendsMore: "and {n} more",
                 chatClear: "Clear Conversation", chatForget: "Forget Old Topics (Fresh Start)", infoTitle: "Information & Guide",
                 createTitle: "Create Post", createTextareaPlace: "Write a topic... (If left empty, a random topic or a friend parody will be generated!)", shiftTimeTitle: "How much should time shift from previous events?", shiftHours: "Hours", shiftDays: "Days", shiftWeeks: "Weeks",
                 topicChoiceTitle: "Topic Selection (if text field is left empty)", postLengthTitle: "Article length:", postLenShort: "Short", postLenMid: "Medium", postLenLong: "Long", realismTitle: "Post realism (1–10):", realismHint: "1 = completely crazy · 3 = current level · 5 = slightly crazy but believable · 7 = nearly real · 10 = fully real", countChoiceTitle: "How many articles to generate at once?", btnPublishSubmit: "Publish",
@@ -1512,7 +1530,7 @@ async function geminiFetch(request) {
                 settingsInfo: "ℹ️ Information & Changelog", saveKey: "Save Key", settingsLangThemeTitle: "Language, Theme & Font Settings",
                 settingsLang: "System & Generation Language:", themeChoice: "Select Theme:", fontColorChoice: "Select Color:",
                 fontSizeChoice: "Font Size:", fontFamilyChoice: "Font Family:", settingsMemory: "Enable Event History Memory",
-                settingsDeleteAll: "Wipe All Articles & Data", profEditName: "Edit", profDetailsTitle: "Personal Details",
+                settingsDeleteAll: "Wipe All Articles & Data", profEditName: "Edit", profDetailsTitle: "Personal Details", profMediaTitle: "Profile photo & cover", myProfilePhotoLabel: "Profile photo", myProfileCoverLabel: "Cover photo", myProfileRemovePhoto: "Remove profile photo", myProfileRemoveCover: "Remove cover photo", myStatusTitle: "My status", myStatusPlace: "What's on your mind?", myStatusPublish: "Post status",
                 profTopicsTitle: "My Favorite Topics", profTopicsPrioritize: "Prioritize my favorite topics during random generation",
                 profAddTopic: "Add", backFeed: "← Back to Feed", now: "Just now", hoursAgo: "{n} hours ago", daysAgo: "{n} days ago",
                 weeksAgo: "{n} weeks ago", monthsAgo: "{n} months ago",
@@ -1542,7 +1560,7 @@ async function geminiFetch(request) {
                 msgTitleForce: "Forcing message from:", msgAlertForce: "New message received from", keyInputAlert: "Please enter your API key first.", activeFriendsAlert: "You have no active friends.",
                 targetStatusPlaceholder: "Creating personal status for: {name}. Set topic...", statusLengthTitle: "Friend status length:", statusLenShort: "Short (1-3 sentences)", statusLenMid: "Medium (3-8 sentences)", statusLenLong: "Long (8-15 sentences)",
                 slotTitle: "Saved Slots", slotBtnSave: "Sačuvaj", slotBtnLoad: "Učitaj", textStatusNoMsgs: "No messages yet", textStatusYou: "You: ", textStatusChatWithBlocked: "Blocked",
-                statusViewProfile: "View from profile", statusFullFeedOnly: "Full article view is available only from the main feed.", profileNoPosts: "No posts yet.", profileActivityOf: "Posts, statuses and activity of", profileCommentedOn: "commented on a post by page", profileSharedArticle: "shared a post", profileStatusLabel: "Status", profileOpenFullActivity: "Open full post and comments", profileDescriptionLabel: "Person description", profileDescriptionPlace: "Short description of this person...", profilePhotoLabel: "Profile photo", profilePhotoChoose: "Choose PNG/JPG", profilePhotoRemove: "Remove photo", randomTopicSelectDefault: "-- Choose randomly from profile interests --", postReviewTitle: "Post", postReviewStatus: "Status",
+                statusViewProfile: "View from profile", statusFullFeedOnly: "Full article view is available only from the main feed.", profileNoPosts: "No posts yet.", profileActivityOf: "Posts, statuses and activity of", profileCommentedOn: "commented on a post by page", profileSharedArticle: "shared a post", profileStatusLabel: "Status", profileLikedArticle: "Liked a post", profileActivityTime: "Activity", profileOpenFullActivity: "Open full post and comments", profileDescriptionLabel: "Person description", profileDescriptionPlace: "Short description of this person...", profilePhotoLabel: "Profile photo", profilePhotoChoose: "Choose PNG/JPG", profilePhotoRemove: "Remove photo", randomTopicSelectDefault: "-- Choose randomly from profile interests --", postReviewTitle: "Post", postReviewStatus: "Status",
                 loadingTextStatusChat: "Processing background chat queues...", pwaInstallPrompt: "📱 Do you want to pin the Fakebook app to your home screen?", lblSecTopics: "Friend Favorite Topics",
                 privateProfileText: "This profile is private.", sendFriendRequestBtn: "Send Friend Request", friendRequestSentAlert: "Friend request sent.", friendRequestAcceptedAlert: "User accepted your friend request!", friendRequestRejectedAlert: "User declined your friend request.", friendDeleteConfirmText: "Are you sure you want to delete this friend? This action cannot be undone."
             },
@@ -1562,7 +1580,7 @@ async function geminiFetch(request) {
                 chance0: "Ne stiže poruka:", chance1: "Stiže 1 poruka:", chance2: "Stižu 2 poruke:", chance3: "Stižu 3 poruke:",
                 fsReplyChance: "Šansa za odgovor (kada mu pišete):", reply0: "Ne odgovara (Ignor):", reply1: "1 poruka:", reply2: "2 poruke:", reply3: "3 poruke:", reply4: "4 poruke:",
                 fsGhostTitle: "Šansa da se sam podseti:", fsGhostLabel: "Nakon ignorisanja:", fsEmojiTitle: "Korišćenje smajlija:",
-                fsEmojiNormal: "Normalno (😀)", fsEmojiText: "Tekstualni (:D)", fsEmojiNone: "Nikakvi", fsBlockLabel: "Blokiraj prijatelja (Dopisivanje neće biti moguće)", fsSave: "Sačuvaj podešavanja",
+                fsEmojiNormal: "Normalno (😀)", fsEmojiText: "Tekstualni (:D)", fsEmojiNone: "Nikakvi", fsBlockLabel: "Blokiraj prijatelja (Dopisivanje neće biti moguće)", fsSave: "Sačuvaj podešavanja", commonFriendsTitle: "Zajednički prijatelji", commonFriendsDesc: "Izaberite prijatelje koje imate zajedničke.", commonFriendsMore: "i još {n}",
                 chatClear: "Obriši konverzaciju", chatForget: "Zaboravi stare teme (Čist list)", infoTitle: "Informacije i Uputstvo",
                 createTitle: "Kreiraj objavu", createTextareaPlace: "Napišite temu...", shiftTimeTitle: "Za koliko se pomera vreme od prethodnih događaja?", shiftHours: "Sati", shiftDays: "Dana", shiftWeeks: "Nedelja",
                 topicChoiceTitle: "Izbor teme (ako ostavite polje iznad prazno)", postLengthTitle: "Dužina članka:", postLenShort: "Kratka", postLenMid: "Srednja", postLenLong: "Duga", realismTitle: "Realnost objave (1–10):", realismHint: "1 = potpuno ludo · 3 = sadašnji nivo · 5 = malo ludo ali uverljivo · 7 = skoro stvarno · 10 = potpuno stvarno", countChoiceTitle: "Koliko članaka generisati odjednom?", btnPublishSubmit: "Objavi",
@@ -1570,7 +1588,7 @@ async function geminiFetch(request) {
                 settingsInfo: "ℹ️ Informacije i Changelog", saveKey: "Sačuvaj ključ", settingsLangThemeTitle: "Podešavanja jezika, teme i fonta",
                 settingsLang: "Glavni jezik sistema i generisanja:", themeChoice: "Izbor teme:", fontColorChoice: "Izbor boje:",
                 fontSizeChoice: "Veličina fonta:", fontFamilyChoice: "Tip fonta:", settingsMemory: "Omogući memoriju istorije događaja",
-                settingsDeleteAll: "Obriši sve članke i podatke", profEditName: "Izmeni", profDetailsTitle: "Lični podaci",
+                settingsDeleteAll: "Obriši sve članke i podatke", profEditName: "Izmeni", profDetailsTitle: "Lični podaci", profMediaTitle: "Profilna fotografija i pozadina", myProfilePhotoLabel: "Profilna fotografija", myProfileCoverLabel: "Fotografija pozadine", myProfileRemovePhoto: "Ukloni profilnu fotografiju", myProfileRemoveCover: "Ukloni fotografiju pozadine", myStatusTitle: "Moj status", myStatusPlace: "O čemu razmišljate?", myStatusPublish: "Objavi status",
                 profTopicsTitle: "Moje omiljene teme", profTopicsPrioritize: "Kod nasumičnog generisanja daj prioritet mojim omiljenim temama",
                 profAddTopic: "Dodaj", backFeed: "← Nazad na Fakebook", now: "Upravo sada", hoursAgo: "Pre {n} sati", daysAgo: "Pre {n} dana",
                 weeksAgo: "Pre {n} nedelja", monthsAgo: "Pre {n} meseci",
@@ -1582,7 +1600,7 @@ async function geminiFetch(request) {
                 friendPermanentSuccess: "Korisnik {name} je dodat na listu vaših stalnih prijatelja!", validationKeyError: "Gemini API greška — pogledajte tačnu dijagnostiku ispod forme.",
                 blockedStatusText: "Blokiran", textTyping: "Piše...", textTypingBase: "Piše", textWebSearching: "🔎 Pretražujem internet...", webActiveLabel: "aktivan", webOnTitle: "Internet je aktivan — kliknite da ga isključite", webOffTitle: "Internet je isključen — kliknite da ga uključite", textNewMessagesDivider: "Nove poruke", textFriendRequestText: "sa kojim diskutujete u komentarima, poslao vam je zahtev za prijateljstvo kako biste nastavili razgovor u Mesindžeru!",
                 textPublisherSelectLabel: "Podešavanje izdavača objave:", textDefaultPoolOption: "Podrazumevani skup stranica", textContextNameOption: "Kontekstualno generisani naziv", textCustomNameOption: "Sopstveni unikatni naziv stranice",
-                textAdjustCanvasLabel: "Podesite razmeru prevlačenjem okvira:", textPostTitleLabel: "Objava", textPostStatusLabel: "Status", textCommentsHeader: "Kometari", viewMoreCommentsLabel: "Prikaži još komentara", aiReplyLabel: "Odgovor", aiTrollLabel: "AI Troll reakcija",
+                textAdjustCanvasLabel: "Podesite razmeru prevlačenjem okvira:", textPostTitleLabel: "Objava", textPostStatusLabel: "Status", textCommentsHeader: "Komentari", viewMoreCommentsLabel: "Prikaži još komentara", aiReplyLabel: "Odgovor", aiTrollLabel: "AI Troll reakcija",
                 viewChangelog: "Prikaži kompletan Changelog", optThemeLight: "Klasično svetla", optThemeDark: "Tamni režim", optThemeBlue: "Plava pozadina", optThemeRed: "Crvena pozadina",
                 optThemeSilver: "Premium Srebrna", optThemeDiamond: "Premium Dijamantska", optThemeGold: "Premium Zlatna", optThemeNeon: "Premium Neon", optThemeEmerald: "Premium Smaragd", optThemeSapphire: "Premium Safir", optThemeRuby: "Premium Rubin",
                 optFcolorBlack: "Crna", optFcolorWhite: "Bela", optFcolorYellow: "Žuta", optFcolorRed: "Crvena", optFcolorBlue: "Plava", optFcolorSilver: "Srebrna", optFcolorGold: "Zlatna",
@@ -1600,7 +1618,7 @@ async function geminiFetch(request) {
                 msgTitleForce: "Prisiljavam poruku od:", msgAlertForce: "Stigla je nova poruka od korisnika", keyInputAlert: "Molimo vas da prvo unesete API ključ.", activeFriendsAlert: "Nemate nijednog aktivnog prijatelja.",
                 targetStatusPlaceholder: "Kreirate lični status za: {name}. Unesite temu...", statusLengthTitle: "Dužina statusa prijatelja:", statusLenShort: "Kratak (1-3 rečenice)", statusLenMid: "Srednji (3-8 rečenica)", statusLenLong: "Dugačak (8-15 rečenica)",
                 slotTitle: "Sačuvani profili (Slotovi)", slotBtnSave: "Sačuvaj", slotBtnLoad: "Učitaj", textStatusNoMsgs: "Još uvek nema poruka", textStatusYou: "Ti: ", textStatusChatWithBlocked: "Blokiran",
-                statusViewProfile: "Prikaz sa profila", statusFullFeedOnly: "Detaljan prikaz članka je dostupan samo sa glavnog feeda.", profileNoPosts: "Još nema objava.", profileActivityOf: "Objave, statusi i aktivnost korisnika", profileCommentedOn: "komentarisao je objavu stranice", profileSharedArticle: "podelio je objavu", profileStatusLabel: "Status", profileOpenFullActivity: "Otvoriti celu objavu i komentare", profileDescriptionLabel: "Opis osobe", profileDescriptionPlace: "Kratak opis osobe...", profilePhotoLabel: "Profilna fotografija", profilePhotoChoose: "Izaberi PNG/JPG", profilePhotoRemove: "Ukloni fotografiju", randomTopicSelectDefault: "-- Izabrati nasumično prema podešavanjima profila --", postReviewTitle: "Objava", postReviewStatus: "Status",
+                statusViewProfile: "Prikaz sa profila", statusFullFeedOnly: "Detaljan prikaz članka je dostupan samo sa glavnog feeda.", profileNoPosts: "Još nema objava.", profileActivityOf: "Objave, statusi i aktivnost korisnika", profileCommentedOn: "komentarisao je objavu stranice", profileSharedArticle: "podelio je objavu", profileStatusLabel: "Status", profileLikedArticle: "Sviđa mi se objava", profileActivityTime: "Aktivnost", profileOpenFullActivity: "Otvoriti celu objavu i komentare", profileDescriptionLabel: "Opis osobe", profileDescriptionPlace: "Kratak opis osobe...", profilePhotoLabel: "Profilna fotografija", profilePhotoChoose: "Izaberi PNG/JPG", profilePhotoRemove: "Ukloni fotografiju", randomTopicSelectDefault: "-- Izabrati nasumično prema podešavanjima profila --", postReviewTitle: "Objava", postReviewStatus: "Status",
                 loadingTextStatusChat: "Obrađujem poruke u pozadini...", pwaInstallPrompt: "📱 Želite li da instalirate aplikaciju Fakebook na početni ekran?", lblSecTopics: "Omiljene teme prijatelja",
                 privateProfileText: "Ovaj profil je privatan.", sendFriendRequestBtn: "Pošalji zahtev za prijateljstvo", friendRequestSentAlert: "Zahtev poslat.", friendRequestAcceptedAlert: "Korisnik je prihvatio zahtev!", friendRequestRejectedAlert: "Korisnik je odbio zahtev.", friendDeleteConfirmText: "Da li ste sigurni da želite da obrišete ovog prijatelja? Ova akcija se ne može poništiti."
             }
@@ -2094,6 +2112,8 @@ function applyThemeAndFont() {
             document.getElementById('opt-emoji-none').innerText = pack.fsEmojiNone;
             document.getElementById('lbl-fs-block-label').innerText = pack.fsBlockLabel;
             document.getElementById('btn-fs-save').innerText = pack.fsSave;
+            const commonTitleEl=document.getElementById('lbl-fs-common-title'); if(commonTitleEl) commonTitleEl.innerText=pack.commonFriendsTitle;
+            const commonDescEl=document.getElementById('lbl-fs-common-desc'); if(commonDescEl) commonDescEl.innerText=pack.commonFriendsDesc;
             document.getElementById('btn-chat-clear').innerText = pack.chatClear;
             document.getElementById('btn-chat-forget').innerText = pack.chatForget;
             document.getElementById('lbl-info-title').innerText = pack.infoTitle;
@@ -2128,6 +2148,14 @@ function applyThemeAndFont() {
             document.getElementById('btn-settings-deleteall').innerText = pack.settingsDeleteAll;
             document.getElementById('btn-profile-editname').innerText = pack.profEditName;
             document.getElementById('lbl-prof-details-title').innerText = pack.profDetailsTitle;
+            const profMediaTitle=document.getElementById('lbl-prof-media-title'); if(profMediaTitle) profMediaTitle.innerText=pack.profMediaTitle;
+            const myPhotoLbl=document.getElementById('lbl-my-profile-photo'); if(myPhotoLbl) myPhotoLbl.innerText=pack.myProfilePhotoLabel;
+            const myCoverLbl=document.getElementById('lbl-my-profile-cover'); if(myCoverLbl) myCoverLbl.innerText=pack.myProfileCoverLabel;
+            const myPhotoRemove=document.getElementById('btn-my-profile-remove-photo'); if(myPhotoRemove) myPhotoRemove.innerText=pack.myProfileRemovePhoto;
+            const myCoverRemove=document.getElementById('btn-my-profile-remove-cover'); if(myCoverRemove) myCoverRemove.innerText=pack.myProfileRemoveCover;
+            const myStatusTitle=document.getElementById('lbl-my-status-title'); if(myStatusTitle) myStatusTitle.innerText=pack.myStatusTitle;
+            const myStatusInput=document.getElementById('my-status-input'); if(myStatusInput) myStatusInput.placeholder=pack.myStatusPlace;
+            const myStatusPublish=document.getElementById('btn-my-status-publish'); if(myStatusPublish) myStatusPublish.innerText=pack.myStatusPublish;
             document.getElementById('lbl-prof-topics-title').innerText = pack.profTopicsTitle;
             document.getElementById('lbl-prof-topics-prioritize').innerText = pack.profTopicsPrioritize;
             document.getElementById('btn-prof-add-topic').innerText = pack.profAddTopic;
@@ -2284,7 +2312,8 @@ function applyThemeAndFont() {
                 if(slot.posts) {
                     slot.posts.forEach(post => {
                         if(post.likes === undefined) post.likes = Math.floor(Math.random() * 800) + 12;
-                        if(post.comments) post.comments = sanitizeComments(post.comments);
+                        if(post.createdAt === undefined) post.createdAt = Number(post.sharedAt || post.likedAt || slot.createdAt || 0) || 0;
+                        if(post.comments) { post.comments = sanitizeComments(post.comments); const stamp=post.createdAt||slot.createdAt||slot.timestamp||Date.now(); const stampMissing=a=>(a||[]).forEach(c=>{ if(c && !c.timestamp) c.timestamp=stamp; stampMissing(c.replies); }); stampMissing(post.comments); }
                     });
                 }
             });
@@ -2311,6 +2340,73 @@ function applyThemeAndFont() {
             if(r < 0.5) return 'Nemá záujem'; if(r < 0.7) return 'Jemný flirt'; if(r < 0.9) return 'Balamutí'; if(r < 0.95) return 'Štartuje'; return 'Nadržaná/ý';
         }
 
+        function getMyProfilePhoto(){ return localStorage.getItem('fb_user_profile_photo') || ''; }
+        function getMyProfileCover(){ return localStorage.getItem('fb_user_profile_cover') || ''; }
+        function applyMyProfileMediaUI(){
+            const photo=getMyProfilePhoto(); const cover=getMyProfileCover();
+            const mainAv=document.getElementById('current-user-avatar');
+            const profAv=document.getElementById('profile-avatar-large');
+            const initial=currentUsername.trim().substring(0,2).toUpperCase() || 'JA';
+            const avColor=generateColor(currentUsername);
+            [mainAv,profAv].forEach(el=>{
+                if(!el)return; el.style.backgroundColor=avColor; el.style.backgroundImage=photo?`url("${photo}")`:'none'; el.style.backgroundSize='cover'; el.style.backgroundPosition='center'; el.innerText=photo?'':initial;
+            });
+            const coverEl=document.getElementById('profile-cover-image');
+            if(coverEl){ coverEl.style.backgroundImage=cover?`url("${cover}")`:''; coverEl.classList.toggle('has-image',!!cover); }
+        }
+        function handleMyProfilePhotoUpload(input){
+            const file=input?.files?.[0]; if(!file)return; const reader=new FileReader();
+            reader.onload=e=>{ localStorage.setItem('fb_user_profile_photo',e.target.result); applyMyProfileMediaUI(); saveFriendsData(); }; reader.readAsDataURL(file);
+        }
+        function removeMyProfilePhoto(){ localStorage.removeItem('fb_user_profile_photo'); const i=document.getElementById('my-profile-photo-input'); if(i)i.value=''; applyMyProfileMediaUI(); }
+        function handleMyProfileCoverUpload(input){
+            const file=input?.files?.[0]; if(!file)return; const reader=new FileReader();
+            reader.onload=e=>{ localStorage.setItem('fb_user_profile_cover',e.target.result); applyMyProfileMediaUI(); }; reader.readAsDataURL(file);
+        }
+        function removeMyProfileCover(){ localStorage.removeItem('fb_user_profile_cover'); const i=document.getElementById('my-profile-cover-input'); if(i)i.value=''; applyMyProfileMediaUI(); }
+
+        function normalizeProfileActivityTimestamp(ts, fallbackIndex=0){
+            const n=Number(ts)||0;
+            if(n>100000000000) return n;
+            const globalTime=Number(localStorage.getItem('fb_global_time')||0);
+            if(globalTime>0 && n>=0) return Date.now()-Math.max(0,globalTime-n)*60000;
+            return Date.now()-Math.max(0,fallbackIndex)*3600000;
+        }
+        function formatProfileActivityTime(ts, fallbackIndex=0){
+            const ms=normalizeProfileActivityTimestamp(ts,fallbackIndex);
+            const diff=Math.max(0,Date.now()-ms);
+            const minutes=Math.floor(diff/60000);
+            return formatAge(minutes);
+        }
+        function latestUserCommentTimestamp(comments){
+            let latest=0;
+            const walk=arr=>(Array.isArray(arr)||[]).forEach(c=>{ if(!c)return; if(String(c.username||'').toLowerCase()===String(currentUsername||'').toLowerCase()) latest=Math.max(latest,Number(c.timestamp)||0); walk(c.replies); });
+            walk(comments); return latest;
+        }
+        function buildMyProfileActivity(){
+            const activities=[]; const seen=new Set(); const me=String(currentUsername||'').toLowerCase();
+            sharedPosts.forEach((post,i)=>{ const ts=post.profileSharedAt||post.sharedAt||post.createdAt||0; activities.push({post,sIdx:null,pIdx:null,isSharedOnly:true,isUserShare:true,activityTimestamp:ts,activityLabel:'shared',fallbackIndex:i}); });
+            feedData.forEach((slot,sIdx)=>{
+                (slot?.posts||[]).forEach((post,pIdx)=>{
+                    const author=String(post.author_name||'').toLowerCase();
+                    if(post.isUserStatus && author===me){ activities.push({post,sIdx,pIdx,isStatus:true,isUserStatus:true,activityTimestamp:post.createdAt||slot.createdAt||slot.timestamp||0,activityLabel:'status',fallbackIndex:activities.length}); }
+                    const cts=latestUserCommentTimestamp(post.comments);
+                    if(cts){ const key=`comment|${sIdx}|${pIdx}|${cts}`; if(!seen.has(key)){seen.add(key); activities.push({post,sIdx,pIdx,isCommentedOnly:true,isUserComment:true,activityTimestamp:cts,activityLabel:'comment',fallbackIndex:activities.length});} }
+                    if(post.hasLiked){ activities.push({post,sIdx,pIdx,isLiked:true,activityTimestamp:post.likedAt||post.createdAt||slot.createdAt||slot.timestamp||0,activityLabel:'like',fallbackIndex:activities.length}); }
+                });
+            });
+            activities.sort((a,b)=>normalizeProfileActivityTimestamp(b.activityTimestamp,b.fallbackIndex)-normalizeProfileActivityTimestamp(a.activityTimestamp,a.fallbackIndex));
+            return activities;
+        }
+
+        function createMyProfileStatus(){
+            const input=document.getElementById('my-status-input'); const text=String(input?.value||'').trim();
+            if(!text)return;
+            const now=Date.now();
+            const slot={scenario:'User status',timestamp:now,createdAt:now,posts:[{id:`user-status-${now}-${Math.random().toString(36).slice(2,7)}`,author_name:currentUsername,title:'',content:[text],image_url:'',image_prompt:'',comments:[],likes:0,hasLiked:false,isUserStatus:true,createdAt:now}]};
+            feedData.push(slot); saveToLocalStorage(); if(input)input.value=''; renderGrid(); openProfile();
+        }
+
         function updateUserAvatarsUI() {
             const initial = currentUsername.trim().substring(0, 2).toUpperCase() || "JA";
             const avColor = generateColor(currentUsername);
@@ -2318,6 +2414,7 @@ function applyThemeAndFont() {
             if(mainAv) { mainAv.innerText = initial; mainAv.style.backgroundColor = avColor; }
             const profAv = document.getElementById('profile-avatar-large');
             if(profAv) { profAv.innerText = initial; profAv.style.backgroundColor = avColor; }
+            applyMyProfileMediaUI();
             updateUserAvatarsTextUI();
         }
 
@@ -2938,7 +3035,10 @@ function applyThemeAndFont() {
                     const sourceSIdx = activity.sIdx;
                     const sourcePIdx = activity.pIdx;
                     card.style.cursor = 'pointer';
-                    card.innerHTML = `<div style="padding:12px 14px; background:var(--bg-card); color:var(--global-font-color); font-size:.9rem; line-height:1.4;" onclick="openProfileActivityArticle(${sourceSIdx},${sourcePIdx})"><strong>${activity.friendName}</strong> ${UI_TEXTS[appLanguage].profileCommentedOn} <strong>${post.author_name || 'Anonymous'}</strong>${post.title ? ` — <span style="color:var(--text-muted);">${post.title}</span>` : ''}</div>`;
+                    const who = activity.isUserComment ? currentUsername : activity.friendName;
+                    const time = formatProfileActivityTime(activity.activityTimestamp, activity.fallbackIndex);
+                    const label = activity.isUserComment ? UI_TEXTS[appLanguage].profileCommentedOn : UI_TEXTS[appLanguage].profileCommentedOn;
+                    card.innerHTML = `<div style="padding:12px 14px; background:var(--bg-card); color:var(--global-font-color); font-size:.9rem; line-height:1.4;" onclick="openProfileActivityArticle(${sourceSIdx},${sourcePIdx})"><strong>${escapeHtml(who||currentUsername)}</strong> ${label} <strong>${escapeHtml(post.author_name || 'Anonymous')}</strong>${post.title ? ` — <span style="color:var(--text-muted);">${escapeHtml(post.title)}</span>` : ''}<div class="author-time" style="margin-top:4px;">${time}</div></div>`;
                     container.appendChild(card);
                     return;
                 }
@@ -2964,10 +3064,14 @@ function applyThemeAndFont() {
                     prefixHtml = `<div style="padding: 8px 16px; font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color); background: var(--bg-input); color: var(--global-font-color);">${activity.friendName} ${UI_TEXTS[appLanguage].profileSharedArticle}</div>`;
                 } else if(activity.isStatus) {
                     prefixHtml = `<div style="padding: 8px 16px; font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color); background: var(--bg-input); color: var(--global-font-color);">${UI_TEXTS[appLanguage].profileStatusLabel}</div>`;
+                } else if(activity.isLiked) {
+                    prefixHtml = `<div style="padding: 8px 16px; font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color); background: var(--bg-input); color: var(--global-font-color);">👍 ${UI_TEXTS[appLanguage].profileLikedArticle}</div>`;
+                } else if(activity.isUserShare) {
+                    prefixHtml = `<div style="padding: 8px 16px; font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color); background: var(--bg-input); color: var(--global-font-color);">↗ ${UI_TEXTS[appLanguage].profileSharedArticle}</div>`;
                 }
 
-                const openFullActivityHtml = (activity.isStatus || activity.isSharedOnly)
-                    ? `<div style="padding:9px 14px; border-top:1px solid var(--border-color); color:var(--fb-blue); font-weight:700; font-size:.86rem; cursor:pointer;" onclick="event.stopPropagation(); openProfileActivityArticle(${activity.sIdx},${activity.pIdx})">${UI_TEXTS[appLanguage].profileOpenFullActivity || 'Otvoriť celý príspevok a komentáre'} →</div>`
+                const openFullActivityHtml = (activity.sIdx !== null && activity.sIdx !== undefined && (activity.isStatus || activity.isSharedOnly || activity.isLiked || activity.isUserComment))
+                    ? `<div style="padding:9px 14px; border-top:1px solid var(--border-color); color:var(--fb-blue); font-weight:700; font-size:.86rem; cursor:pointer;" onclick="event.stopPropagation(); openProfileActivityArticle(${activity.sIdx},${activity.pIdx})">${UI_TEXTS[appLanguage].profileOpenFullActivity} →</div>`
                     : '';
 
                 card.innerHTML = `
@@ -2977,7 +3081,7 @@ function applyThemeAndFont() {
                             <div class="avatar" style="background-color: ${avColor}">${post.author_name ? post.author_name.charAt(0).toUpperCase() : 'A'}</div>
                             <div class="author-info">
                                 <span class="author-name" onclick="handleCommenterClick('${post.author_name}', 'prof', '${activityIndex}')">${post.author_name || 'Anonymous'}</span>
-                                <span class="author-time">${UI_TEXTS[appLanguage].statusViewProfile}</span>
+                                <span class="author-time">${formatProfileActivityTime(activity.activityTimestamp, activity.fallbackIndex)}</span>
                             </div>
                         </div>
                     </div>
@@ -2997,14 +3101,14 @@ function applyThemeAndFont() {
                     ${openFullActivityHtml}
                 `;
                 container.appendChild(card);
-                if(activity.isStatus || activity.isSharedOnly){ card.addEventListener('click', ()=>openProfileActivityArticle(activity.sIdx,activity.pIdx)); }
+                if(activity.sIdx !== null && activity.sIdx !== undefined && (activity.isStatus || activity.isSharedOnly || activity.isLiked || activity.isUserComment)){ card.addEventListener('click', ()=>openProfileActivityArticle(activity.sIdx,activity.pIdx)); }
             });
         }
 
         function showAllCommonFriends(friendName){
             const f=friendsList.find(x=>x.name.toLowerCase()===String(friendName).toLowerCase()); if(!f)return;
             const names=f.commonFriends||[];
-            alert(`Spoloční priatelia (${names.length}):\n\n${names.join('\n')}`);
+            alert(`${UI_TEXTS[appLanguage].commonFriendsTitle} (${names.length}):\n\n${names.join('\n')}`);
         }
 
         let profileReturnFriendName = null;
@@ -3050,7 +3154,7 @@ function applyThemeAndFont() {
             if(commonArea){
                 const names=(friend?.commonFriends||[]).filter(n=>friendsList.some(f=>f.name===n));
                 const shown=names.slice(0,3);
-                commonArea.innerHTML = names.length ? `<div class="profile-common-friends"><strong>Spoloční priatelia (${names.length})</strong><div style="margin-top:7px;">${shown.map(n=>`<span style="display:inline-block;margin-right:8px;cursor:pointer;color:var(--fb-blue);font-weight:600;" onclick="openSelectedFriendProfile('${String(n).replace(/'/g,"\\'")}')">${escapeHtml(n)}</span>`).join('')}${names.length>3?`<span style="color:var(--fb-blue);font-weight:700;cursor:pointer;" onclick="showAllCommonFriends('${String(friendName).replace(/'/g,"\\'")}')">a (${names.length-3}) ďalší</span>`:''}</div></div>` : '';
+                commonArea.innerHTML = names.length ? `<div class="profile-common-friends"><strong>${UI_TEXTS[appLanguage].commonFriendsTitle} (${names.length})</strong><div style="margin-top:7px;">${shown.map(n=>`<span style="display:inline-block;margin-right:8px;cursor:pointer;color:var(--fb-blue);font-weight:600;" onclick="openSelectedFriendProfile('${String(n).replace(/'/g,"\\'")}')">${escapeHtml(n)}</span>`).join('')}${names.length>3?`<span style="color:var(--fb-blue);font-weight:700;cursor:pointer;" onclick="showAllCommonFriends('${String(friendName).replace(/'/g,"\\'")}')">${UI_TEXTS[appLanguage].commonFriendsMore.replace('{n}',names.length-3)}</span>`:''}</div></div>` : '';
             }
 
             const titleSection = document.getElementById('profile-section-title');
@@ -3096,18 +3200,19 @@ function applyThemeAndFont() {
 
         function openProfile() {
             profileReturnMode = null; profileReturnFriendName = null; profileReturnChatFriendName = null;
-            const coverEl=document.getElementById('profile-cover-image'); if(coverEl){ coverEl.style.backgroundImage=''; coverEl.classList.remove('has-image'); }
             document.getElementById('user-profile-modal').style.display = 'flex';
             pushModalState();
             document.getElementById('profile-username-edit').style.display = 'flex';
             document.getElementById('my-profile-settings-block').style.display = 'block';
             updateUserAvatarsUI();
+            applyMyProfileMediaUI();
             renderTopicsInProfile();
-            
             const titleSection = document.getElementById('profile-section-title');
-            if(titleSection) titleSection.innerText = UI_TEXTS[appLanguage].mySharedPostsLabel;
+            if(titleSection) titleSection.innerText = UI_TEXTS[appLanguage].myProfileTitle;
+            const commonArea=document.getElementById('friend-profile-common-area'); if(commonArea) commonArea.innerHTML='';
+            const notice=document.getElementById('private-profile-notice'); if(notice){notice.style.display='none';notice.innerHTML='';}
             const container = document.getElementById('shared-posts-container');
-            renderProfilePosts(sharedPosts, container);
+            renderProfilePosts(buildMyProfileActivity(), container);
         }
         function closeProfile() {
             document.getElementById('user-profile-modal').style.display = 'none';
@@ -3355,7 +3460,9 @@ function applyThemeAndFont() {
 
         function sharePost(sIdx, pIdx) {
             if (feedData[sIdx] && feedData[sIdx].posts[pIdx]) {
-                sharedPosts.push(feedData[sIdx].posts[pIdx]);
+                const sharedCopy = JSON.parse(JSON.stringify(feedData[sIdx].posts[pIdx]));
+                sharedCopy.profileSharedAt = Date.now(); sharedCopy.profileSharedByUser = true;
+                sharedPosts.push(sharedCopy);
                 saveToLocalStorage();
                 alert(appLanguage==='sk'?"Príspevok bol pripnutý na váš profil.":(appLanguage==='en'?"Post pinned to your profile.":"Objava je zakačena na vaš profil."));
                 const opt = document.getElementById(`options-${sIdx}-${pIdx}`);
@@ -3368,6 +3475,7 @@ function applyThemeAndFont() {
             if(post.hasLiked) return; 
             post.likes = (post.likes || 0) + 1;
             post.hasLiked = true;
+            post.likedAt = Date.now();
             saveToLocalStorage(); renderGrid();
             if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
         }
@@ -4600,7 +4708,7 @@ Article content: ${Array.isArray(post.content) ? post.content.join(' ') : (post.
             const post=feedData[sIdx]&&feedData[sIdx].posts?feedData[sIdx].posts[pIdx]:null; if(!post)return;
             const found=findCommentById(post.comments||[],id); if(!found)return;
             const root=found.root||found.comment;
-            appendToCommentThread(post,id,{id:Math.random().toString(36).substr(2,9),username:currentUsername,text:text,replyTo:replyToName,parentCommentId:root.id,replies:[]});
+            appendToCommentThread(post,id,{id:Math.random().toString(36).substr(2,9),username:currentUsername,text:text,replyTo:replyToName,parentCommentId:root.id,replies:[],timestamp:Date.now()});
             input.value=''; saveToLocalStorage();
             if(document.getElementById('view-article').style.display==='block')openPost(sIdx,pIdx);else renderGrid();
             triggerUserCommentReactions(sIdx,pIdx,text,id,replyToName);
@@ -4662,7 +4770,7 @@ async function addManualComment(sIdx, pIdx) {
             let post = feedData[sIdx].posts[pIdx]; if(!post.comments) post.comments = [];
             
             let newCommentId = Math.random().toString(36).substr(2, 9);
-            post.comments.push({ id: newCommentId, username: currentUsername, text: text, replies: [] });
+            post.comments.push({ id: newCommentId, username: currentUsername, text: text, replies: [], timestamp: Date.now() });
             input.value = ''; saveToLocalStorage(); renderGrid();
             if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
             triggerUserCommentReactions(sIdx, pIdx, text, newCommentId, null);
@@ -5152,6 +5260,8 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             if (!pendingGenerationData) return;
             
             pendingGenerationData.posts.forEach((post, i) => {
+                const creationTimestamp = Date.now();
+                post.createdAt = post.createdAt || creationTimestamp;
                 let prompt = document.getElementById(`review-prompt-${i}`).value.trim();
                 let wrapper = document.getElementById(`resize-wrapper-${i}`);
                 let w = Math.max(200, Math.round(wrapper.offsetWidth));
