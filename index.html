@@ -511,7 +511,23 @@
             display: block;
         }
 
-    </style>
+    
+        /* 3.98: larger, phone-friendly overlays and friend profile media */
+        .modal-content { max-width: min(94vw, 760px); width: 94vw; max-height: 94vh; }
+        #friends-modal .modal-content, #friend-settings-modal .modal-content, #user-profile-modal .modal-content, #info-modal .modal-content, #create-modal .modal-content, #review-modal .modal-content { max-width: min(94vw, 860px) !important; }
+        #messenger-modal .modal-content, #chat-modal .modal-content { max-width: min(94vw, 760px) !important; width: 94vw !important; height: 88vh !important; }
+        .friend-cover-preview { width:100%; height:120px; object-fit:cover; border-radius:8px; border:1px solid var(--border-color); }
+        .profile-cover.has-image { background-size:cover; background-position:center; }
+        .common-friend-row { display:flex; align-items:center; gap:8px; padding:6px 8px; background:var(--bg-card); border-radius:6px; }
+        .profile-common-friends { background:var(--bg-input); padding:12px; border-radius:8px; margin-bottom:14px; }
+        .chat-profile-link { cursor:pointer; }
+        .chat-profile-link:hover { text-decoration:underline; }
+        .chat-context-menu { position:fixed; z-index:20000; background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.3); padding:5px; min-width:150px; display:none; }
+        .chat-context-menu button { display:block; width:100%; text-align:left; border:0; background:none; padding:10px 12px; border-radius:7px; font-weight:700; color:var(--global-font-color); cursor:pointer; }
+        .chat-context-menu button:hover { background:var(--bg-input); }
+        .chat-context-menu .delete { color:#f02849; }
+        .chat-context-menu .copy { color:var(--fb-blue); }
+</style>
 </head>
 <body>
 
@@ -601,6 +617,23 @@
             
             <input type="hidden" id="fs-friend-index">
             
+            <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin: 4px 0 16px 0;">
+                <label for="fs-person-description" style="font-size: 0.85rem; font-weight: 700; display:block; margin-bottom: 6px;" id="lbl-fs-description"></label>
+                <textarea id="fs-person-description" rows="3" maxlength="500" placeholder="" style="width:100%; resize:vertical; margin-bottom: 12px; box-sizing:border-box;"></textarea>
+                <label style="font-size: 0.85rem; font-weight: 700; display:block; margin-bottom: 6px;" id="lbl-fs-photo"></label>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                    <input type="file" id="fs-profile-photo" accept="image/png,image/jpeg" onchange="handleFriendPhotoUpload(this)" style="max-width:100%;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="removeFriendPhoto()" id="btn-fs-remove-photo"></button>
+                </div>
+                <div id="fs-photo-preview" style="margin-top:10px;"></div>
+                <label style="font-size: 0.85rem; font-weight: 700; display:block; margin:12px 0 6px;">Fotka pozadia</label>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <input type="file" id="fs-cover-photo" accept="image/png,image/jpeg" onchange="handleFriendCoverUpload(this)" style="max-width:100%;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="removeFriendCover()">Odstrániť pozadie</button>
+                </div>
+                <div id="fs-cover-preview" style="margin-top:10px;"></div>
+            </div>
+
             <div class="fs-section-title" onclick="toggleFsSection('fs-personality-sec')">
                 <span id="lbl-sec-personality"></span> <span id="icon-fs-personality-sec">▼</span>
             </div>
@@ -651,17 +684,6 @@
                 </div>
             </div>
 
-            <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin: 4px 0 16px 0;">
-                <label for="fs-person-description" style="font-size: 0.85rem; font-weight: 700; display:block; margin-bottom: 6px;" id="lbl-fs-description"></label>
-                <textarea id="fs-person-description" rows="2" maxlength="300" placeholder="" style="width:100%; resize:vertical; margin-bottom: 12px; box-sizing:border-box;"></textarea>
-                <label style="font-size: 0.85rem; font-weight: 700; display:block; margin-bottom: 6px;" id="lbl-fs-photo"></label>
-                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                    <input type="file" id="fs-profile-photo" accept="image/png,image/jpeg" onchange="handleFriendPhotoUpload(this)" style="max-width:100%;">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="removeFriendPhoto()" id="btn-fs-remove-photo"></button>
-                </div>
-                <div id="fs-photo-preview" style="margin-top:10px;"></div>
-            </div>
-
             <div class="fs-section-title" onclick="toggleFsSection('fs-relationship-sec')">
                 <span id="lbl-sec-origin"></span> <span id="icon-fs-relationship-sec">▼</span>
             </div>
@@ -671,6 +693,15 @@
                     <input type="text" id="fs-custom-relationship" placeholder="" style="flex: 1; margin-bottom: 0; padding: 6px;">
                     <button class="btn btn-secondary" onclick="addCustomRelationship()" id="btn-fs-add-rel"></button>
                 </div>
+            </div>
+
+
+            <div class="fs-section-title" onclick="toggleFsSection('fs-common-sec')">
+                <span>Spoloční priatelia</span> <span id="icon-fs-common-sec">▼</span>
+            </div>
+            <div id="fs-common-sec" style="display:none; padding-bottom:12px;">
+                <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:8px;">Vyber priateľov, ktorých máte spoločných.</div>
+                <div id="fs-common-friends-container" style="display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto;"></div>
             </div>
 
             <div class="fs-section-title" onclick="toggleFsSection('fs-tech-sec')">
@@ -692,6 +723,12 @@
                     <div class="fs-percent-row"><span id="lbl-reply-2"></span> <div style="display:flex; align-items:center;"><input type="number" id="fs-rep-2"> <span style="margin-left:4px;">%</span></div></div>
                     <div class="fs-percent-row"><span id="lbl-reply-3"></span> <div style="display:flex; align-items:center;"><input type="number" id="fs-rep-3"> <span style="margin-left:4px;">%</span></div></div>
                     <div class="fs-percent-row"><span id="lbl-reply-4"></span> <div style="display:flex; align-items:center;"><input type="number" id="fs-rep-4"> <span style="margin-left:4px;">%</span></div></div>
+                </div>
+
+                <div style="background: var(--bg-input); padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 8px;">Šanca komentovať nové príspevky</div>
+                    <div class="fs-percent-row"><span>Pravdepodobnosť tohto priateľa</span><div style="display:flex;align-items:center;"><input type="number" id="fs-comment-chance" min="0" max="100"><span style="margin-left:4px;">%</span></div></div>
+                    <div style="font-size:.72rem;color:var(--text-muted);">Pri statusoch sa zároveň prioritne používajú spoloční priatelia.</div>
                 </div>
 
                 <div style="display: flex; gap: 12px; margin-bottom: 12px;">
@@ -746,7 +783,7 @@
                 <div style="display:flex; align-items:center; gap:8px;">
                     <button style="background:none; border:none; font-size:1.2rem; cursor:pointer; color: var(--global-font-color);" onclick="handleChatBack()">←</button>
                     <div class="avatar" id="chat-friend-avatar" style="width:32px; height:32px; font-size:0.8rem;">P</div>
-                    <h4 style="margin:0;" id="chat-friend-name">Priateľ</h4>
+                    <h4 style="margin:0;" id="chat-friend-name" class="chat-profile-link" onclick="openChatFriendProfile()">Priateľ</h4>
                     <button id="chat-online-dot" class="chat-online-dot" title="Internetový režim" aria-label="Internetový režim" onclick="toggleChatWebMode()"></button>
                     <span id="chat-active-label" class="chat-active-label" style="display:none;">aktívny</span>
                 </div>
@@ -770,6 +807,11 @@
                 <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">➤</button>
             </div>
         </div>
+    </div>
+
+    <div id="chat-context-menu" class="chat-context-menu" role="menu">
+        <button class="copy" onclick="copyContextMenuMessage()">📋 Kopírovať</button>
+        <button class="delete" onclick="deleteContextMenuMessage()">🗑️ Vymazať</button>
     </div>
 
     <div class="modal-overlay" id="info-modal">
@@ -946,7 +988,7 @@
             <button class="close-modal-btn" onclick="closeProfile()">&times;</button>
             
             <div class="profile-header-card">
-                <div class="profile-cover"></div>
+                <div class="profile-cover" id="profile-cover-image"></div>
                 <div class="profile-avatar-wrapper">
                     <div class="profile-avatar-large" id="profile-avatar-large" style="background-color: var(--fb-blue);">JA</div>
                 </div>
@@ -992,6 +1034,7 @@
                 </div>
             </div>
 
+            <div id="friend-profile-common-area"></div>
             <h3 id="profile-section-title" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; padding-left: 4px;"></h3>
             <div id="shared-posts-container"></div>
             <div id="private-profile-notice" style="display: none;"></div>
@@ -1109,6 +1152,9 @@
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 const MODEL_NAME = "gemini-3.5-flash-lite";
 const GEMINI_FALLBACK_MODEL = "gemini-3.8-flash";
+// Web-search mode uses a model/tier where Google Search grounding is available.
+// Normal chat/content generation stays on 3.5 Flash-Lite.
+const ONLINE_SEARCH_MODEL = "gemini-2.5-flash-lite";
 
 // Gemini request pacing: keep requests serialized so background features cannot burst the quota.
 // 3.5 Flash-Lite is optimized by Google for high-throughput, low-cost workloads.
@@ -1175,7 +1221,7 @@ async function geminiFetch(request) {
             // after a short backoff. Never retry 429 automatically.
             const maxAttempts = 2;
             for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                response = await fetch(`${API_URL}${MODEL_NAME}:generateContent`, {
+                response = await fetch(`${API_URL}${req.model || MODEL_NAME}:generateContent`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1216,7 +1262,14 @@ async function geminiFetch(request) {
         else if (code === 402) diagnosis = 'Platba/prepaid kredit je vyčerpaný.';
         else if (code === 403) diagnosis = 'API kľúč nemá potrebné oprávnenie alebo projekt nemá prístup k zdroju.';
         else if (code === 404) diagnosis = 'Model alebo API zdroj neexistuje. Skontroluj názov modelu a endpoint.';
-        else if (code === 429) diagnosis = 'Bol prekročený limit RPM/TPM/RPD alebo iný quota/rate limit. Aplikácia už túto požiadavku automaticky neopakuje, aby ďalej nemíňala kvótu.';
+        else if (code === 429) {
+            const blob = `${status} ${message}`.toLowerCase();
+            if (/requests? per minute|rpm|per-minute|too many requests/.test(blob)) diagnosis = 'PREKROČENÝ RPM LIMIT — príliš veľa požiadaviek za minútu/krátky interval.';
+            else if (/tokens? per minute|tpm|token.*minute|input token/.test(blob)) diagnosis = 'PREKROČENÝ TPM LIMIT — príliš veľa vstupných/výstupných tokenov za časové obdobie.';
+            else if (/daily|per day|rpd|quota_exceeded|quota exceeded|daily quota/.test(blob)) diagnosis = 'PREKROČENÝ RPD/DENNÝ LIMIT — vyčerpaná denná kvóta projektu.';
+            else if (/grounding|google search|search.*free|free tier|not available/.test(blob)) diagnosis = 'GOOGLE SEARCH GROUNDING NIE JE PRE TENTO MODEL/TIER DOSTUPNÝ — nejde o veľkosť promptu.';
+            else diagnosis = 'PREKROČENÝ QUOTA/RATE LIMIT — Google neuviedol jednoznačne, či ide o RPM, TPM alebo RPD.';
+        }
         else if (code === 500) diagnosis = 'Interná chyba na strane Google alebo príliš veľký kontext.';
         else if (code === 503) diagnosis = 'Gemini služba/model je dočasne preťažený alebo nedostupný. Aplikácia po 7 s vykoná nanajvýš jedno opakovanie.';
         else if (code === 504) diagnosis = 'Požiadavka nestihla dokončiť spracovanie — často príliš veľký prompt/kontext.';
@@ -1410,7 +1463,7 @@ async function geminiFetch(request) {
                 chatHeaderFriend: "Priateľ", chatClearConv: "Vymazať konverzáciu", chatForgetThemes: "Zabudnúť staré témy (Čistý štít)", chatInputPlace: "Napíšte správu...",
                 chatBlockedBanner: "Tento používateľ je zablokovaný. Ak ho chcete odblokovať, prejdite na jeho nastavenia.", chatIgnoredBanner: "Priateľ vám poslal už 5 správ bez vašej odpovede. Nové správy nebude posielať, kým neodpíšete.",
                 infoGuideTitle: "Návod na použitie", infoGuideDesc: "<strong>Kľúč Gemini API:</strong> Pre správne fungovanie aplikácie Fakebook budete potrebovať vlastný API Key zo stránky Google AI Studio, ktorý vložíte v nastaveniach (🔑).<br><br><strong>Môj Profil:</strong> Nastavte si svoje vlastné MENO, VEK a POHLAVIE pre personalizovaný zážitok.<br><br><strong>Systém Priateľov (👥):</strong> Pridajte si priateľov zadaním ich mena, pohlavia a veku. Systém im automaticky vygeneruje unikátne VLASTNOSTI, OSOBNOSŤ, GRAMATIKU a SPRÁVANIE, podľa ktorých budú komunikovať. Všetky tieto atribúty môžete kedykoľvek UPRAVIŤ, zmeniť šancu na odpoveď či frekvenciu správ. Priateľom môžete priamo na plochu vygenerovať osobný STATUS, nechať ich ZDIEĽAŤ ľubovoľný článok, vytvoriť o nich bulvárny ČLÁNOK alebo si s nimi PÍSAŤ.<br><br><strong>Messenger (💬) & Autonómne správy:</strong> Priatelia vám môžu napísať aj sami od seba. Pri prechádzaní plochy a otváraní Messengera existuje dynamická šanca, že vám PRÍDE SPRÁVA. Ak nechcete čakať, <u>podržte tlačidlo Messengera na 3 sekundy</u> a správa dorazí okamžite. Priatelia si konverzácie PAMÄTAJÚ a plynule v nich pokračujú.<br><br><strong>Generovanie Článkov:</strong> Kliknite na vrchné pole pre tvorbu statusov. BUĎ napíšte vlastnú tému, ALEBO pole nechajte prázdne a systém vytvorí náhodný virálny príspevok. Môžete nastaviť časový posun, vybrať tému, určiť počet verzií a v review okne flexibilne UPRAVIŤ FOTKU (zmenou pomeru strán a promptu) či NÁZOV STRÁNKY.<br><br><strong>Vojny v komentároch & Algoritmus interakcií:</strong> Každý článok generuje množstvo živých KOMENTÁROV. Na príspevky môžete odpovedať, čím vyvoláte reálnu diskusiu. Existuje šanca, že vám od aktívneho komentujúceho príde ŽIADOSŤ O PRIATEĽSTVO. Tlačidlom <em>🤖 AI Troll Reakcia</em> vyvoláte okamžitú provokatívnu odpoveď na konkrétny komentár, alebo môžete spustiť masívnu <em>VOJNU KOMENTÁROV</em>. Články môžete zdieľať na svoj profil, mazať či generovať ich alternatívy.<br><br><strong>Nastavenia Obľúbených tém:</strong> V profile a nastaveniach priateľa pribudol explicitný popis pre kategóriu 'Obľúbené témy', vďaka čomu môžete lepšie korigovať algoritmus záujmov entít.<br><br><strong>💡 Núdzový Reset:</strong> V prípade akýchkoľvek problémov s prekrývaním okien <u>podržte 5 sekúnd hlavné logo FAKEBOOK</u> v ľavom hornom rohu pre tvrdý reset zobrazenia a tém.",
-                infoVerTitle: "Aktualizácia 3.96: Lokalizácia, Súkromné Profily a Romantická dynamika", infoVerList: "<li><strong>Oprava textu komentárov</strong>: Odstránená chyba zobrazenia textu 'undefined' pri počítadle komentárov na ploche.</li><li><strong>Simulácia súkromných profilov</strong>: Kliknutím na neregistrovaných autorov komentárov sa zobrazí uzamknutý profil s možnosťou poslať žiadosť o priateľstvo (70% šanca na prijatie).</li><li><strong>Poistka proti zmazaniu</strong>: Pridanie potvrdzovacieho dialógu pri odstraňovaní priateľov pre zamedzenie náhodných strát dát.</li><li><strong>Uvedomenie si ignorovania v Messengeri</strong>: Ak priateľ posiela ďalšiu správu bez toho, aby ste mu odpovedali na predošlú, prispôsobí reakciu ľudsky podľa svojej povahy (zmena témy, urazenie sa, otázka čo sa deje).</li>",
+                infoVerTitle: "Aktualizácia 3.98: Prechod na Gemini, Nastavenia a profil priateľov, veľa drobných uprav.", infoVerList: "<li><strong>Prechod z Groq/Llama na Gemini</strong>: generovanie článkov, statusov, komentárov a Messengeru beží cez Gemini API; pridané diagnostiky chýb 400/401/403/404/429/500/503/504 a ochrana pred zbytočným opakovaním kvóty.</li><li><strong>Nový online režim Messengera</strong>: bodka pri mene prepína „aktívny“ režim; webové overenie používa iba aktuálnu správu, bez osobnosti a starej histórie, výsledok sa však uloží do trvalej pamäti priateľa.</li><li><strong>Messenger a profily</strong>: klik na meno v hlavičke otvorí profil, správy sa dajú podržať a kopírovať alebo vymazať.</li><li><strong>Priatelia a profily</strong>: popis osoby a profilová fotka, nová fotka pozadia, spoločné kontakty, chronologická aktivita a otváranie statusov/zdieľaní/komentovaných článkov s návratom späť na profil.</li><li><strong>Generovanie článkov</strong>: Voľba témy, krátka/stredná/dlhá dĺžka, reálnosť 1–10, automatický výber vhodného názvu stránky a 1–7 komentárov s dôrazom na hlavnú pointu článku.</li><li><strong>Statusy priateľov</strong>: reálnosť 1–10, 0–6 komentárov, unikátne nové statusy bez opakovania starej hlavnej témy; staršie statusy slúžia len ako osobná kontinuita.</li><li><strong>Inteligentné komentovanie a zdieľanie</strong>: vyššia priorita priateľov a spoločných priateľov, nastaviteľná šanca komentovania, maximálne jedno automatické zdieľanie článku s krátkym názorom; ak sa článok zdieľa, pôvodná samostatná kópia sa nezobrazuje.</li><li><strong>AI diskusie</strong>: ploché vlákna, lepšie chápanie hlavnej pointy článku, kontinuita názorov a prirodzenejšie pokračovanie debaty.</li><li><strong>Vzhľad a použiteľnosť</strong>: väčšie popup okná, vylepšené profily, zachované nastavenia tém, jazykov, fontov, slotov a ďalšie drobné opravy.</li>",
                 msgTitleForce: "Vynucujem správu od:", msgAlertForce: "Prišla nová správa od užívateľa", keyInputAlert: "Prosím, vložte najprv API kľúč.", activeFriendsAlert: "Nemáte žiadnych aktívnych priateľov.",
                 statusViewProfile: "Zobrazenie z profilu", statusFullFeedOnly: "Zobrazenie detailu článku je aktívne len z hlavnej plochy.", profileNoPosts: "Zatiaľ tu nie sú žiadne príspevky.", profileActivityOf: "Príspevky, statusy a aktivita používateľa", profileCommentedOn: "komentoval príspevok stránky", profileSharedArticle: "zdieľal príspevok", profileStatusLabel: "Status", profileOpenFullActivity: "Otvoriť celý príspevok a komentáre", profileDescriptionLabel: "Popis osoby", profileDescriptionPlace: "Krátky popis osoby...", profilePhotoLabel: "Profilová fotka", profilePhotoChoose: "Vybrať PNG/JPG", profilePhotoRemove: "Odstrániť fotku",
                 targetStatusPlaceholder: "Vytvárate osobný status pre: {name}. Zadajte tému...", statusLengthTitle: "Dĺžka statusu priateľa:", statusLenShort: "Krátky (1-3 vety)", statusLenMid: "Stredný (3-8 viet)", statusLenLong: "Dlhý (8-15 viet)",
@@ -1815,6 +1868,7 @@ async function geminiFetch(request) {
             const clean = (c, fallbackUser = 'Používateľ') => {
                 const item = c && typeof c === 'object' ? c : {};
                 if (!item.id) item.id = makeId();
+                if (item.timestamp === undefined) item.timestamp = Date.now();
                 if (!item.username) item.username = fallbackUser;
                 if (typeof item.text !== 'string') item.text = item.text == null ? '' : String(item.text);
                 item.replies = Array.isArray(item.replies) ? item.replies : [];
@@ -2374,7 +2428,7 @@ function applyThemeAndFont() {
                     ghostChance: 5, emojiStyle: emStyle, owedApology: false, isGhostingMe: false,
                     personalities: [randomPersObj.id],
                     grammar: generateRandomGrammar(), messageCountBehavior: generateRandomMsgCount(),
-                    romance: generateRandomRomance(), relationships: ["sight"], favoriteTopics: [], customTopics: [], profileDescription: "", profilePhoto: "", webMemory: [], webActive: false,
+                    romance: generateRandomRomance(), relationships: ["sight"], favoriteTopics: [], customTopics: [], profileDescription: "", profilePhoto: "", profileCoverPhoto: "", commonFriends: [], commentChance: 20, webMemory: [], webActive: false,
                     isBlocked: false, ignoredCount: 0, unreadCount: 0, dateAdded: Date.now(), contactLevel: 'Poznáme sa'
                 });
                 saveFriendsData();
@@ -2401,6 +2455,13 @@ function applyThemeAndFont() {
 
             document.getElementById('fs-contact-level').value = friend.contactLevel || 'Poznáme sa';
             document.getElementById('fs-person-description').value = friend.profileDescription || '';
+            const coverPreview = document.getElementById('fs-cover-preview');
+            if(coverPreview) coverPreview.innerHTML = friend.profileCoverPhoto ? `<img class="friend-cover-preview" src="${friend.profileCoverPhoto}">` : '';
+            const coverInput = document.getElementById('fs-cover-photo');
+            if(coverInput) coverInput.value = '';
+            const commonSec = document.getElementById('fs-common-sec'); if(commonSec) commonSec.style.display='none';
+            const commonIcon = document.getElementById('icon-fs-common-sec'); if(commonIcon) commonIcon.innerText='▼';
+            renderCommonFriends(friend);
             const photoPreview = document.getElementById('fs-photo-preview');
             if(photoPreview) photoPreview.innerHTML = friend.profilePhoto ? `<img src="${friend.profilePhoto}" style="width:72px;height:72px;object-fit:cover;border-radius:50%;border:2px solid var(--border-color);">` : '';
             const photoInput = document.getElementById('fs-profile-photo');
@@ -2434,6 +2495,7 @@ function applyThemeAndFont() {
             document.getElementById('fs-rep-4').value = friend.replyChances[4];
 
             document.getElementById('fs-ghost').value = friend.ghostChance;
+            document.getElementById('fs-comment-chance').value = friend.commentChance ?? 20;
             document.getElementById('fs-emoji').value = friend.emojiStyle || 'normal';
             document.getElementById('fs-blocked').checked = friend.isBlocked;
 
@@ -2608,6 +2670,22 @@ function applyThemeAndFont() {
             saveFriendsData();
         }
 
+        function handleFriendCoverUpload(input) {
+            const file=input.files && input.files[0]; if(!file) return;
+            if(file.size > 1800000){ alert('Fotka pozadia je príliš veľká. Vyber menší JPG/PNG.'); input.value=''; return; }
+            const reader=new FileReader(); reader.onload=e=>{
+                const idx=parseInt(document.getElementById('fs-friend-index').value,10); const f=friendsList[idx]; if(!f) return;
+                f.profileCoverPhoto=e.target.result;
+                const prev=document.getElementById('fs-cover-preview'); if(prev) prev.innerHTML=`<img class="friend-cover-preview" src="${f.profileCoverPhoto}">`;
+            }; reader.readAsDataURL(file);
+        }
+        function removeFriendCover(){ const idx=parseInt(document.getElementById('fs-friend-index').value,10); if(!friendsList[idx]) return; friendsList[idx].profileCoverPhoto=''; const p=document.getElementById('fs-cover-preview'); if(p)p.innerHTML=''; const i=document.getElementById('fs-cover-photo'); if(i)i.value=''; }
+        function renderCommonFriends(friend){
+            const c=document.getElementById('fs-common-friends-container'); if(!c) return;
+            const selected=new Set(friend.commonFriends||[]);
+            c.innerHTML=friendsList.filter(f=>f.name.toLowerCase()!==friend.name.toLowerCase()).map(f=>`<label class="common-friend-row"><input class="fs-common-checkbox" type="checkbox" value="${escapeHtmlAttr(f.name)}" ${selected.has(f.name)?'checked':''}> <span>${escapeHtml(f.name)}</span></label>`).join('') || '<div style="color:var(--text-muted);font-size:.85rem;">Zatiaľ nemáš ďalších priateľov.</div>';
+        }
+
         function saveFriendSettings() {
             let idx = document.getElementById('fs-friend-index').value;
             let friend = friendsList[idx];
@@ -2619,7 +2697,11 @@ function applyThemeAndFont() {
             }
 
             friend.contactLevel = document.getElementById('fs-contact-level').value;
-            friend.profileDescription = (document.getElementById('fs-person-description').value || '').trim().slice(0, 300);
+            friend.profileDescription = (document.getElementById('fs-person-description').value || '').trim().slice(0, 500);
+            friend.commentChance = Math.max(0, Math.min(100, parseFloat(document.getElementById('fs-comment-chance').value) || 0));
+            friend.profileCoverPhoto = friend.profileCoverPhoto || '';
+            const commonBoxes = document.querySelectorAll('.fs-common-checkbox');
+            friend.commonFriends = []; commonBoxes.forEach(b => { if(b.checked) friend.commonFriends.push(b.value); });
             friend.grammar = document.getElementById('fs-grammar').value;
             friend.messageCountBehavior = document.getElementById('fs-message-count').value;
             
@@ -2828,6 +2910,7 @@ function applyThemeAndFont() {
                 
                 const card = document.createElement('div');
                 card.className = 'post-card';
+                card.style.cursor = (activity.isStatus || activity.isSharedOnly) ? 'pointer' : '';
                 card.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
                 card.style.border = '1px solid var(--border-color)';
                 card.style.marginBottom = '16px';
@@ -2897,10 +2980,19 @@ function applyThemeAndFont() {
                     ${openFullActivityHtml}
                 `;
                 container.appendChild(card);
+                if(activity.isStatus || activity.isSharedOnly){ card.addEventListener('click', ()=>openProfileActivityArticle(activity.sIdx,activity.pIdx)); }
             });
         }
 
+        function showAllCommonFriends(friendName){
+            const f=friendsList.find(x=>x.name.toLowerCase()===String(friendName).toLowerCase()); if(!f)return;
+            const names=f.commonFriends||[];
+            alert(`Spoloční priatelia (${names.length}):\n\n${names.join('\n')}`);
+        }
+
+        let profileReturnFriendName = null;
         function openProfileActivityArticle(sIdx, pIdx) {
+            profileReturnFriendName = document.getElementById('profile-display-name')?.innerText || null;
             closeProfile();
             if (feedData[sIdx] && feedData[sIdx].posts && feedData[sIdx].posts[pIdx]) {
                 openPost(sIdx, pIdx);
@@ -2922,12 +3014,21 @@ function applyThemeAndFont() {
                 profAv.style.backgroundSize = 'cover';
                 profAv.style.backgroundPosition = 'center';
             }
+            const coverEl=document.getElementById('profile-cover-image');
+            if(coverEl){ coverEl.style.backgroundImage = friend && friend.profileCoverPhoto ? `url("${friend.profileCoverPhoto}")` : ''; coverEl.classList.toggle('has-image', !!(friend && friend.profileCoverPhoto)); }
             const dispName = document.getElementById('profile-display-name');
             if(dispName) dispName.innerText = friendName;
             document.getElementById('profile-username-edit').style.display = 'none';
             document.getElementById('my-profile-settings-block').style.display = 'none';
             const notice = document.getElementById('private-profile-notice');
             if(notice) { notice.style.display = 'none'; notice.innerHTML = ''; }
+
+            const commonArea = document.getElementById('friend-profile-common-area');
+            if(commonArea){
+                const names=(friend?.commonFriends||[]).filter(n=>friendsList.some(f=>f.name===n));
+                const shown=names.slice(0,3);
+                commonArea.innerHTML = names.length ? `<div class="profile-common-friends"><strong>Spoloční priatelia (${names.length})</strong><div style="margin-top:7px;">${shown.map(n=>`<span style="display:inline-block;margin-right:8px;cursor:pointer;color:var(--fb-blue);font-weight:600;" onclick="openSelectedFriendProfile('${String(n).replace(/'/g,"\\'")}')">${escapeHtml(n)}</span>`).join('')}${names.length>3?`<span style="color:var(--fb-blue);font-weight:700;cursor:pointer;" onclick="showAllCommonFriends('${String(friendName).replace(/'/g,"\\'")}')">a (${names.length-3}) ďalší</span>`:''}</div></div>` : '';
+            }
 
             const titleSection = document.getElementById('profile-section-title');
             if(titleSection) titleSection.innerText = `${UI_TEXTS[appLanguage].profileActivityOf} ${friendName}`;
@@ -2954,12 +3055,12 @@ function applyThemeAndFont() {
                         const uniqueKey = `${postKey}|${activityType}`;
                         if(!seen.has(uniqueKey)) {
                             seen.add(uniqueKey);
-                            personalActivity.push({post, sIdx: feedData.indexOf(slot), pIdx: slot.posts.indexOf(post), isCommentedOnly: hasCommented && !matchesAuthor && !isSharedByFriend, isSharedOnly: isSharedByFriend && !matchesAuthor, isStatus: isFriendStatus, friendName});
+                            personalActivity.push({post, sIdx: feedData.indexOf(slot), pIdx: slot.posts.indexOf(post), isCommentedOnly: hasCommented && !matchesAuthor && !isSharedByFriend, isSharedOnly: isSharedByFriend && !matchesAuthor, isStatus: isFriendStatus, friendName, activityTimestamp: isSharedByFriend ? (post.sharedAt || slot.timestamp || 0) : (isFriendStatus ? (post.createdAt || slot.timestamp || 0) : (function(){ let ts=0; const scanTs=a=>{(a||[]).forEach(c=>{if(String(c.username||'').toLowerCase()===friendName.toLowerCase()) ts=Math.max(ts,c.timestamp||0); scanTs(c.replies);});}; scanTs(post.comments); return ts || slot.timestamp || 0; })())});
                         }
                     }
                 });
             });
-            personalActivity.sort((a,b) => 0); // preserve feed order; profile is a timeline snapshot
+            personalActivity.sort((a,b) => (b.activityTimestamp || b.post?._activityTimestamp || b.post?.timestamp || 0) - (a.activityTimestamp || a.post?._activityTimestamp || a.post?.timestamp || 0));
             renderProfilePosts(personalActivity, container);
 
             if(friend && friend.profileDescription) {
@@ -2971,6 +3072,7 @@ function applyThemeAndFont() {
         }
 
         function openProfile() {
+            const coverEl=document.getElementById('profile-cover-image'); if(coverEl){ coverEl.style.backgroundImage=''; coverEl.classList.remove('has-image'); }
             document.getElementById('user-profile-modal').style.display = 'flex';
             pushModalState();
             document.getElementById('profile-username-edit').style.display = 'flex';
@@ -3343,7 +3445,7 @@ async function processIncomingMessages() {
                 let unreadClass = isUnread ? 'unread' : '';
                 container.innerHTML += `
                     <div class="chat-friend-item ${unreadClass}" style="display:flex; align-items:center; gap:12px; padding: 12px; border-bottom: 1px solid var(--border-color); cursor:pointer; ${f.isBlocked ? 'opacity:0.5;' : ''}" onclick="openChatFromMessenger('${f.name}')">
-                        <div class="avatar" style="background-color: ${avColor}; width:48px; height:48px;">${f.name.charAt(0).toUpperCase()}</div>
+                        <div class="avatar" style="background-color: ${avColor}; width:48px; height:48px; ${f.profilePhoto ? `background-image:url("${f.profilePhoto}");background-size:cover;background-position:center;` : ''}">${f.profilePhoto ? '' : f.name.charAt(0).toUpperCase()}</div>
                         <div style="flex:1; overflow:hidden;">
                             <div style="font-weight: 600; font-size: 1rem; color: var(--global-font-color);">${f.name} ${f.isBlocked ? `<span style="color:#f02849; font-size:0.8rem;">(${UI_TEXTS[appLanguage].textStatusChatWithBlocked})</span>` : ''}</div>
                             <div class="chat-last-msg" style="font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${lastMsg}</div>
@@ -3408,6 +3510,8 @@ async function processIncomingMessages() {
             inputText.blur(); 
         }
         
+        function openChatFriendProfile(){ if(!activeChatFriend) return; const n=activeChatFriend.name; closeChatModal(); openSelectedFriendProfile(n); }
+
         function handleChatBack() {
             closeChatModal();
             if (chatViewMode === 'messenger') {
@@ -3504,41 +3608,19 @@ async function processIncomingMessages() {
             }).join('\n\n').slice(0, 14000);
         }
 
-        let chatMessageHoldTimer = null;
-        let chatMessageHoldTriggered = false;
-        function setupChatLongPress() {
-            const container = document.getElementById('chat-messages-container');
-            if (!container || container.dataset.holdBound) return;
-            container.dataset.holdBound = '1';
-            container.addEventListener('pointerdown', e => {
-                const bubble = e.target.closest('.chat-bubble');
-                if (!bubble || !bubble.dataset.messageId) return;
-                chatMessageHoldTriggered = false;
-                clearTimeout(chatMessageHoldTimer);
-                chatMessageHoldTimer = setTimeout(() => {
-                    chatMessageHoldTriggered = true;
-                    const id = bubble.dataset.messageId;
-                    if (confirm('🗑️ Vymazať túto správu?')) deleteChatMessage(id);
-                }, 650);
-            });
-            ['pointerup','pointercancel','pointerleave'].forEach(ev => container.addEventListener(ev, () => clearTimeout(chatMessageHoldTimer)));
-            container.addEventListener('contextmenu', e => {
-                const bubble = e.target.closest('.chat-bubble');
-                if (!bubble || !bubble.dataset.messageId) return;
-                e.preventDefault();
-                if (confirm('🗑️ Vymazať túto správu?')) deleteChatMessage(bubble.dataset.messageId);
-            });
+        let chatMessageHoldTimer=null; let chatMessageHoldTriggered=false; let contextMenuMessageId=null; let contextMenuMessageText='';
+        function hideChatContextMenu(){ const m=document.getElementById('chat-context-menu'); if(m)m.style.display='none'; contextMenuMessageId=null; contextMenuMessageText=''; }
+        function showChatContextMenu(id,text,x,y){ const m=document.getElementById('chat-context-menu'); if(!m)return; contextMenuMessageId=id; contextMenuMessageText=text||''; m.style.left=Math.min(x,window.innerWidth-170)+'px'; m.style.top=Math.min(y,window.innerHeight-105)+'px'; m.style.display='block'; }
+        function copyContextMenuMessage(){ if(contextMenuMessageText) navigator.clipboard?.writeText(contextMenuMessageText).catch(()=>{}); hideChatContextMenu(); }
+        function deleteContextMenuMessage(){ const id=contextMenuMessageId; hideChatContextMenu(); if(id && confirm('🗑️ Vymazať túto správu?')) deleteChatMessage(id); }
+        function setupChatLongPress(){
+            const container=document.getElementById('chat-messages-container'); if(!container||container.dataset.holdBound)return; container.dataset.holdBound='1';
+            container.addEventListener('pointerdown',e=>{ const b=e.target.closest('.chat-bubble'); if(!b||!b.dataset.messageId)return; chatMessageHoldTriggered=false; clearTimeout(chatMessageHoldTimer); chatMessageHoldTimer=setTimeout(()=>{chatMessageHoldTriggered=true; showChatContextMenu(b.dataset.messageId,b.innerText,e.clientX,e.clientY);},650); });
+            ['pointerup','pointercancel','pointerleave','scroll'].forEach(ev=>container.addEventListener(ev,()=>clearTimeout(chatMessageHoldTimer)));
+            container.addEventListener('contextmenu',e=>{ const b=e.target.closest('.chat-bubble'); if(!b||!b.dataset.messageId)return; e.preventDefault(); showChatContextMenu(b.dataset.messageId,b.innerText,e.clientX,e.clientY); });
+            document.addEventListener('click',e=>{ if(!e.target.closest('#chat-context-menu')) hideChatContextMenu(); });
         }
-        function deleteChatMessage(messageId) {
-            if (!activeChatFriend) return;
-            const msgs = chatData[activeChatFriend.name] || [];
-            const idx = msgs.findIndex(m => m.id === messageId);
-            if (idx < 0) return;
-            msgs.splice(idx, 1);
-            chatData[activeChatFriend.name] = msgs;
-            saveChatsData();
-            renderChatMessages();
-        }
+        function deleteChatMessage(messageId){ if(!activeChatFriend)return; const msgs=chatData[activeChatFriend.name]||[]; const idx=msgs.findIndex(m=>m.id===messageId); if(idx<0)return; msgs.splice(idx,1); chatData[activeChatFriend.name]=msgs; saveChatsData(); renderChatMessages(); }
 
         function toggleChatOptions() {
             const el = document.getElementById('chat-options-dropdown');
@@ -3597,20 +3679,23 @@ async function processIncomingMessages() {
             if (activeChatFriend.webActive === true) {
                 try {
                     const response = await geminiFetch({
-                        model: MODEL_NAME,
+                        model: ONLINE_SEARCH_MODEL,
                         useWebSearch: true,
                         messages: [{ role: "user", content: text }],
-                        temperature: 0.2,
-                        max_output_tokens: 320
+                        temperature: 0.1,
+                        max_output_tokens: 256
                     });
                     const jsonRes = await response.json();
-                    const rawReply = String(jsonRes?.candidates?.[0]?.content?.parts?.map(p => p?.text || '').join('') || '').trim();
-                    const webSourcesForReply = extractGroundingSources(jsonRes?.candidates?.[0]?.groundingMetadata);
+                    // geminiFetch normalizes Gemini's native candidates[] response into choices[].
+                    // Keep the online path on that same normalized shape.
+                    const rawReply = String(jsonRes?.choices?.[0]?.message?.content || '').trim();
+                    const groundingMetadata = jsonRes?.groundingMetadata || null;
+                    const webSourcesForReply = extractGroundingSources(groundingMetadata);
                     if (!rawReply) throw new Error('GEMINI_EMPTY_WEB_RESPONSE: Google Search nevrátilo textovú odpoveď.');
 
                     // Save exactly what the web-only request found. This becomes persistent
                     // knowledge for the friend and is available after Internet mode is turned off.
-                    rememberWebFindings(activeChatFriend, text, rawReply, jsonRes?.candidates?.[0]?.groundingMetadata);
+                    rememberWebFindings(activeChatFriend, text, rawReply, groundingMetadata);
 
                     let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
                     chatData[activeChatFriend.name].push({
@@ -3630,7 +3715,7 @@ async function processIncomingMessages() {
                     let tIndicator = document.getElementById('typing-indicator'); if(tIndicator) tIndicator.remove();
                     console.error('Gemini web-only API:', e);
                     if (activeChatFriend && chatData[activeChatFriend.name]) {
-                        chatData[activeChatFriend.name].push({id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from:'friend', text:'⚠️ ' + String(e?.message || e), timestamp:Date.now()});
+                        chatData[activeChatFriend.name].push({id:'msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), from:'friend', text:`⚠️ ONLINE SEARCH (${ONLINE_SEARCH_MODEL})\n${String(e?.message || e)}`, timestamp:Date.now()});
                         saveChatsData(); renderChatMessages();
                     }
                     return;
@@ -4330,7 +4415,7 @@ async function addManualComment(sIdx, pIdx) {
 
                     let viewMoreCommentsText = `${UI_TEXTS[appLanguage].viewMoreCommentsLabel} (${numComments})`;
 
-                    const shareHeaderHtml = post.isFriendShare && post.sharedByFriend ? `<div style="padding:10px 16px 4px; font-size:.88rem; color:var(--text-muted); font-weight:600;">↗ ${post.sharedByFriend} ${UI_TEXTS[appLanguage].profileSharedArticle}</div>` : '';
+                    const shareHeaderHtml = post.isFriendShare && post.sharedByFriend ? `<div style="padding:10px 16px 4px; font-size:.88rem; color:var(--text-muted); font-weight:700;">↗ ${escapeHtml(post.sharedByFriend)} zdieľa tento príspevok</div><div style="padding:0 16px 8px;font-size:.84rem;color:var(--text-muted);font-style:italic;">${escapeHtml(post.sharedOpinion||'')}</div>` : '';
                     card.innerHTML = `
                         ${shareHeaderHtml}
                         <div class="post-header">
@@ -4383,7 +4468,7 @@ async function addManualComment(sIdx, pIdx) {
             });
         }
 
-        function showGrid() { document.getElementById('view-article').style.display = 'none'; document.getElementById('view-grid').style.display = 'flex'; renderGrid(); }
+        function showGrid() { document.getElementById('view-article').style.display = 'none'; document.getElementById('view-grid').style.display = 'flex'; if(profileReturnFriendName){ const n=profileReturnFriendName; profileReturnFriendName=null; setTimeout(()=>openSelectedFriendProfile(n),0); return; } renderGrid(); }
 
         function openPost(sIdx, pIdx) {
             const opt = document.getElementById(`options-${sIdx}-${pIdx}`); if(opt) opt.style.display = 'none';
@@ -4404,7 +4489,7 @@ async function addManualComment(sIdx, pIdx) {
             area.className = 'post-card'; area.style.marginBottom = '0';
             let paragraphsHtml = Array.isArray(post.content) ? post.content.map(p => `<p class="post-text">${p}</p>`).join('') : `<p class="post-text">${post.content || ''}</p>`;
 
-            const shareHeaderHtml = post.isFriendShare && post.sharedByFriend ? `<div style="padding:10px 16px 4px; font-size:.9rem; color:var(--text-muted); font-weight:600;">↗ ${post.sharedByFriend} ${UI_TEXTS[appLanguage].profileSharedArticle}</div>` : '';
+            const shareHeaderHtml = post.isFriendShare && post.sharedByFriend ? `<div style="padding:10px 16px 4px; font-size:.9rem; color:var(--text-muted); font-weight:700;">↗ ${escapeHtml(post.sharedByFriend)} zdieľa tento príspevok</div><div style="padding:0 16px 8px;font-size:.86rem;color:var(--text-muted);font-style:italic;">${escapeHtml(post.sharedOpinion||'')}</div>` : '';
             area.innerHTML = `
                 ${shareHeaderHtml}
                 <div class="post-header">
@@ -4537,20 +4622,20 @@ async function addManualComment(sIdx, pIdx) {
 FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT recall, copy, paraphrase, imitate, or continue any previous Fakebook feed story. Unique generation ID: ${generationNonce}.`;
             let isFriendContentFocused = (generatedFriendPostType !== "" || isStatusFriendRequest);
             // Equal probability for every comment count from 1 through 7.
-            const requestedCommentCount = 1 + Math.floor(Math.random() * 7);
+            const requestedCommentCount = isStatusFriendRequest ? Math.floor(Math.random() * 7) : (1 + Math.floor(Math.random() * 7));
             const commentsRange = String(requestedCommentCount);
             const lengthInstruction = statusLengthValue === 'kratky' ? 'slightly shorter than the current standard: 1–3 compact paragraphs, roughly 170–280 words' : (statusLengthValue === 'dlhy' ? 'slightly longer than the current standard: 3–5 paragraphs, roughly 300–500 words' : 'the current standard length: 2–4 compact paragraphs, roughly 220–380 words');
             const realismInstruction = realismValue <= 2 ? 'EXTREMELY ABSURD: make the supporting details wildly implausible and outrageous while still obeying the user\'s core topic.' : realismValue === 3 ? 'CURRENT STYLE: use the same moderately absurd, satirical credibility level as existing Fakebook articles.' : realismValue <= 5 ? 'MOSTLY BELIEVABLE: the core topic is retained, but add a few mildly crazy or unlikely supporting details.' : realismValue <= 7 ? 'NEARLY REAL: write mostly like a plausible news report, with only a small strange/absurd twist in the supporting details.' : realismValue <= 9 ? 'HIGHLY REALISTIC: supporting details should be plausible and restrained; only a subtle unusual element may remain.' : 'FULLY REALISTIC: write a genuinely plausible report about the user\'s described topic. Do not add absurd supporting details; it should be something that could realistically happen.';
-            let fChance = isFriendContentFocused ? (1/3) : (1/50);
-
             let injectedFriends = [];
-            if (friendsList.length > 0) {
-                // At most one extra friend name in the generated post; more names add tokens without much benefit.
-                for (const f of friendsList) {
-                    if (Math.random() < fChance) { injectedFriends.push(f.name); break; }
-                }
+            const targetFriend = isStatusFriendRequest ? friendsList.find(f=>f.name.toLowerCase()===String(forcedFriendName).toLowerCase()) : null;
+            const mutualNames = targetFriend ? (targetFriend.commonFriends||[]).filter(n=>friendsList.some(f=>f.name===n)) : [];
+            const friendCandidates = (targetFriend ? mutualNames.map(n=>friendsList.find(f=>f.name===n)).filter(Boolean) : friendsList.slice()).filter(Boolean);
+            friendCandidates.forEach(f=>{ const chance=Math.max(0,Math.min(100,Number(f.commentChance ?? 20)))/100; if(Math.random()<chance) injectedFriends.push(f.name); });
+            if(isStatusFriendRequest && mutualNames.length){
+                mutualNames.forEach(n=>{ if(injectedFriends.length < requestedCommentCount && !injectedFriends.includes(n) && Math.random()<0.75) injectedFriends.push(n); });
             }
-            let friendCommentaryRule = injectedFriends.length > 0 ? `Optionally use this real friend as one commenter: ${injectedFriends[0]}.` : "";
+            injectedFriends=injectedFriends.slice(0,requestedCommentCount);
+            let friendCommentaryRule = injectedFriends.length > 0 ? `Prefer these real friends as commenters when there are enough generated comments: ${injectedFriends.join(', ')}. For a friend's status, mutual friends are strongly prioritized.` : "";
             let commentersContext = generateCommentersContextForPrompt(6);
 
             let selectedPool = PAGES_POOL_SK;
@@ -4592,8 +4677,10 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 parsedData.posts.forEach(post => {
                     post.isFriendPost = isFriendContentFocused;
                     post.likes = isFriendContentFocused ? Math.floor(Math.random() * 34) + 2 : Math.floor(Math.random() * 800) + 12;
-                    if(post.comments) post.comments = sanitizeComments(post.comments);
+                    if(post.comments) post.comments = sanitizeComments(post.comments).slice(0, requestedCommentCount);
                     if(forcedFriendName && isStatusFriendRequest) post.author_name = forcedFriendName;
+                    if(post.comments && injectedFriends.length){ injectedFriends.forEach((name,ci)=>{ if(post.comments[ci]) post.comments[ci].username=name; }); }
+                    if(isStatusFriendRequest) post.createdAt = Date.now();
                 });
 
                 const hShift = parseInt(document.getElementById('shift-hours').value) || 0;
@@ -4742,30 +4829,26 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true&seed=${Math.floor(Math.random()*1000)}`;
         }
 
+        function generateFriendShareOpinion(friend, post){
+            const title=String(post?.title||'tento článok').trim();
+            const options=[`Toto som si musel zdieľať, lebo ${title.toLowerCase()}.`,`Neviem čo vy na to, ale toto ma fakt zaujalo.`,`Toto je presne ten typ článku, pri ktorom som sa musel zastaviť.`,`Zaujímavé. Som zvedavý, čo na to poviete ostatní.`];
+            return options[Math.floor(Math.random()*options.length)];
+        }
         function createAutomaticFriendShares(posts, timestamp) {
             if (!Array.isArray(posts) || !friendsList.length) return [];
-            const shareSlots = [];
-            posts.forEach(post => {
-                // Only real articles are eligible; statuses/friend posts are not automatically shared this way.
-                if (!post || !post.title || post.isFriendPost) return;
-                if (!post.id) post.id = `post-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-                friendsList.forEach(friend => {
-                    if (!friend || !friend.name || Math.random() >= 0.03) return;
-                    const sharedCopy = JSON.parse(JSON.stringify(post));
-                    sharedCopy.isFriendShare = true;
-                    sharedCopy.sharedByFriend = friend.name;
-                    sharedCopy.sharedOriginalPostId = post.id;
-                    sharedCopy.sharedOriginalAuthor = post.author_name || 'Anonymous';
-                    sharedCopy.sharedOriginalTitle = post.title || '';
-                    // The friend is the sharer; the nested article keeps the original publisher identity.
-                    sharedCopy.likes = Math.floor(Math.random() * 34) + 2;
-                    sharedCopy.hasLiked = false;
-                    shareSlots.push({
-                        scenario: `Shared article by ${friend.name}`,
-                        timestamp: timestamp,
-                        posts: [sharedCopy]
-                    });
-                });
+            const shareSlots=[];
+            posts.forEach(post=>{
+                if(!post || !post.title || post.isFriendPost) return;
+                if(!post.id) post.id=`post-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+                const eligible=friendsList.filter(f=>f && f.name && Math.random() < Math.max(0,Math.min(100,Number(f.shareChance ?? 3)))/100);
+                if(!eligible.length) return;
+                const friend=eligible[Math.floor(Math.random()*eligible.length)];
+                const sharedCopy=JSON.parse(JSON.stringify(post));
+                sharedCopy.isFriendShare=true; sharedCopy.sharedByFriend=friend.name; sharedCopy.sharedAt=Date.now();
+                sharedCopy.sharedOriginalPostId=post.id; sharedCopy.sharedOriginalAuthor=post.author_name||'Anonymous'; sharedCopy.sharedOriginalTitle=post.title||'';
+                sharedCopy.sharedOpinion=generateFriendShareOpinion(friend,post);
+                sharedCopy.likes=Math.floor(Math.random()*34)+2; sharedCopy.hasLiked=false;
+                shareSlots.push({scenario:`Shared article by ${friend.name}`,timestamp:timestamp,posts:[sharedCopy]});
             });
             return shareSlots;
         }
@@ -4800,13 +4883,13 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
 
             localStorage.setItem('fb_global_time', pendingGenerationData.timestamp);
             const originalPosts = pendingGenerationData.posts;
-            feedData.push({
-                scenario: pendingGenerationData.scenario, timestamp: pendingGenerationData.timestamp, posts: originalPosts
-            });
-            // Each friend independently has a 3% chance to share each newly published article.
-            // Share slots are added after the original so they appear above it in the timeline, like Facebook.
             const autoShareSlots = createAutomaticFriendShares(originalPosts, pendingGenerationData.timestamp);
-            autoShareSlots.forEach(slot => feedData.push(slot));
+            if(autoShareSlots.length){
+                // If a friend shares it, show only the reshare in the feed so the same article is not duplicated.
+                autoShareSlots.forEach(slot => feedData.push(slot));
+            } else {
+                feedData.push({ scenario: pendingGenerationData.scenario, timestamp: pendingGenerationData.timestamp, posts: originalPosts });
+            }
             saveToLocalStorage(); closeReviewModal(); renderGrid();
             
             // Publishing itself uses exactly one Gemini generation request.
