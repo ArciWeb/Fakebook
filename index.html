@@ -3292,47 +3292,202 @@ function applyThemeAndFont() {
             }
         }
 
+        // Sloty používajú IndexedDB: na rozdiel od localStorage zvládne väčšie zálohy.
+        const FB_SLOT_DB_NAME = 'FakebookSaveDatabase';
+        const FB_SLOT_DB_VERSION = 1;
+        function openFakebookSlotDB() {
+            return new Promise((resolve, reject) => {
+                if (!('indexedDB' in window)) return reject(new Error('Tento prehliadač nepodporuje IndexedDB.'));
+                const req = indexedDB.open(FB_SLOT_DB_NAME, FB_SLOT_DB_VERSION);
+                req.onupgradeneeded = () => {
+                    const db = req.result;
+                    if (!db.objectStoreNames.contains('slots')) db.createObjectStore('slots', { keyPath: 'id' });
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error || new Error('Databázu slotov sa nepodarilo otvoriť.'));
+            });
+        }
+        async function putFakebookSlot(record) {
+            const db = await openFakebookSlotDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('slots', 'readwrite');
+                tx.objectStore('slots').put(record);
+                tx.oncomplete = () => { db.close(); resolve(); };
+                tx.onerror = tx.onabort = () => { db.close(); reject(tx.error || new Error('Uloženie slotu zlyhalo.')); };
+            });
+        }
+        async function getFakebookSlot(id) {
+            const db = await openFakebookSlotDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('slots', 'readonly');
+                const req = tx.objectStore('slots').get(id);
+                req.onsuccess = () => { const value = req.result || null; db.close(); resolve(value); };
+                req.onerror = () => { db.close(); reject(req.error || new Error('Načítanie slotu zlyhalo.')); };
+            });
+        }
+        async function deleteFakebookSlot(id) {
+            const db = await openFakebookSlotDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('slots', 'readwrite');
+                tx.objectStore('slots').delete(id);
+                tx.oncomplete = () => { db.close(); resolve(); };
+                tx.onerror = tx.onabort = () => { db.close(); reject(tx.error || new Error('Vymazanie slotu zlyhalo.')); };
+            });
+        }
+        function collectFakebookSaveState() {
+            // Zoberieme aj aktuálne premenné, aby posledné zmeny neostali len v RAM.
+            const state = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('fb_') && !/^fb_slot_\\d+_(feed|shared|time)$/.test(key)) {
+                    state[key] = localStorage.getItem(key);
+                }
+            }
+            state.fb_feed_data = JSON.stringify(feedData);
+            state.fb_shared_posts = JSON.stringify(sharedPosts);
+            state.fb_friends = JSON.stringify(friendsList);
+            state.fb_messenger_chats = JSON.stringify(chatData);
+            state.fb_username = currentUsername;
+            state.fb_global_time = localStorage.getItem('fb_global_time') || '0';
+            return state;
+        }
+        function makeFakebookSaveRecord(i) {
+            return {
+                format: 'FakebookSave', version: 1, slot: i,
+                savedAt: new Date().toISOString(),
+                state: collectFakebookSaveState()
+            };
+        }
         function renderSlots() {
             let html = '';
             for(let i=1; i<=4; i++) {
                 let sName = localStorage.getItem(`fb_slot_${i}_name`) || `Slot ${i}`;
                 html += `
-                <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-input); padding: 8px 12px; margin-bottom: 8px; border-radius: 6px;">
-                    <input type="text" id="slot-name-${i}" value="${sName}" style="flex:1; border:none; background:transparent; font-weight:600; font-size:0.95rem; outline:none; margin-bottom: 0; color: var(--global-font-color);" onchange="saveSlotName(${i})">
-                    <div style="display:flex; gap: 8px;">
-                        <button class="nav-btn" style="width:36px; height:36px; font-size:1rem;" title="${UI_TEXTS[appLanguage].slotBtnSave}" onclick="saveToSlot(${i})">💾</button>
-                        <button class="nav-btn" style="width:36px; height:36px; font-size:1rem;" title="${UI_TEXTS[appLanguage].slotBtnLoad}" onclick="loadFromSlot(${i})">📂</button>
+                <div style="background: var(--bg-input); padding: 10px 12px; margin-bottom: 10px; border-radius: 8px;">
+                    <input type="text" id="slot-name-${i}" value="${String(sName).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}" aria-label="Názov slotu ${i}" style="width:100%; border:1px solid var(--border-color); background:var(--bg-card); font-weight:600; font-size:0.95rem; margin-bottom:8px; color:var(--global-font-color);">
+                    <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px;">
+                        <button class="btn btn-primary" onclick="saveToSlot(${i})">💾 Uložiť</button>
+                        <button class="btn btn-secondary" onclick="loadFromSlot(${i})">📂 Načítať</button>
+                        <button class="btn btn-secondary" onclick="deleteSlot(${i})">🗑️ Vymazať</button>
+                        <button class="btn btn-secondary" onclick="downloadSlot(${i})">⬇️ Stiahnuť</button>
+                        <button class="btn btn-secondary" onclick="chooseSlotImport(${i})">📥 Vložiť JSON</button>
                     </div>
                 </div>`;
             }
-            document.getElementById('slots-container').innerHTML = `<h4 style="margin-top:0; margin-bottom:12px; font-size:1.1rem; color:var(--global-font-color);">${UI_TEXTS[appLanguage].slotTitle}</h4>` + html;
+            document.getElementById('slots-container').innerHTML =
+                `<h4 style="margin-top:0; margin-bottom:12px; font-size:1.1rem; color:var(--global-font-color);">${UI_TEXTS[appLanguage].slotTitle}</h4>` +
+                html + `<input type="file" id="fakebook-slot-import" accept=".json,application/json" style="display:none">`;
+            const picker = document.getElementById('fakebook-slot-import');
+            if (picker) picker.onchange = async function() {
+                const file = this.files && this.files[0];
+                const slot = Number(this.dataset.slot);
+                this.value = '';
+                if (!file) return;
+                try {
+                    const text = await file.text();
+                    const parsed = JSON.parse(text);
+                    const record = parsed && parsed.format === 'FakebookSave' ? parsed : null;
+                    if (!record || !record.state || typeof record.state !== 'object' || Array.isArray(record.state)) {
+                        throw new Error('Toto nie je platný Fakebook JSON súbor.');
+                    }
+                    if (!confirm(`Vložiť zálohu do slotu ${slot}? Obsah tohto slotu sa prepíše.`)) return;
+                    record.slot = slot;
+                    record.savedAt = record.savedAt || new Date().toISOString();
+                    await putFakebookSlot({id: slot, ...record});
+                    localStorage.setItem(`fb_slot_${slot}_name`, `Slot ${slot}`);
+                    renderSlots();
+                    alert(`JSON bol úspešne vložený do slotu ${slot}.`);
+                } catch(e) { alert('Import sa nepodaril: ' + (e.message || e)); }
+            };
         }
-
         function saveSlotName(i) {
-            let val = document.getElementById(`slot-name-${i}`).value;
-            localStorage.setItem(`fb_slot_${i}_name`, val);
+            const el = document.getElementById(`slot-name-${i}`);
+            if (el) localStorage.setItem(`fb_slot_${i}_name`, el.value.trim() || `Slot ${i}`);
         }
-
-        function saveToSlot(i) {
-            if(!confirm(UI_TEXTS[appLanguage].slotConfirmSave)) return;
-            localStorage.setItem(`fb_slot_${i}_feed`, JSON.stringify(feedData));
-            localStorage.setItem(`fb_slot_${i}_shared`, JSON.stringify(sharedPosts));
-            localStorage.setItem(`fb_slot_${i}_time`, localStorage.getItem('fb_global_time') || '0');
-            alert(UI_TEXTS[appLanguage].slotSaved);
+        async function saveToSlot(i) {
+            if(!confirm('Uložiť kompletný stav Fakebooku do slotu ' + i + '?')) return;
+            try {
+                saveSlotName(i);
+                const record = makeFakebookSaveRecord(i);
+                await putFakebookSlot({id: i, ...record});
+                alert(`Slot ${i} bol uložený. Veľkosť zálohy: ${(new Blob([JSON.stringify(record)]).size / 1024 / 1024).toFixed(2)} MB.`);
+            } catch(e) { alert('Uloženie zlyhalo: ' + (e.message || e) + '\\nSkús uvoľniť miesto v zariadení alebo stiahnuť a vložiť zálohu cez JSON.'); }
         }
-
-        function loadFromSlot(i) {
-            if(!confirm(UI_TEXTS[appLanguage].slotConfirmLoad)) return;
-            let f = localStorage.getItem(`fb_slot_${i}_feed`);
-            let s = localStorage.getItem(`fb_slot_${i}_shared`);
-            let t = localStorage.getItem(`fb_slot_${i}_time`);
-            if(f) feedData = JSON.parse(f);
-            if(s) sharedPosts = JSON.parse(s);
-            if(t) localStorage.setItem('fb_global_time', t);
-            saveToLocalStorage();
-            renderGrid();
-            closeApiModal();
-            alert(UI_TEXTS[appLanguage].slotLoaded);
+        async function loadFromSlot(i) {
+            if(!confirm('Načítať kompletný stav zo slotu ' + i + '? Aktuálne údaje Fakebooku budú nahradené.')) return;
+            try {
+                let record = await getFakebookSlot(i);
+                // Kompatibilita so staršími slotmi z pôvodnej verzie.
+                if (!record) {
+                    const f = localStorage.getItem(`fb_slot_${i}_feed`);
+                    const sh = localStorage.getItem(`fb_slot_${i}_shared`);
+                    if (f || sh) {
+                        const state = collectFakebookSaveState();
+                        if (f) state.fb_feed_data = f;
+                        if (sh) state.fb_shared_posts = sh;
+                        state.fb_global_time = localStorage.getItem(`fb_slot_${i}_time`) || '0';
+                        record = {state};
+                    }
+                }
+                if (!record || !record.state) { alert('Slot ' + i + ' je prázdny.'); return; }
+                applyFakebookSaveState(record.state);
+                closeApiModal();
+                location.reload();
+            } catch(e) { alert('Načítanie zlyhalo: ' + (e.message || e)); }
+        }
+        function applyFakebookSaveState(state) {
+            // Nahradíme iba aplikačné kľúče Fakebooku; API kľúč a uložené sloty ostanú zachované.
+            const keep = new Set();
+            const remove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('fb_') && !keep.has(key) && !/^fb_slot_\\d+_(name|feed|shared|time)$/.test(key)) remove.push(key);
+            }
+            remove.forEach(k => localStorage.removeItem(k));
+            Object.entries(state).forEach(([key, value]) => {
+                if (key.startsWith('fb_') && !/^fb_slot_\\d+_(name|feed|shared|time)$/.test(key)) {
+                    localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+                }
+            });
+        }
+        async function deleteSlot(i) {
+            if (!confirm(`Naozaj vymazať uložený stav v slote ${i}?`)) return;
+            try {
+                await deleteFakebookSlot(i);
+                ['feed','shared','time'].forEach(k => localStorage.removeItem(`fb_slot_${i}_${k}`));
+                alert(`Slot ${i} bol vymazaný.`);
+            } catch(e) { alert('Vymazanie zlyhalo: ' + (e.message || e)); }
+        }
+        async function downloadSlot(i) {
+            try {
+                let record = await getFakebookSlot(i);
+                if (!record) {
+                    const f = localStorage.getItem(`fb_slot_${i}_feed`);
+                    const sh = localStorage.getItem(`fb_slot_${i}_shared`);
+                    if (f || sh) {
+                        const state = collectFakebookSaveState();
+                        if (f) state.fb_feed_data = f;
+                        if (sh) state.fb_shared_posts = sh;
+                        state.fb_global_time = localStorage.getItem(`fb_slot_${i}_time`) || '0';
+                        record = {format:'FakebookSave',version:1,slot:i,savedAt:new Date().toISOString(),state};
+                    }
+                }
+                if (!record) { alert(`Slot ${i} je prázdny.`); return; }
+                const json = JSON.stringify({format:'FakebookSave',version:1,slot:i,savedAt:record.savedAt || new Date().toISOString(),state:record.state}, null, 2);
+                const blob = new Blob([json], {type:'application/json;charset=utf-8'});
+                const url = URL.createObjectURL(blob);
+                const date = new Date().toISOString().replace(/:/g,'-').replace(/\.\d{3}Z$/,'Z');
+                const a = document.createElement('a');
+                a.href = url; a.download = `Fakebook slot${i} ${date}.json`;
+                document.body.appendChild(a); a.click(); a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 30000);
+            } catch(e) { alert('Stiahnutie zlyhalo: ' + (e.message || e)); }
+        }
+        function chooseSlotImport(i) {
+            const picker = document.getElementById('fakebook-slot-import');
+            if (!picker) { alert('Importný prvok sa nenašiel.'); return; }
+            picker.dataset.slot = String(i);
+            picker.click();
         }
 
         function openApiModal() {
