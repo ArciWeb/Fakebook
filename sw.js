@@ -1,51 +1,74 @@
-const CACHE_NAME = 'fakebook-cache-v3';
+const CACHE_NAME = 'fakebook-cache-v3.98';
+const CACHE_PREFIX = 'fakebook-cache-';
 const ASSETS = [
-    'index.html',
-    'manifest.json',
-    'sw.js',
-    'fakebook.png',
-    'fakebook_small.png'
+    './',
+    './index.html',
+    './changelog.html',
+    './fakebook.png',
+    './fakebook_small.png'
 ];
 
-// Inštalácia Service Workera a uloženie súborov do cache
-self.addEventListener('install', e => {
-    e.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
-            console.log('Fakebook PWA: Ukladám statické súbory do cache...');
-            return cache.addAll(ASSETS);
-        })
+// Install the new worker and activate it without waiting for old tabs to close.
+self.addEventListener('install', event => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(ASSETS))
+            .then(() => self.skipWaiting())
     );
 });
 
-// Aktivácia a vyčistenie starých verzií cache
-self.addEventListener('activate', e => {
-    e.waitUntil(
-        caches.keys().then(keys => {
-            return Promise.all(
-                keys.map(key => {
-                    if (key !== CACHE_NAME) {
-                        console.log('Fakebook PWA: Mažem starú cache:', key);
-                        return caches.delete(key);
+// Delete only old Fakebook caches, not caches belonging to other apps on the same origin.
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys()
+            .then(names => Promise.all(
+                names
+                    .filter(name => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
+                    .map(name => caches.delete(name))
+            ))
+            .then(() => self.clients.claim())
+    );
+});
+
+self.addEventListener('fetch', event => {
+    const request = event.request;
+    const url = new URL(request.url);
+
+    // Only handle GET requests from this origin. Leave API/external requests alone.
+    if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+    if (url.href.includes('api.groq.com') || url.href.includes('pollinations.com') || url.href.includes('corsproxy')) return;
+
+    // For page navigations, try the network first and bypass the browser HTTP cache.
+    // If offline, fall back to the cached page.
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            fetch(new Request(request, { cache: 'no-store' }))
+                .then(response => {
+                    if (response && response.ok) {
+                        const copy = response.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy)).catch(() => {});
                     }
+                    return response;
                 })
-            );
-        })
-    );
-});
-
-// Sieťové požiadavky - ak sme offline, načítaj dáta z cache
-self.addEventListener('fetch', e => {
-    // Groq API ani corsproxy nechceme cachovať, tie musia ísť vždy naživo
-    if (e.request.url.includes('api.groq.com') || e.request.url.includes('corsproxy.io')) {
+                .catch(async () => {
+                    return (await caches.match(request)) ||
+                           (await caches.match('./index.html')) ||
+                           Response.error();
+                })
+        );
         return;
     }
 
-    e.respondWith(
-        caches.match(e.request).then(cachedResponse => {
-            // OPRAVENÉ: Namiesto neexistujúceho 'res' vraciame správne 'cachedResponse'
-            return cachedResponse || fetch(e.request).catch(() => {
-                // Priestor pre prípadný offline fallback
-            });
-        })
+    // For other same-origin resources, prefer a fresh network response.
+    event.respondWith(
+        fetch(new Request(request, { cache: 'no-cache' }))
+            .then(response => {
+                if (response && response.ok) {
+                    const copy = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => {});
+                }
+                return response;
+            })
+            .catch(() => caches.match(request).then(cached => cached || Response.error()))
     );
 });
