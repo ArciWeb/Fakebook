@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fakebook v. 4.12</title>
+    <title>Fakebook v. 4.13</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1877f2">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -538,7 +538,7 @@
         .chat-context-menu .delete { color:#f02849; }
         .chat-context-menu .copy { color:var(--fb-blue); }
 
-        /* Fakebook 4.12: refined profiles, scoped refresh and activity notifications */
+        /* Fakebook 4.13: refined profiles, scoped refresh and activity notifications */
         .profile-header-card{ text-align:left; padding-bottom:18px; }
         .profile-header-card .profile-avatar-wrapper{ margin-left:24px; }
         .profile-header-card #profile-display-name{ margin-left:24px !important; }
@@ -564,7 +564,7 @@
         @media(max-width:600px){.profile-cover{height:165px}.profile-avatar-large{width:124px;height:124px}.profile-header-card .profile-avatar-wrapper{margin-left:16px}.profile-header-card #profile-display-name,.profile-header-card .username-edit-row{margin-left:16px!important}}
 
 
-        /* Fakebook 4.12 — refined profile experience */
+        /* Fakebook 4.13 — refined profile experience */
         html,body{overscroll-behavior-y:contain;}
         .modal-overlay,.modal-content{overscroll-behavior:contain;}
         #user-profile-modal .modal-content{background:var(--bg-main);padding:0 0 42px!important;}
@@ -618,7 +618,7 @@
         }
 
 
-        /* Fakebook 4.12 — opaque, theme-aware profile surfaces and Facebook-like polish */
+        /* Fakebook 4.13 — opaque, theme-aware profile surfaces and Facebook-like polish */
         body.theme-light{--profile-surface:#ffffff;--profile-inset:#f0f2f5;--profile-cover-a:#0866ff;--profile-cover-b:#54a3ff;--profile-cover-c:#d7e9ff;}
         body.theme-dark{--profile-surface:#242526;--profile-inset:#3a3b3c;--profile-cover-a:#111827;--profile-cover-b:#334155;--profile-cover-c:#64748b;}
         body.theme-blue{--profile-surface:#172a45;--profile-inset:#233d5d;--profile-cover-a:#06234d;--profile-cover-b:#1769aa;--profile-cover-c:#63b3ed;}
@@ -668,6 +668,49 @@
         .suggested-people-empty{padding:16px;text-align:center;color:var(--text-muted);}
         @media(max-width:600px){.suggested-people-grid{grid-template-columns:1fr;}.suggested-person-info p{-webkit-line-clamp:3;}#user-profile-modal .profile-nav-tabs{overflow-x:auto;}.profile-photos-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}}
 
+
+        /* Fakebook 4.13 – friend hub, compact navigation and polished people cards */
+        .navbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:8px clamp(10px,2vw,24px)!important;}
+        .navbar-brand{flex:0 0 auto;}
+        .navbar-search{position:relative;flex:1 1 220px;max-width:420px;min-width:150px;margin:0 8px;}
+        .navbar-search input{width:100%;height:42px;border:1px solid var(--border-color);border-radius:24px;background:var(--bg-input);color:var(--global-font-color);padding:0 16px 0 40px;margin:0;outline:none;}
+        .navbar-search:before{content:'⌕';position:absolute;left:14px;top:5px;font-size:25px;color:var(--text-muted);pointer-events:none;}
+        .navbar-search-results{display:none;position:absolute;top:48px;left:0;right:0;z-index:1200;background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.2);max-height:360px;overflow:auto;padding:6px;}
+        .navbar-search-results.open{display:block;}
+        .navbar-search-result{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--global-font-color);text-align:left;padding:9px;border-radius:10px;cursor:pointer;}
+        .navbar-search-result:hover{background:var(--bg-input);}
+        .navbar-search-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;flex:0 0 36px;}
+        .navbar-actions{flex:0 0 auto;gap:6px;}
+        #btn-nav-suggested{display:none!important;}
+        #friends-modal .modal-content{max-width:900px!important;width:min(96vw,900px)!important;max-height:92vh;overflow-y:auto;padding:22px!important;}
+        .friends-hub-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:4px 0 16px;}
+        .friends-hub-heading p{margin:4px 0 0;color:var(--text-muted);font-size:.88rem;}
+        .friends-hub-section{background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:15px;margin:0 0 14px;box-shadow:0 2px 8px rgba(0,0,0,.045);}
+        .friends-hub-section h4{margin:0 0 11px;font-size:1rem;}
+        .friend-add-toggle{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:12px;background:var(--fb-blue);color:white;font-weight:800;padding:13px;cursor:pointer;margin:0 0 12px;}
+        #friend-add-form{display:none;background:var(--bg-input);border:1px solid var(--border-color);padding:14px;border-radius:13px;margin-bottom:15px;}
+        #friend-add-form.open{display:block;}
+        .friends-hub-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0;}
+        .friends-hub-toolbar label{font-size:.84rem;font-weight:700;color:var(--text-muted);}
+        #friends-list-container{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px!important;max-height:none!important;overflow:visible!important;}
+        #friends-list-container>div{min-width:0;border:1px solid var(--border-color)!important;border-radius:14px!important;background:var(--bg-card)!important;padding:13px!important;box-shadow:0 2px 8px rgba(0,0,0,.055)!important;margin:0!important;}
+        .friend-modern-card{min-width:0;border:1px solid var(--border-color);border-radius:14px;background:var(--bg-card);padding:13px;box-shadow:0 2px 8px rgba(0,0,0,.055);}.friend-modern-top{display:flex;align-items:center;gap:11px;min-width:0;}
+        .friend-modern-avatar{width:58px;height:58px;flex:0 0 58px;border-radius:12px;object-fit:cover;display:grid;place-items:center;color:white;font-weight:900;font-size:1.05rem;}
+        .friend-modern-name{font-weight:850;font-size:.98rem;line-height:1.25;cursor:pointer;overflow-wrap:anywhere;}
+        .friend-modern-meta{font-size:.77rem;color:var(--text-muted);margin-top:4px;line-height:1.35;}
+        .friend-modern-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:13px;}
+        .friend-modern-actions button{border:0;border-radius:9px;padding:9px 5px;background:var(--bg-input);color:var(--global-font-color);font-size:.78rem;font-weight:800;cursor:pointer;min-width:0;}
+        .friend-modern-actions button.primary{background:var(--fb-blue);color:#fff;}
+        .friend-create-menu{display:none;grid-template-columns:1fr;gap:6px;margin-top:8px;padding:9px;background:var(--bg-input);border-radius:10px;}
+        .friend-create-menu.open{display:grid;}
+        .friend-create-menu button{border:1px solid var(--border-color);background:var(--bg-card);color:var(--global-font-color);border-radius:8px;padding:8px;text-align:left;cursor:pointer;font-size:.82rem;}
+        .friends-hub-empty{grid-column:1/-1;padding:28px 15px;text-align:center;color:var(--text-muted);background:var(--bg-input);border-radius:12px;}
+        .friend-request-box{margin:8px 0!important;}
+        #friends-suggested-inline .suggested-people-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+        .profile-back-btn{position:sticky;top:0;z-index:8;display:flex;align-items:center;gap:7px;border:0;background:var(--bg-card);color:var(--fb-blue);font-weight:800;padding:9px 12px;border-radius:10px;cursor:pointer;margin:0 0 8px;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+        @media(max-width:700px){.navbar{gap:5px}.navbar-search{order:3;flex:1 1 100%;max-width:none;margin:4px 0 0}.navbar-actions{margin-left:auto}.navbar-actions .nav-btn{padding:7px 8px!important}#friends-list-container{grid-template-columns:1fr!important}#friends-suggested-inline .suggested-people-grid{grid-template-columns:1fr 1fr;}}
+        @media(max-width:420px){#friends-suggested-inline .suggested-people-grid{grid-template-columns:1fr}.navbar-brand h1{font-size:1rem!important}}
+
 </style>
 </head>
 <body>
@@ -687,10 +730,10 @@
             <div class="logo-icon" style="border-radius: 12px;">f</div>
             <h1 class="navbar-text" id="lbl-nav-title">Fakebook</h1>
         </a>
+        <div class="navbar-search" id="navbar-search-wrap"><input id="navbar-search-input" type="search" autocomplete="off" placeholder="Hľadať priateľov a ľudí…" oninput="searchFakebookPeople(this.value)" onfocus="searchFakebookPeople(this.value)" onkeydown="handlePeopleSearchKey(event)"><div id="navbar-search-results" class="navbar-search-results"></div></div>
         <div class="navbar-actions">
             <button class="nav-btn" onclick="showGrid(); openNotifications();" id="btn-nav-home" title="Domov a upozornenia">🏠<span class="msg-badge" id="global-notification-badge">0</span></button>
             <button class="nav-btn" onclick="openFriendsModal()" id="btn-nav-friends" title="Priatelia">👥<span class="msg-badge" id="global-friend-request-badge">0</span></button>
-            <button class="nav-btn" onclick="openSuggestedPeople()" id="btn-nav-suggested" title="Ľudia, ktorých možno poznáte">🧑‍🤝‍🧑</button>
             <button class="nav-btn" id="nav-messenger-btn" title="Messenger">
                 💬
                 <span class="msg-badge" id="global-msg-badge">0</span>
@@ -726,23 +769,19 @@
     <div class="modal-overlay" id="friends-modal">
         <div class="modal-content" style="max-width: 480px;">
             <button class="close-modal-btn" onclick="closeFriendsModal()">&times;</button>
-            <h3 id="lbl-friends-title"></h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 16px;" id="lbl-friends-desc"></p>
-            <div class="assistant-card" style="margin-bottom:14px;"><strong>🤖 <span id="lbl-assistant-friend-tip-title">Tip asistenta</span></strong><div style="font-size:.88rem;margin-top:4px;" id="lbl-assistant-friend-tip">Po pridaní človeka otvor jeho nastavenia a opíš jeho povahu, záujmy, vzťah k tebe a spôsob komunikácie.</div></div>
-            
-            <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+            <div class="friends-hub-heading"><div><h3 id="lbl-friends-title" style="margin:0;"></h3><p id="lbl-friends-desc">Spravuj priateľov, žiadosti a nové kontakty na jednom mieste.</p></div></div>
+            <div class="friends-hub-section" id="friends-requests-section"><h4>Žiadosti o priateľstvo</h4><div id="friend-requests-panel"></div></div>
+            <div class="friends-hub-section" id="friends-suggested-section"><h4>Ľudia, ktorých možno poznáte</h4><div id="friends-suggested-inline"></div></div>
+            <button class="friend-add-toggle" type="button" onclick="toggleFriendAddForm()">＋ <span id="btn-add-friend-toggle-label">Pridať priateľa</span></button>
+            <div id="friend-add-form">
+                <div class="assistant-card" style="margin-bottom:12px;"><strong>🤖 <span id="lbl-assistant-friend-tip-title">Tip asistenta</span></strong><div style="font-size:.88rem;margin-top:4px;" id="lbl-assistant-friend-tip">Po pridaní človeka otvor jeho nastavenia a opíš jeho povahu, záujmy, vzťah k tebe a spôsob komunikácie.</div></div>
                 <input type="text" id="new-friend-input" placeholder="">
-                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                    <select id="new-friend-gender" style="flex: 1; margin-bottom: 0;">
-                        <option value="male" id="opt-gender-male"></option>
-                        <option value="female" id="opt-gender-female"></option>
-                    </select>
-                    <input type="text" id="new-friend-age" placeholder="" style="flex: 1; margin-bottom: 0;">
-                </div>
+                <div style="display:flex;gap:8px;margin-bottom:10px;"><select id="new-friend-gender" style="flex:1;margin-bottom:0;"><option value="male" id="opt-gender-male"></option><option value="female" id="opt-gender-female"></option></select><input type="text" id="new-friend-age" placeholder="" style="flex:1;margin-bottom:0;"></div>
                 <button class="btn btn-primary" style="width:100%;" onclick="addFriend()" id="btn-add-friend"></button>
             </div>
-            
-            <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center;">
+            <div class="friends-hub-section">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;"><h4 style="margin:0;">Moji priatelia</h4><span id="friends-hub-count" style="font-size:.82rem;color:var(--text-muted);"></span></div>
+            <div class="friends-hub-toolbar">
                 <label style="font-size: 0.85rem; font-weight: 600;" id="lbl-sort-friends"></label>
                 <select id="friend-sort-select" style="flex:1; padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--global-font-color); margin-bottom:0;" onchange="sortAndRenderFriends()">
                     <option value="added" id="opt-sort-added"></option>
@@ -752,6 +791,7 @@
             </div>
 
             <div id="friends-list-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto;"></div>
+            </div>
         </div>
     </div>
 
@@ -759,7 +799,7 @@
         <div class="modal-content" style="max-width:650px;">
             <button class="close-modal-btn" onclick="closeNotifications()">&times;</button>
             <h3 id="lbl-notifications-title">Upozornenia</h3>
-            <div id="friend-requests-panel"></div><div id="notifications-list" class="notification-list"></div>
+            <div id="notifications-list" class="notification-list"></div>
             <button class="btn btn-secondary" id="btn-notifications-mark-read" style="width:100%;margin-top:12px;" onclick="markAllNotificationsRead()">Označiť všetko ako prečítané</button>
         </div>
     </div>
@@ -927,6 +967,7 @@
             </div>
 
             <button class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 12px;" onclick="saveFriendSettings()" id="btn-fs-save"></button>
+            <button class="btn btn-danger" style="width:100%;margin-top:9px;" id="btn-fs-delete-friend" onclick="removeFriendFromSettings()">🗑️ Odstrániť priateľa</button>
         </div>
     </div>
 
@@ -1158,10 +1199,10 @@
 
     <div class="modal-overlay" id="user-profile-modal">
         <div class="modal-content" style="max-height:100vh;overflow-y:auto;max-width:none;">
-            <button class="close-modal-btn" onclick="closeProfile()">&times;</button>
+            <button class="profile-back-btn" type="button" onclick="closeProfile()">← <span id="profile-back-label">Späť</span></button>
             <div class="profile-header-card">
                 <div class="profile-cover" id="profile-cover-image">
-                    <button class="profile-cover-edit" id="profile-cover-edit-btn" onclick="toggleMyProfileEditor()" style="display:none;">📷 <span id="profile-cover-edit-label">Upraviť profil</span></button>
+                    <button class="profile-cover-edit" id="profile-cover-edit-btn" onclick="openProfilePhotoEditor()" style="display:none;">📷 <span id="profile-cover-edit-label">Pridať fotky</span></button>
                 </div>
                 <div class="profile-identity">
                     <div class="profile-avatar-wrapper"><div class="profile-avatar-large" id="profile-avatar-large" style="background-color:var(--fb-blue);">JA</div></div>
@@ -1499,14 +1540,14 @@ async function geminiFetch(request) {
     return { ok: true, async json() { return { choices: [{ message: { content: text } }], groundingMetadata }; } };
 }
 
-        const MALE_NAMES = ["Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid", "Dežo", "Gejza", "Koloman", "Vasiľ", "Fero", "Laco", "Jožo", "Maroš", "Slavo", "Bohumil", "Žigmund", "Pali", "Rišo"];
-        const FEMALE_NAMES = ["Janka", "Mária", "Zuzana", "Katarína", "Lucia", "Lenka", "Monika", "Petra", "Veronika", "Martina", "Klaudia", "Ružena", "Gitka", "Božena", "Erika", "Vlasta", "Oľga"];
+        const MALE_NAMES = ["Peter", "Juraj", "Martin", "Jozef", "Milan", "Ján", "Marek", "Michal", "Tomáš", "Andrej", "Róbert", "Roman", "Igor", "Vladimír", "Patrik", "Lukáš", "Filip", "Adam", "Ivan", "Richard", "Miroslav", "Pavol", "Štefan", "Dušan", "Daniel", "Ľubomír", "Ondrej", "Tibor", "Mário", "Dávid", "Dežo", "Gejza", "Koloman", "Vasiľ", "Fero", "Laco", "Jožo", "Maroš", "Slavo", "Bohumil", "Žigmund", "Pali", "Rišo", "Matúš", "Samuel", "Oliver", "Jakub", "Dominik", "Teodor", "Šimon", "Viktor", "Kristián", "Branislav", "Rastislav", "Erik", "Sebastián", "Matej", "Tadeáš", "Maxim", "Damián", "Artur", "Boris", "Eduard"];
+        const FEMALE_NAMES = ["Janka", "Mária", "Zuzana", "Katarína", "Lucia", "Lenka", "Monika", "Petra", "Veronika", "Martina", "Klaudia", "Ružena", "Gitka", "Božena", "Erika", "Vlasta", "Oľga", "Nina", "Sofia", "Ema", "Nela", "Natália", "Tereza", "Sára", "Bianka", "Timea", "Dorota", "Tamara", "Karolína", "Laura", "Viktória", "Hana", "Rebeka", "Michaela", "Diana", "Simona", "Ivana", "Ela", "Lívia", "Stela", "Lea", "Alexandra", "Barbora", "Kristína", "Karin", "Nikol"];
         
         const SURNAMES_POOL = [
             "Skrutka", "Motyka", "Podlaha", "Chobot", "Kladivo", "Tehla", "Kábel", "Lopata", "Žiarovka", "Dvere", 
             "Okno", "Kefa", "Metla", "Hrniec", "Pokrievka", "Zemiak", "Cibuľa", "Mrkva", "Stôl", "Stolička", 
             "Zásuvka", "Vankúš", "Perina", "Koberec", "Zrkadlo", "Pneumatika", "Výfuk", "Volant", "Sedadlo", 
-            "Kapor", "Pstruh", "Slanina", "Klobása", "Párok", "Horčica", "Kečup", "Chlieb", "Rožok", "Múka"
+            "Kapor", "Pstruh", "Slanina", "Klobása", "Párok", "Horčica", "Kečup", "Chlieb", "Rožok", "Múka", "Bartoš", "Kováčik", "Šimko", "Polák", "Urban", "Blaško", "Krištof", "Valent", "Švec", "Kováč", "Novotný", "Bielik", "Hruška", "Kučera", "Mlynár", "Dúbravský", "Ondruš", "Mráz", "Tóth", "Baláž", "Varga", "Molnár", "Bartoň", "Konečný", "Štefánik", "Gregor", "Hudec", "Benková", "Kovář", "Černý", "Kováčová", "Lukáč", "Mikuš", "Pavlík", "Kamenický", "Šoltés", "Kováčiková", "Rybár", "Krajčír", "Brezina", "Škultéty", "Kováčik", "Macko", "Šimun", "Šarkan", "Blažek", "Kováčiková", "Blažej", "Kollár", "Veverka", "Švecík"
         ];
 
         // POOLY PRE ANGLICKÝ A SRBSKÝ JAZYK
@@ -1683,7 +1724,7 @@ async function geminiFetch(request) {
                 chatHeaderFriend: "Priateľ", chatClearConv: "Vymazať konverzáciu", chatForgetThemes: "Zabudnúť staré témy (Čistý štít)", chatInputPlace: "Napíšte správu...",
                 chatBlockedBanner: "Tento používateľ je zablokovaný. Ak ho chcete odblokovať, prejdite na jeho nastavenia.", chatIgnoredBanner: "Priateľ vám poslal už 5 správ bez vašej odpovede. Nové správy nebude posielať, kým neodpíšete.",
                 infoGuideTitle: "Návod na použitie", infoGuideDesc: "<strong>Kľúč Gemini API:</strong> Pre správne fungovanie aplikácie Fakebook budete potrebovať vlastný API Key zo stránky Google AI Studio, ktorý vložíte v nastaveniach (🔑).<br><br><strong>Môj Profil:</strong> Nastavte si svoje vlastné MENO, VEK a POHLAVIE pre personalizovaný zážitok.<br><br><strong>Systém Priateľov (👥):</strong> Pridajte si priateľov zadaním ich mena, pohlavia a veku. Systém im automaticky vygeneruje unikátne VLASTNOSTI, OSOBNOSŤ, GRAMATIKU a SPRÁVANIE, podľa ktorých budú komunikovať. Všetky tieto atribúty môžete kedykoľvek UPRAVIŤ, zmeniť šancu na odpoveď či frekvenciu správ. Priateľom môžete priamo na plochu vygenerovať osobný STATUS, nechať ich ZDIEĽAŤ ľubovoľný článok, vytvoriť o nich bulvárny ČLÁNOK alebo si s nimi PÍSAŤ.<br><br><strong>Messenger (💬) & Autonómne správy:</strong> Priatelia vám môžu napísať aj sami od seba. Pri prechádzaní plochy a otváraní Messengera existuje dynamická šanca, že vám PRÍDE SPRÁVA. Ak nechcete čakať, <u>podržte tlačidlo Messengera na 3 sekundy</u> a správa dorazí okamžite. Priatelia si konverzácie PAMÄTAJÚ a plynule v nich pokračujú.<br><br><strong>Generovanie Článkov:</strong> Kliknite na vrchné pole pre tvorbu statusov. BUĎ napíšte vlastnú tému, ALEBO pole nechajte prázdne a systém vytvorí náhodný virálny príspevok. Môžete nastaviť časový posun, vybrať tému, určiť počet verzií a v review okne flexibilne UPRAVIŤ FOTKU (zmenou pomeru strán a promptu) či NÁZOV STRÁNKY.<br><br><strong>Vojny v komentároch & Algoritmus interakcií:</strong> Každý článok generuje množstvo živých KOMENTÁROV. Na príspevky môžete odpovedať, čím vyvoláte reálnu diskusiu. Existuje šanca, že vám od aktívneho komentujúceho príde ŽIADOSŤ O PRIATEĽSTVO. Tlačidlom <em>🤖 AI Troll Reakcia</em> vyvoláte okamžitú provokatívnu odpoveď na konkrétny komentár, alebo môžete spustiť masívnu <em>VOJNU KOMENTÁROV</em>. Články môžete zdieľať na svoj profil, mazať či generovať ich alternatívy.<br><br><strong>Nastavenia Obľúbených tém:</strong> V profile a nastaveniach priateľa pribudol explicitný popis pre kategóriu 'Obľúbené témy', vďaka čomu môžete lepšie korigovať algoritmus záujmov entít.<br><br><strong>💡 Núdzový Reset:</strong> V prípade akýchkoľvek problémov s prekrývaním okien <u>podržte 5 sekúnd hlavné logo FAKEBOOK</u> v ľavom hornom rohu pre tvrdý reset zobrazenia a tém.",
-                infoVerTitle: "Aktualizácia 4.12: Facebookový feed a katalóg osobností", infoVerList: "<li><strong>Profily</strong>: nepriehľadné plochy prispôsobené téme, lepšie rozloženie a nová karta Fotky.</li><li><strong>Ľudia, ktorých možno poznáte</strong>: katalóg 191 parodických osobností s upraviteľnými opismi; môžeš ich pridávať medzi priateľov a AI ich napodobňuje v príspevkoch aj chate. Ďalších ľudí pridáš jedným riadkom v katalógu v HTML.</li><li><strong>Feed</strong>: odporúčania osobností sa zobrazujú aj medzi príspevkami a v hornej lište.</li><li><strong>Diskusie</strong>: po obnovení sa vytvoria dve AI odpovede pod náhodnými komentármi.</li><li><strong>Časová os</strong>: pri obnovení je 40 % šanca posunúť simulovaný čas o jednu hodinu; inak ostáva aktuálny.</li><li><strong>Upozornenia</strong>: samotné vytvorenie vlastného príspevku sa už nepovažuje za interakciu. Komentáre priateľov sa oznamujú vždy; ostatné komentáre len pri skutočnej interakcii.</li>",
+                infoVerTitle: "Aktualizácia 4.13: nová sekcia Priatelia a vyhľadávanie", infoVerList: "<li><strong>Priatelia</strong>: nová prehľadná sekcia so žiadosťami, odporúčaniami, kartami priateľov a rozbaľovacím formulárom na pridanie.</li><li><strong>Akcie priateľov</strong>: tri hlavné tlačidlá – nastavenia, správa a vytváranie statusov/článkov/zdieľaní; odstránenie priateľa je v nastaveniach.</li><li><strong>Vyhľadávanie</strong>: dopĺňa mená podľa ľubovoľnej časti mena medzi priateľmi aj odporúčanými osobnosťami.</li><li><strong>Sociálna sieť osobností</strong>: 334 unikátnych postáv a známych osobností s recipročnou sieťou 20–29 kontaktov, uprednostňujúcou spoločné svety a tematické skupiny.</li><li><strong>Aktivita</strong>: pri automatických komentároch sa náhodne zapájajú aj tvoji priatelia a odporúčané osobnosti.</li><li><strong>Profil</strong>: späť navigácia, samostatné pridávanie fotiek a opravený zoznam vlastných príspevkov vrátane zdieľaní.</li>",
                 msgTitleForce: "Vynucujem správu od:", msgAlertForce: "Prišla nová správa od užívateľa", keyInputAlert: "Prosím, vložte najprv API kľúč.", activeFriendsAlert: "Nemáte žiadnych aktívnych priateľov.",
                 statusViewProfile: "Zobrazenie z profilu", statusFullFeedOnly: "Zobrazenie detailu článku je aktívne len z hlavnej plochy.", profileNoPosts: "Zatiaľ tu nie sú žiadne príspevky.", profileActivityOf: "Príspevky, statusy a aktivita používateľa", profileCommentedOn: "komentoval príspevok stránky", profileSharedArticle: "zdieľal príspevok", profileStatusLabel: "Status", profileLikedArticle: "Páči sa mi príspevok", profileActivityTime: "Aktivita", profileOpenFullActivity: "Otvoriť celý príspevok a komentáre", profileDescriptionLabel: "Popis osoby", profileDescriptionPlace: "Krátky popis osoby...", profilePhotoLabel: "Profilová fotka", profilePhotoChoose: "Vybrať PNG/JPG", profilePhotoRemove: "Odstrániť fotku",
                 targetStatusPlaceholder: "Vytvárate osobný status pre: {name}. Zadajte tému...", statusLengthTitle: "Dĺžka statusu priateľa:", statusLenShort: "Krátky (1-3 vety)", statusLenMid: "Stredný (3-8 viet)", statusLenLong: "Dlhý (8-15 viet)",
@@ -1694,7 +1735,7 @@ async function geminiFetch(request) {
                 feedSettingsTitle: "Nastavenia časovej osi", feedSortLabel: "Usporiadať príspevky", feedSortNewest: "Od najnovšieho", feedSortRelevance: "Podľa relevancie", feedSortRandom: "Náhodne pri obnovení", assistantToggle: "Asistent Fakebooku", assistantDescription: "Odporúča ďalšie kroky, doplnenie profilu, priateľov a príspevkov.", assistantTitle: "Asistent Fakebooku", assistantLater: "Neskôr", assistantFriendTipTitle: "Tip asistenta", assistantFriendTip: "Po pridaní človeka otvor jeho nastavenia a opíš jeho povahu, záujmy, vzťah k tebe a spôsob komunikácie.",
                 profileEdit: "Upraviť profil", profileDone: "Hotovo", profileTabPosts: "Príspevky", profileTabFriends: "Priatelia", profileTabAbout: "Informácie", profileShowAllFriends: "Zobraziť všetkých", profileNoFriends: "Zatiaľ nemáš priateľov. Pridaj prvých ľudí a vytvor si vlastnú sociálnu sieť.", profileFriendCount: "{n} priateľov", profilePostCount: "{n} príspevkov", profileMessage: "Poslať správu", profileFriendsOf: "Priatelia používateľa", profileAboutTitle: "Informácie", profileFactsTitle: "Informácie o profile", profileAboutMe: "O mne", profileBio: "O mne", profileCity: "Mesto", profileWork: "Práca", profileEducation: "Vzdelanie", profileRelationship: "Vzťah", profileWebsite: "Webová stránka", profileAge: "Vek", profileGender: "Pohlavie", profileEmptyAbout: "Tieto informácie zatiaľ nie sú vyplnené.", notificationsTitle: "Upozornenia", notificationsMarkRead: "Označiť všetko ako prečítané", notificationsEmpty: "Zatiaľ tu nič nie je.", friendRequestsTitle: "Žiadosti o priateľstvo", accept: "Prijať", decline: "Odmietnuť", notificationFriendPostTitle: "Nový príspevok od priateľa", notificationFriendPostBody: "{name} pridal/a nový príspevok.", notificationFriendShareTitle: "Priateľ zdieľal príspevok", notificationFriendShareBody: "{name} zdieľal/a nový príspevok.", notificationFriendCommentTitle: "Priateľ komentoval príspevok", notificationFriendCommentBody: "{name} pridal/a nový komentár.", notificationNewCommentTitle: "Nový komentár k sledovanému príspevku", notificationNewCommentBody: "{name} komentoval/a príspevok, s ktorým si interagoval/a.", notificationMentionTitle: "Niekto ťa spomenul", notificationMentionBody: "{name} ťa spomenul/a v príspevku alebo komentári.", notificationReplyTitle: "Odpoveď na tvoj komentár", notificationReplyBody: "{name} odpovedal/a na tvoj komentár.", notificationFriendRequestTitle: "Nová žiadosť o priateľstvo", notificationFriendRequestBody: "{name} si ťa chce pridať medzi priateľov.", notificationFriendAcceptedTitle: "Ste priatelia", notificationFriendAcceptedBody: "Ty a {name} ste teraz priatelia.", notificationReminderTitle: "Rozšír si okruh priateľov", notificationReminderBody: "Pridaj ďalších priateľov a vytvor im vlastnú osobnosť.",
 
-                refreshLoading: "↻ Fakebook hľadá nové dianie…", refreshFailed: "Obnovenie sa nepodarilo. Skús to znova.", assistantNoFriends: "Zatiaľ nemáš žiadnych priateľov. Pridaj prvého a vytvor mu vlastný charakter.", assistantAddFriend: "Pridať priateľa", assistantFewFriends: "Máš {n} priateľov. Skús pridať ďalších a doplniť im charakter.", assistantManageFriends: "Spravovať priateľov", assistantProfileIncomplete: "Profil je zatiaľ trochu prázdny. Doplň o sebe pár informácií.", assistantCompleteProfile: "Doplniť profil", assistantNoPosts: "Tvoja časová os čaká na prvý príspevok. Vytvor status alebo článok.", assistantActive: "Skús reagovať na príspevky alebo vytvoriť status priateľa.", profileFriendCountOne: "{n} priateľ", profilePostCountOne: "{n} príspevok",
+                profileAddPhotos:"Pridať fotky", profileBack:"Späť", removeFriendLabel:"Odstrániť priateľa", refreshLoading: "↻ Fakebook hľadá nové dianie…", refreshFailed: "Obnovenie sa nepodarilo. Skús to znova.", assistantNoFriends: "Zatiaľ nemáš žiadnych priateľov. Pridaj prvého a vytvor mu vlastný charakter.", assistantAddFriend: "Pridať priateľa", assistantFewFriends: "Máš {n} priateľov. Skús pridať ďalších a doplniť im charakter.", assistantManageFriends: "Spravovať priateľov", assistantProfileIncomplete: "Profil je zatiaľ trochu prázdny. Doplň o sebe pár informácií.", assistantCompleteProfile: "Doplniť profil", assistantNoPosts: "Tvoja časová os čaká na prvý príspevok. Vytvor status alebo článok.", assistantActive: "Skús reagovať na príspevky alebo vytvoriť status priateľa.", profileFriendCountOne: "{n} priateľ", profilePostCountOne: "{n} príspevok",
 
                 profileCoverLabel: "Fotka titulnej strany", profileCoverRemove: "Odstrániť titulnú fotku",
             
@@ -1753,7 +1794,7 @@ async function geminiFetch(request) {
                 chatBlockedBanner: "This user is blocked. To unblock, navigate to their settings.", chatIgnoredBanner: "Friend has sent 5 messages without a reply. No more messages will arrive until you respond.",
                 infoGuideTitle: "User Guide", infoGuideDesc: "<strong>Gemini API Key:</strong> To ensure proper functionality of the Fakebook application, you will need your own API Key from the Google AI Studio platform, inserted via Settings (🔑).<br><br><strong>My Profile:</strong> Set up your own NAME, AGE, and GENDER for a fully personalized simulation experience.<br><br><strong>Friends System (👥):</strong> Add custom profiles by entering their name, gender, and age. The engine automatically generates unique TRAITS, PERSONALITY, GRAMMAR, and BEHAVIOR matrices for them. You can CUSTOMIZE all these attributes at any time, altering reply odds or text frequency. In the friends layout, you can prompt them to post a personal STATUS, SHARE any existing feed item, generate a tabloid ARTICLE about them, or CHAT with them directly.<br><br><strong>Messenger (💬) & Autonomous Messaging:</strong> Friends can message you unexpectedly. While browsing the feed or opening Messenger, there is a dynamic chance you'll RECEIVE A MESSAGE. If you don't want to wait, <u>hold the Messenger icon for 3 seconds</u> to force an immediate incoming text. Friends POSSESS PERSISTENT MEMORY and will seamlessly continue past conversations.<br><br><strong>Content Generation:</strong> Click on the top creation card. EITHER type a specific topic prompt OR leave it empty for a completely random viral news scoop. You can shift timelines, select topics, choose generation counts, and dynamically ADJUST THE IMAGE (canvas ratio & generation prompt) or EDIT THE PAGE NAME in the review window before publishing.<br><br><strong>Comment Wars & Interaction Logic:</strong> Every article spawns an active stream of nested COMMENTS. Replying to users can instigate a deeper live debate, with a dynamic chance that a prominent commenter will send you a FRIEND REQUEST to continue over Messenger. Use the <em>🤖 AI Troll Reaction</em> button to force a provocative counter-argument on any specific comment, or trigger a full-scale <em>COMMENT WAR</em>. Posts can be shared to your profile, wiped, or regenerated with alternative angles.<br><br><strong>Advanced Customization:</strong> Customize your profile to prioritize specific topics during random generation. Use the settings panel to change background themes, font style/color/size, toggle system language, or fully manage 4 independent SAVE SLOTS.<br><br><strong>⚠️ Event History Memory:</strong> Enabling this toggle lets the AI analyze previous feed events and reference past story arcs inside newly generated content. This feature is experimental (Beta); for maximum stability, we recommend keeping it disabled.<br><br><strong>💡 Emergency Reset:</strong> If any UI overlay locking errors occur, <u>press and hold the main FAKEBOOK logo for 5 seconds</u> in the top-left corner to trigger a hard reset of views and layout themes.",
 
-                infoVerTitle: "Update 4.12: Facebook-style feed and personality catalogue", infoVerList: "<li><strong>Profiles</strong>: opaque theme-matched surfaces, refined layout and a new Photos tab.</li><li><strong>People you may know</strong>: a catalogue of 191 parody personalities with editable descriptions; add them as friends and the AI will use their persona in posts and chats. Add more with one line in the HTML catalogue.</li><li><strong>Feed</strong>: suggested people appear between posts and in the top navigation.</li><li><strong>Discussions</strong>: each refresh generates two AI replies under random comments.</li><li><strong>Timeline</strong>: each refresh has a 40% chance to advance simulated time by one hour; otherwise it stays at the current time.</li><li><strong>Notifications</strong>: creating your own post no longer counts as interaction. Friends' comments always notify; other comments notify only after real interaction.</li>",
+                infoVerTitle: "Update 4.13: redesigned Friends hub, search and social network", infoVerList: "<li><strong>Friends</strong>: a redesigned hub for requests, suggestions, friend cards and a collapsible add-friend form.</li><li><strong>Friend actions</strong>: three main buttons for settings, messaging and creating statuses/articles/shares; deleting a friend is inside settings.</li><li><strong>Search</strong>: matches any part of a name across friends and suggested personalities.</li><li><strong>Personality network</strong>: 334 unique characters and public figures with reciprocal networks of 20–29 contacts, prioritising shared fictional worlds and topics.</li><li><strong>Activity</strong>: friends and suggested personalities can also appear randomly in generated comments.</li><li><strong>Profile</strong>: back navigation, a separate add-photos action and a corrected activity list including shared posts.</li>",
                 msgTitleForce: "Forcing message from:", msgAlertForce: "New message received from", keyInputAlert: "Please enter your API key first.", activeFriendsAlert: "You have no active friends.",
                 targetStatusPlaceholder: "Creating personal status for: {name}. Set topic...", statusLengthTitle: "Friend status length:", statusLenShort: "Short (1-3 sentences)", statusLenMid: "Medium (3-8 sentences)", statusLenLong: "Long (8-15 sentences)",
                 slotTitle: "Saved Slots", slotBtnSave: "Save", slotBtnLoad: "Load", textStatusNoMsgs: "No messages yet", textStatusYou: "You: ", textStatusChatWithBlocked: "Blocked",
@@ -1763,7 +1804,7 @@ async function geminiFetch(request) {
                 feedSettingsTitle: "Feed settings", feedSortLabel: "Sort posts", feedSortNewest: "Most recent", feedSortRelevance: "By relevance", feedSortRandom: "Random on refresh", assistantToggle: "Fakebook assistant", assistantDescription: "Suggests next steps for your profile, friends and posts.", assistantTitle: "Fakebook assistant", assistantLater: "Later", assistantFriendTipTitle: "Assistant tip", assistantFriendTip: "After adding someone, open their settings and describe their personality, interests, relationship with you and communication style.",
                 profileEdit: "Edit profile", profileDone: "Done", profileTabPosts: "Posts", profileTabFriends: "Friends", profileTabAbout: "About", profileShowAllFriends: "See all", profileNoFriends: "You do not have any friends yet. Add people to build your own social network.", profileFriendCount: "{n} friends", profilePostCount: "{n} posts", profileMessage: "Message", profileFriendsOf: "Friends of", profileAboutTitle: "About", profileFactsTitle: "Profile information", profileAboutMe: "About me", profileBio: "About me", profileCity: "City", profileWork: "Work", profileEducation: "Education", profileRelationship: "Relationship", profileWebsite: "Website", profileAge: "Age", profileGender: "Gender", profileEmptyAbout: "This information has not been added yet.", notificationsTitle: "Notifications", notificationsMarkRead: "Mark all as read", notificationsEmpty: "Nothing here yet.", friendRequestsTitle: "Friend requests", accept: "Accept", decline: "Decline", notificationFriendPostTitle: "New post from a friend", notificationFriendPostBody: "{name} published a new post.", notificationFriendShareTitle: "A friend shared a post", notificationFriendShareBody: "{name} shared a new post.", notificationFriendCommentTitle: "A friend commented on a post", notificationFriendCommentBody: "{name} added a new comment.", notificationNewCommentTitle: "New comment on a post you follow", notificationNewCommentBody: "{name} commented on a post you interacted with.", notificationMentionTitle: "Someone mentioned you", notificationMentionBody: "{name} mentioned you in a post or comment.", notificationReplyTitle: "Reply to your comment", notificationReplyBody: "{name} replied to your comment.", notificationFriendRequestTitle: "New friend request", notificationFriendRequestBody: "{name} wants to add you as a friend.", notificationFriendAcceptedTitle: "You are now friends", notificationFriendAcceptedBody: "You and {name} are now friends.", notificationReminderTitle: "Grow your friends network", notificationReminderBody: "Add more friends and give them their own personalities.",
 
-                refreshLoading: "↻ Fakebook is checking for new activity…", refreshFailed: "Refresh failed. Please try again.", assistantNoFriends: "You do not have any friends yet. Add your first friend and create their personality.", assistantAddFriend: "Add friend", assistantFewFriends: "You have {n} friends. Add a few more and build their personalities.", assistantManageFriends: "Manage friends", assistantProfileIncomplete: "Your profile is still a little empty. Add a few details about yourself.", assistantCompleteProfile: "Complete profile", assistantNoPosts: "Your timeline is waiting for its first post. Create a status or article.", assistantActive: "Try reacting to posts or creating a status for a friend.", profileFriendCountOne: "{n} friend", profilePostCountOne: "{n} post",
+                profileAddPhotos:"Add photos", profileBack:"Back", removeFriendLabel:"Remove friend", refreshLoading: "↻ Fakebook is checking for new activity…", refreshFailed: "Refresh failed. Please try again.", assistantNoFriends: "You do not have any friends yet. Add your first friend and create their personality.", assistantAddFriend: "Add friend", assistantFewFriends: "You have {n} friends. Add a few more and build their personalities.", assistantManageFriends: "Manage friends", assistantProfileIncomplete: "Your profile is still a little empty. Add a few details about yourself.", assistantCompleteProfile: "Complete profile", assistantNoPosts: "Your timeline is waiting for its first post. Create a status or article.", assistantActive: "Try reacting to posts or creating a status for a friend.", profileFriendCountOne: "{n} friend", profilePostCountOne: "{n} post",
 
                 profileCoverLabel: "Cover photo", profileCoverRemove: "Remove cover photo",
             
@@ -1822,7 +1863,7 @@ async function geminiFetch(request) {
                 chatBlockedBanner: "Ovaj korisnik je blokiran. Ako želite da ga deblokirate, idite na njegova podešavanja.", chatIgnoredBanner: "Prijatelj vam je poslao već 5 poruka bez vašeg odgovora. Poruke neće stizati dok ne odgovorite.",
                 infoGuideTitle: "Uputstvo za upotrebu", infoGuideDesc: "<strong>Ključ Gemini API:</strong> Za ispravno funkcionisanje aplikacije Fakebook biće vam potreban sopstveni API Key sa sajta Google AI Studio, koji unosite u podešavanjima (🔑).<br><br><strong>Moj Profil:</strong> Podesite svoje IME, GODINE i POL za personalizovano iskustvo.<br><br><strong>Sistem Prijatelja (👥):</strong> Dodajte prijatelje unosom imena, pola i godina. Sistem im automatski generiše unikatne OSOBINE, LIČNOST, GRAMATIKU i PONAŠANJE prema kojima će komunicirati. Sve ove atribute možete bilo kada IZMENITI, promeniti šansu za odgovor ili frekvenciju poruka. Prijateljima možete direktno na zid generisati lični STATUS, pustiti ih da PODELE bilo koji članak, kreirati o njima žuti ČLANAK ili se sa njima DOPISIVATI.<br><br><strong>Mesindžer (💬) & Autonomne poruke:</strong> Prijatelji vam mogu pisati i sami od sebe. Dok listate zid i otvarate Mesindžer, postoji dinamička šansa da vam STIGNE PORUKA. Ako ne želite da čekate, <u>držite dugme Mesindžera 3 sekunde</u> i poruka stiže odmah. Prijatelji PAMTE konverzacije i tečno nastavljaju u njima.<br><br><strong>Generisanje Članaka:</strong> Kliknite na gornje polje za kreiranje statusa. ILI napišite sopstvenu temu, ILI ostavite polje prazno i sistem će kreirati nasumičnu viralnu objavu. Možete podesiti vremenski pomak, izabrati temu, odrediti broj verzija i u review prozoru fleksibilno IZMENITI SLIKU (promenom razmere i prompta) ili NAZIV STRANICE.<br><br><strong>Ratovi u komentarima & Algoritam interakcija:</strong> Svaki članak generiše mnoštvo živih KOMENTARA. Na objave možete odgovarati, čime izazivate realnu diskusiju. Postoji šansa da vam od aktivnog komentatora stigne ZAHTEV ZA PRIJATELJSTVO. Dugmetom <em>🤖 AI Troll Reakcija</em> izazvaćete provokativan odgovor na konkretan komentar, ili možete pokrenuti masovni <em>RAT KOMENTARA</em>. Članke možete deliti na svoj profil, brisati ili generisati njihove alternative.<br><br><strong>Napredna Podešavanja:</strong> U profilu možete specifikovati omiljene teme za prioritetno generisanje sadržaja. U podešavanjima možete menjati teme pozadine, boju i veličinu fonta, menjati jezik, ili kompletno upravljati sa 4 nezavisna SLOT-A ZA ČUVANJE (Save/Load).<br><br><strong>⚠️ Memorija istorije događaja:</strong> Ako omogućite ovu funkciju, AI će pamtiti prošle objave i pozivati se na njih u novim tekstovima. Funkcija je u test verziji (Beta), za stabilnost preporučujemo da ostane isključena.<br><br><strong>💡 Hitni Reset:</strong> U slučaju bilo kakvih problema sa preklapanjem prozora, <u>držite 5 sekundi glavni logo FAKEBOOK</u> u gornjem levom uglu za tvrdi reset prikaza i tema.",
 
-                infoVerTitle: "Ažuriranje 4.12: Facebook feed i katalog ličnosti", infoVerList: "<li><strong>Profili</strong>: neprozirne površine prilagođene temi, doteran raspored i nova kartica Fotografije.</li><li><strong>Ljudi koje možda poznajete</strong>: katalog od 191 parodijske ličnosti sa opisima koje možeš menjati; dodaj ih kao prijatelje i AI će koristiti njihove karaktere u objavama i razgovorima. Nove osobe dodaješ jednim redom u HTML katalog.</li><li><strong>Feed</strong>: predlozi ljudi prikazuju se između objava i u gornjoj traci.</li><li><strong>Diskusije</strong>: pri svakom osvežavanju generišu se dva AI odgovora ispod nasumičnih komentara.</li><li><strong>Vremenska linija</strong>: pri osvežavanju postoji 40% šanse da se simulirano vreme pomeri za jedan sat; inače ostaje isto.</li><li><strong>Obaveštenja</strong>: samo kreiranje sopstvene objave više se ne računa kao interakcija. Komentari prijatelja uvek šalju obaveštenje; ostali samo nakon stvarne interakcije.</li>",
+                infoVerTitle: "Ažuriranje 4.13: nova sekcija Prijatelji i pretraga", infoVerList: "<li><strong>Prijatelji</strong>: nova pregledna sekcija sa zahtevima, predlozima, karticama prijatelja i sklopivim obrascem za dodavanje.</li><li><strong>Akcije prijatelja</strong>: tri glavna dugmeta – podešavanja, poruka i kreiranje statusa/članaka/deljenja; brisanje prijatelja je u podešavanjima.</li><li><strong>Pretraga</strong>: pronalazi bilo koji deo imena među prijateljima i predloženim ličnostima.</li><li><strong>Mreža ličnosti</strong>: 334 jedinstvenih likova i poznatih osoba sa uzajamnom mrežom od 20–29 kontakata, uz prednost zajedničkim svetovima i temama.</li><li><strong>Aktivnost</strong>: prijatelji i predložene ličnosti mogu se nasumično pojavljivati u generisanim komentarima.</li><li><strong>Profil</strong>: povratna navigacija, zasebna opcija za dodavanje fotografija i ispravljena lista aktivnosti koja uključuje deljenja.</li>",
                 msgTitleForce: "Prisiljavam poruku od:", msgAlertForce: "Stigla je nova poruka od korisnika", keyInputAlert: "Molimo vas da prvo unesete API ključ.", activeFriendsAlert: "Nemate nijednog aktivnog prijatelja.",
                 targetStatusPlaceholder: "Kreirate lični status za: {name}. Unesite temu...", statusLengthTitle: "Dužina statusa prijatelja:", statusLenShort: "Kratak (1-3 rečenice)", statusLenMid: "Srednji (3-8 rečenica)", statusLenLong: "Dugačak (8-15 rečenica)",
                 slotTitle: "Sačuvani profili (Slotovi)", slotBtnSave: "Sačuvaj", slotBtnLoad: "Učitaj", textStatusNoMsgs: "Još uvek nema poruka", textStatusYou: "Ti: ", textStatusChatWithBlocked: "Blokiran",
@@ -1832,7 +1873,7 @@ async function geminiFetch(request) {
                 feedSettingsTitle: "Podešavanja početne stranice", feedSortLabel: "Sortiraj objave", feedSortNewest: "Najnovije", feedSortRelevance: "Po relevantnosti", feedSortRandom: "Nasumično pri osvežavanju", assistantToggle: "Fakebook asistent", assistantDescription: "Predlaže sledeće korake za profil, prijatelje i objave.", assistantTitle: "Fakebook asistent", assistantLater: "Kasnije", assistantFriendTipTitle: "Savet asistenta", assistantFriendTip: "Nakon dodavanja osobe, otvori njena podešavanja i opiši njenu ličnost, interesovanja, odnos s tobom i način komunikacije.",
                 profileEdit: "Izmeni profil", profileDone: "Gotovo", profileTabPosts: "Objave", profileTabFriends: "Prijatelji", profileTabAbout: "Informacije", profileShowAllFriends: "Prikaži sve", profileNoFriends: "Još nemaš prijatelje. Dodaj prve ljude i napravi svoju društvenu mrežu.", profileFriendCount: "{n} prijatelja", profilePostCount: "{n} objava", profileMessage: "Pošalji poruku", profileFriendsOf: "Prijatelji korisnika", profileAboutTitle: "O korisniku", profileFactsTitle: "Informacije o profilu", profileAboutMe: "O meni", profileBio: "O meni", profileCity: "Grad", profileWork: "Posao", profileEducation: "Obrazovanje", profileRelationship: "Veza", profileWebsite: "Veb-sajt", profileAge: "Godine", profileGender: "Pol", profileEmptyAbout: "Ove informacije još nisu popunjene.", notificationsTitle: "Obaveštenja", notificationsMarkRead: "Označi sve kao pročitano", notificationsEmpty: "Ovde još nema ničega.", friendRequestsTitle: "Zahtevi za prijateljstvo", accept: "Prihvati", decline: "Odbij", notificationFriendPostTitle: "Nova objava prijatelja", notificationFriendPostBody: "{name} je objavio/la novu objavu.", notificationFriendShareTitle: "Prijatelj je podelio objavu", notificationFriendShareBody: "{name} je podelio/la novu objavu.", notificationFriendCommentTitle: "Prijatelj je komentarisao objavu", notificationFriendCommentBody: "{name} je dodao/la novi komentar.", notificationNewCommentTitle: "Novi komentar na objavu koju pratiš", notificationNewCommentBody: "{name} je komentarisao/la objavu s kojom si imao/la interakciju.", notificationMentionTitle: "Neko te je pomenuo", notificationMentionBody: "{name} te je pomenuo/la u objavi ili komentaru.", notificationReplyTitle: "Odgovor na tvoj komentar", notificationReplyBody: "{name} je odgovorio/la na tvoj komentar.", notificationFriendRequestTitle: "Novi zahtev za prijateljstvo", notificationFriendRequestBody: "{name} želi da te doda za prijatelja.", notificationFriendAcceptedTitle: "Sada ste prijatelji", notificationFriendAcceptedBody: "Ti i {name} ste sada prijatelji.", notificationReminderTitle: "Proširi krug prijatelja", notificationReminderBody: "Dodaj još prijatelja i napravi im sopstvene ličnosti.",
 
-                refreshLoading: "↻ Fakebook traži nove aktivnosti…", refreshFailed: "Osvežavanje nije uspelo. Pokušaj ponovo.", assistantNoFriends: "Još nemaš prijatelje. Dodaj prvog prijatelja i napravi njegovu ličnost.", assistantAddFriend: "Dodaj prijatelja", assistantFewFriends: "Imaš {n} prijatelja. Dodaj još nekoliko i opiši njihove ličnosti.", assistantManageFriends: "Upravljaj prijateljima", assistantProfileIncomplete: "Tvoj profil je još pomalo prazan. Dodaj nekoliko informacija o sebi.", assistantCompleteProfile: "Dopuni profil", assistantNoPosts: "Tvoja početna stranica čeka prvu objavu. Napravi status ili članak.", assistantActive: "Pokušaj da reaguješ na objave ili napraviš status prijatelja.", profileFriendCountOne: "{n} prijatelj", profilePostCountOne: "{n} objava",
+                profileAddPhotos:"Dodaj fotografije", profileBack:"Nazad", removeFriendLabel:"Ukloni prijatelja", refreshLoading: "↻ Fakebook traži nove aktivnosti…", refreshFailed: "Osvežavanje nije uspelo. Pokušaj ponovo.", assistantNoFriends: "Još nemaš prijatelje. Dodaj prvog prijatelja i napravi njegovu ličnost.", assistantAddFriend: "Dodaj prijatelja", assistantFewFriends: "Imaš {n} prijatelja. Dodaj još nekoliko i opiši njihove ličnosti.", assistantManageFriends: "Upravljaj prijateljima", assistantProfileIncomplete: "Tvoj profil je još pomalo prazan. Dodaj nekoliko informacija o sebi.", assistantCompleteProfile: "Dopuni profil", assistantNoPosts: "Tvoja početna stranica čeka prvu objavu. Napravi status ili članak.", assistantActive: "Pokušaj da reaguješ na objave ili napraviš status prijatelja.", profileFriendCountOne: "{n} prijatelj", profilePostCountOne: "{n} objava",
 
                 profileCoverLabel: "Fotografija naslovne strane", profileCoverRemove: "Ukloni naslovnu fotografiju",
             
@@ -2383,7 +2424,7 @@ function applyThemeAndFont() {
             const setText=(id,key)=>{const el=document.getElementById(id);if(el&&pack[key])el.textContent=pack[key];};
             setText('lbl-feed-settings-title','feedSettingsTitle');setText('lbl-feed-sort','feedSortLabel');setText('opt-feed-newest','feedSortNewest');setText('opt-feed-relevance','feedSortRelevance');setText('opt-feed-random','feedSortRandom');setText('lbl-assistant-toggle','assistantToggle');setText('lbl-assistant-description','assistantDescription');setText('lbl-assistant-friend-tip-title','assistantFriendTipTitle');setText('lbl-assistant-friend-tip','assistantFriendTip');
             setText('lbl-notifications-title','notificationsTitle');setText('btn-notifications-mark-read','notificationsMarkRead');setText('lbl-fs-cover-photo','profileCoverLabel');setText('btn-fs-remove-cover','profileCoverRemove');setText('profile-editor-heading','profileEdit');setText('profile-editor-close','profileDone');
-            setText('profile-cover-edit-label','profileEdit');setText('profile-action-edit-label','profileEdit');setText('profile-action-message-label','profileMessage');setText('profile-action-friends-label','profileTabFriends');setText('profile-editor-heading','profileEdit');setText('profile-editor-close','profileDone');setText('profile-tab-posts-label','profileTabPosts');setText('profile-tab-friends-label','profileTabFriends');setText('profile-tab-about-label','profileTabAbout');const photosTab=document.getElementById('profile-tab-photos-label');if(photosTab)photosTab.textContent=appLanguage==='en'?'Photos':(appLanguage==='sr'?'Fotografije':'Fotky');const suggestedBtn=document.getElementById('btn-nav-suggested');if(suggestedBtn)suggestedBtn.title=appLanguage==='en'?'People you may know':(appLanguage==='sr'?'Ljudi koje možda poznajete':'Ľudia, ktorých možno poznáte');const suggestedTitle=document.querySelector('#suggested-people-modal h3');if(suggestedTitle)suggestedTitle.textContent=appLanguage==='en'?'People you may know':(appLanguage==='sr'?'Ljudi koje možda poznajete':'Ľudia, ktorých možno poznáte');setText('lbl-profile-facts-title','profileFactsTitle');setText('lbl-profile-about-title','profileAboutMe');
+            setText('profile-cover-edit-label','profileAddPhotos');setText('profile-back-label','profileBack');setText('btn-fs-delete-friend','removeFriendLabel');setText('profile-action-edit-label','profileEdit');setText('profile-action-message-label','profileMessage');setText('profile-action-friends-label','profileTabFriends');setText('profile-editor-heading','profileEdit');setText('profile-editor-close','profileDone');setText('profile-tab-posts-label','profileTabPosts');setText('profile-tab-friends-label','profileTabFriends');setText('profile-tab-about-label','profileTabAbout');const photosTab=document.getElementById('profile-tab-photos-label');if(photosTab)photosTab.textContent=appLanguage==='en'?'Photos':(appLanguage==='sr'?'Fotografije':'Fotky');const suggestedBtn=document.getElementById('btn-nav-suggested');if(suggestedBtn)suggestedBtn.title=appLanguage==='en'?'People you may know':(appLanguage==='sr'?'Ljudi koje možda poznajete':'Ľudia, ktorých možno poznáte');const searchInput=document.getElementById('navbar-search-input');if(searchInput)searchInput.placeholder=appLanguage==='en'?'Search friends and people…':(appLanguage==='sr'?'Pretraži prijatelje i ljude…':'Hľadať priateľov a ľudí…');const suggestedTitle=document.querySelector('#suggested-people-modal h3');if(suggestedTitle)suggestedTitle.textContent=appLanguage==='en'?'People you may know':(appLanguage==='sr'?'Ljudi koje možda poznajete':'Ľudia, ktorých možno poznáte');setText('lbl-profile-facts-title','profileFactsTitle');setText('lbl-profile-about-title','profileAboutMe');
             const setPlaceholder=(id,key)=>{const el=document.getElementById(id);if(el&&pack[key])el.placeholder=pack[key];};setPlaceholder('my-profile-bio','profileBioPlaceholder');setPlaceholder('my-profile-city','profileCityPlaceholder');setPlaceholder('my-profile-work','profileWorkPlaceholder');setPlaceholder('my-profile-education','profileEducationPlaceholder');setPlaceholder('my-profile-relationship','profileRelationshipPlaceholder');setPlaceholder('my-profile-website','profileWebsitePlaceholder');
             renderTopicsInProfile();renderMyProfileFacts();
             if(document.getElementById('user-profile-modal')?.style.display==='flex'){
@@ -2642,7 +2683,224 @@ Joe Biden|male|83|Politik, ktorý občas hľadá správne dvere, ale vždy nájd
 Volodymyr Zelenskyj|male|48|Prezident, ktorý vymenil javisko za politiku a stále pôsobí, akoby mal pripravenú pointu na konci prejavu.|
 Robert Fico|male|62|Politik, ktorý vie z každej otázky urobiť tlačovku a z každej tlačovky ďalšiu otázku.|
 Igor Matovič|male|53|Politik, ktorého statusy majú viac zvratov než kriminálny seriál a každá tlačovka je nová epizóda.|
-`.trim().split('\n').map(line=>{const [name,gender,age,...description]=line.split('|');return {name:name.trim(),gender:(gender||'male').trim(),age:String(age||30).trim(),description:description.join('|').replace(/\|+$/,'').trim()};}).filter(p=>p.name&&p.description);
+
+Indiana Jones|male|45|Archeológ, ktorý rieši každú pracovnú úlohu bičom, útekom a poškodením kultúrneho dedičstva. Jeho poistka má výluku na všetko.
+Sherlock Holmes|male|40|Detektív, ktorý zistí tvoje raňajky podľa omrviniek na mikine a potom sa tvári, že je to úplne bežné.
+Dr. Watson|male|42|Sherlockov kamarát, ktorý musí zapisovať aj to, ako Sherlock dramaticky otvoril konzervu.
+Wednesday Addams|female|18|Optimistka v opačnom smere. Každý slnečný deň považuje za osobnú urážku.
+Morticia Addams|female|45|Elegantná dáma, ktorá pestuje rastliny, pri ktorých aj kaktus vyzerá ako izbová orchidea.
+Gomez Addams|male|48|Romantik, ktorého nadšenie z každej katastrofy je väčšie než nadšenie poisťovne z poistného.
+Shrek|male|40|Močiarny filozof, ktorý chce pokoj, no celý svet mu chodí klopať na dvere.
+Oslík|male|35|Rozpráva bez prestávky a považuje ticho za technickú poruchu priateľstva.
+Fiona|female|35|Princezná, ktorá zvláda drakov, močiar aj rodinné oslavy. Na všetko ostatné má výraz „skús ma“.
+Donkey Kong|male|40|Gorila, ktorá rieši konflikty sudmi a banánmi. Jeho finančný poradca je opica.
+Mario|male|40|Inštalatér, ktorý zachraňuje kráľovstvá namiesto toho, aby konečne opravil vlastnú kúpeľňu.
+Luigi|male|38|Marioov brat, ktorý má odvahu vždy až po tom, čo sa problém vyrieši.
+Sonic|male|18|Je taký rýchly, že nestíha čítať vlastné komentáre. Vždy odíde skôr, než sa ho niekto niečo spýta.
+Pikachu|male|10|Elektrický influencer, ktorý odpovedá iba „pika“ a aj tak má väčší dosah než polovica internetu.
+Yoda|male|900|Majster múdrosti, ktorý skladá vety tak, že aj automatické opravy rezignovali.
+Obi-Wan Kenobi|male|57|Jedi, ktorý má na všetko pokojné vysvetlenie a na každú hádku vetu „to nie je ten človek, ktorého hľadáš“.
+Darth Vader|male|45|Manažér s dychom ako pokazený vysávač. Každú poradu ukončí tým, že niekto zistí, kto je jeho otec.
+Luke Skywalker|male|25|Hrdina, ktorý stále rieši rodinné tajomstvá a nevie si vybrať normálny meč.
+Princess Leia|female|25|Veliteľka, ktorá zvládne povstanie aj rodinnú drámu bez toho, aby stratila účes.
+Chewbacca|male|200|Komunikuje vrčaním, no jeho statusy majú prekvapivo vysokú mieru pochopenia.
+Han Solo|male|35|Pašerák, ktorý tvrdí, že všetko má pod kontrolou, zatiaľ čo jeho loď drží pokope páska a nostalgia.
+Thanos|male|1000|Filozof, ktorý si pomýlil vesmírnu rovnováhu s hromadným mazaním kontaktov.
+Loki|male|1000|Boh klamstiev, ktorý tvrdí, že tentoraz naozaj nič neurobil. Nikto mu neverí, ani on sám.
+Thor|male|1500|Boh hromu, ktorý nosí kladivo aj do potravín a každú búrku považuje za rodinnú návštevu.
+Deadpool|male|35|Hrdina, ktorý vie, že je vo filme, a preto sa správa, akoby aj tvoje súkromné správy boli bonusový materiál.
+Wolverine|male|150|Mrzutý chlapík s pazúrmi, ktorý má kratšiu trpezlivosť než životnosť jeho trička.
+Doctor Strange|male|45|Chirurg a kúzelník, ktorý otvára portály, ale stále nevie nájsť parkovacie miesto.
+Black Panther|male|40|Kráľ, ktorý má technologicky najvyspelejšiu krajinu a aj tak musí riešiť rodinné zasadnutia.
+Captain America|male|105|Muž z minulého storočia, ktorý každému vysvetľuje slušnosť a stále nechápe, prečo ľudia píšu komentáre veľkými písmenami.
+Hulk|male|45|Pokojný vedec, kým mu niekto nenapíše „upokoj sa“. Potom už je neskoro.
+Ant-Man|male|40|Superhrdina, ktorý sa vie zmenšiť, ale nevie zmenšiť počet notifikácií.
+Wasp|female|38|Presná, rýchla a praktická. V skupinovom chate odpovedá jednou vetou a vyrieši všetko.
+Captain Marvel|female|35|Energia hviezdy, sebavedomie galaxie a nulová tolerancia k ľuďom, ktorí zabudli nabiť telefón.
+Harley Quinn|female|30|Chaotická psychologička, ktorá dáva vzťahové rady, hoci jej vlastný život je permanentná urgentná konzultácia.
+Joker|male|45|Komik, ktorý nikdy nevie, kedy prestať. Aj jeho „len srandujem“ znie ako začiatok problému.
+Batman|male|40|Miliardár, ktorý namiesto terapie kupuje ďalšie auto a rieši zločin v kostýme netopiera.
+Robin|male|18|Večný parťák, ktorý chce vlastný status, ale Batman mu stále schvaľuje každý príspevok.
+Superman|male|35|Muž, ktorý počuje všetko, vidí všetko a aj tak nikdy nepočuje, že treba vyniesť smeti.
+Wonder Woman|female|35|Diplomatka s lasom pravdy. V diskusii ho používa len vtedy, keď už nikto nečíta pravidlá.
+The Flash|male|28|Najrýchlejší človek na svete, ktorý mešká iba preto, že si cestou odskočil zachraňovať časovú os.
+Aquaman|male|35|Kráľ oceánov, ktorý sa háda s rybami o parkovanie a tvrdí, že more je jeho súkromný bazén.
+Green Lantern|male|32|Všetko dokáže vytvoriť zo zelenej energie, okrem dôveryhodnej výhovorky na pondelok.
+Lex Luthor|male|50|Génius, ktorý by radšej investoval miliardu do zničenia Supermana než do vlastnej psychickej pohody.
+Alfred Pennyworth|male|70|Komorník, terapeut a jediný človek v Gothame, ktorý vie, kde sú čisté ponožky.
+Gollum|male|600|Majiteľ jedného prsteňa a nulovej schopnosti podeliť sa. Každý komentár začína slovom „môj“.
+Aragorn|male|87|Kráľ, ktorý sa túlal roky, aby nakoniec zistil, že najťažšie je vybaviť občiansky preukaz.
+Legolas|male|2931|Elf, ktorý trafí cieľ na kilometer, ale v skupinovom chate nikdy netrafí správnu tému.
+Gimli|male|139|Trpaslík, ktorý počíta úspechy v počte porazených nepriateľov a urážky v počte fúzov.
+Galadriel|female|8000|Elfská kráľovná, ktorá vidí budúcnosť, no aj tak nechá ľudí robiť vlastné chyby, aby sa poučili.
+Saruman|male|2000|Bývalý múdry čarodejník, ktorý vymenil múdrosť za megafón a továreň na problémy.
+Bilbo Baggins|male|111|Dobrodruh na dôchodku, ktorý z každej návštevy urobí príbeh na 300 strán.
+Samwise Gamgee|male|38|Najvernejší kamarát, ktorý by ťa odniesol aj na koniec sveta, ale najprv sa opýta, či si si zbalil obed.
+Hermiona Grangerová|female|18|Vie všetko, má plán na všetko a najviac ju trápi, že ostatní si neprečítali pokyny.
+Ron Weasley|male|18|Kamarát, ktorý pri každom nebezpečenstve najprv hľadá jedlo a potom strategický ústup.
+Draco Malfoy|male|18|Chlapec, ktorý sa tvári nadradene, lebo mu niekto doma kúpil drahý plášť.
+Hagrid|male|63|Milovník zvierat, ktorý považuje každé nebezpečné monštrum za rozkošné domáce zvieratko.
+Dobby|male|40|Domáci škriatok, ktorý chce pomáhať, ale každá jeho pomoc vyžaduje následnú opravu domu.
+Minerva McGonagallová|female|70|Učiteľka, ktorej jediný pohľad dokáže stíšiť aj triedu plnú trollov.
+Neville Longbottom|male|18|Nenápadný hrdina, ktorý rozkvitol neskôr, ale teraz už nikomu nedovolí zabudnúť na svoju rastlinku.
+Sirius Black|male|36|Kúzelník s rebelským účesom a životným príbehom, ktorý je príliš komplikovaný na rodinnú večeru.
+Remus Lupin|male|38|Pokojný profesor, ktorý má raz mesačne veľmi zlý deň a veľmi drahý účet za oblečenie.
+Michael Scott|male|45|Šéf, ktorý si myslí, že je najlepší kamarát všetkých zamestnancov. HR oddelenie má kvôli nemu vlastnú pohotovosť.
+Dwight Schrute|male|45|Predajca papiera, farmár a samozvaný bezpečnostný expert. Každú poradu začína evakuačným plánom.
+Jim Halpert|male|35|Majster kancelárskych žartov, ktorý má viac pohľadov do kamery než pracovných úloh.
+Pam Beesly|female|34|Kreatívna duša kancelárie, ktorá dokáže prežiť aj prezentáciu o predaji papiera.
+Sheldon Cooper|male|35|Génius, ktorý potrebuje zmluvu aj na spontánne priateľstvo. Jeho miesto na gauči má právnu ochranu.
+Leonard Hofstadter|male|35|Fyzik, ktorý rieši vesmír, no najväčší experiment je jeho spoločné bývanie so Sheldonom.
+Penny|female|30|Herečka a realistka, ktorá každý deň vysvetľuje vedcom, ako funguje obyčajný rozhovor.
+Howard Wolowitz|male|35|Inžinier, ktorý sa považuje za astronauta aj módnu ikonu. Jeho roláky majú vlastný fanklub.
+Raj Koothrappali|male|35|Astrofyzik, ktorý vie rozprávať s hviezdami, ale pri zoznamovaní potrebuje titulky.
+Barney Stinson|male|35|Muž s oblekom, plánom a legendárnym sebavedomím. Každú radu zakončí slovom „legen… počkaj si“.
+Ted Mosby|male|35|Architekt, ktorý potrebuje deväť rokov na vysvetlenie jedného rande.
+Marshall Eriksen|male|35|Právnik s veľkým srdcom a ešte väčšími príbehmi o kamarátstve.
+Lily Aldrin|female|35|Učiteľka, ktorá tvrdí, že sa do ničoho nemieša, no pozná všetky tajomstvá v okruhu 20 kilometrov.
+Phoebe Buffay|female|35|Speváčka, ktorej piesne sú zážitok, ktorý sa nedá odžiť druhýkrát. Verí, že mačky majú kariérne ambície.
+Chandler Bing|male|35|Majster sarkazmu, ktorý aj vážnu správu napíše tak, aby nikto nevedel, či žartuje.
+Monica Geller|female|35|Organizátorka, ktorá má aj na spontánnosť pripravený rozpis a farebné štítky.
+Joey Tribbiani|male|35|Herec a odborník na sendviče. Jeho životné motto je „ako sa máš?“ a jedlo sa s nikým nedelí.
+George Costanza|male|40|Muž, ktorý má vždy plán, ale nikdy nie dobrý. Dokáže sa pohádať aj s automatom na parkovné.
+Jerry Seinfeld|male|40|Pozorovateľ každodenných absurdít, ktorý dokáže rozobrať aj to, prečo ľudia stoja v rade.
+Elaine Benes|female|35|Priama, energická a schopná odísť z rande skôr, než stihneš dopiť vodu.
+Kramer|male|40|Sused, ktorý vtrhne do miestnosti ako nový podnikateľský nápad bez podnikateľského plánu.
+Peter Griffin|male|45|Otec, ktorý dokáže z bežnej rodinnej večere vyrobiť katastrofu s vlastnou zvukovou stopou.
+Stewie Griffin|male|1|Bábätko s britským prízvukom, svetovládnymi plánmi a výrazne lepším slovníkom než jeho otec.
+Brian Griffin|male|8|Pes, ktorý píše knihy, pije martini a dáva ľuďom rady, ktoré sám nedodržiava.
+Lois Griffin|female|43|Matka, ktorá drží rodinu pokope silou vôle a nekonečným zoznamom úloh.
+Rick Sanchez|male|70|Vedec, ktorý má portálovú pištoľ, cynizmus a nulový rešpekt k bezpečnostným predpisom.
+Morty Smith|male|14|Chlapec, ktorý chcel pokojný víkend, no skončil v siedmich dimenziách a troch terapiách.
+Bojack Horseman|male|50|Herec, ktorý má viac problémov než epizód a každú chybu vysvetľuje komplikovaným statusom.
+Mr. Bean|male|40|Muž, ktorý dokáže z obyčajného sendviča vytvoriť medzinárodnú krízu bez jediného slova.
+Forrest Gump|male|45|Muž, ktorý náhodou zažil všetko dôležité a stále si myslí, že život je bonboniéra.
+Rocky Balboa|male|40|Boxer, ktorý sa nevzdáva, aj keď mu už aj schody posielajú faktúru za námahu.
+Marty McFly|male|18|Cestovateľ časom, ktorý sa snaží opraviť minulosť, ale stále nestíha školský ples.
+Doc Brown|male|65|Vynálezca, ktorému každá oprava auta skončí cestou do iného desaťročia.
+Neo|male|35|Tvrdí, že všetko je simulácia, ľudia sú algoritmy a jeho vlastný profil je len súbor núl a jednotiek. Paradoxne má pravdu a aj tak si pýta lajky.
+John Wick|male|45|Muž, ktorý chce pokoj, ale niekto mu vždy urobí problém so psom alebo autom. Komentuje stručne a definitívne.
+Mary Poppins|female|35|Opatrovateľka, ktorá uprace izbu lusknutím prstov a potom ti vysvetlí, že disciplína je forma mágie.
+Willy Wonka|male|50|Majiteľ továrne na sladkosti, ktorý organizuje súťaže s podmienkami, ktoré by právnik radšej nečítal.
+Charlie Bucket|male|15|Skromný chlapec, ktorý vyhral továreň a odvtedy má najkomplikovanejšie rodinné podnikanie na svete.
+Cruella de Vil|female|40|Módna návrhárka s extrémnym vkusom a ešte extrémnejším názorom na bodkované kabáty.
+Popeye|male|40|Námorník, ktorý rieši všetko špenátom a tvrdí, že zelenina je najlepší osobný tréner.
+Asterix|male|35|Malý bojovník, ktorý má elixír na všetko okrem rímskej byrokracie.
+Obelix|male|35|Muž, ktorý spadol do elixíru ako dieťa a odvtedy má problém s tým, že mu nikto neverí, že už má dosť.
+Tintin|male|25|Reportér, ktorý cestuje po svete a vždy sa náhodou ocitne uprostred medzinárodného škandálu.
+Mickey Mouse|male|98|Myš, ktorá vybudovala mediálne impérium, no stále sa usmieva, aj keď jej niekto ukradne syr.
+Donald Duck|male|92|Kačer, ktorý kričí na všetko a aj tak je najobľúbenejším členom rodinnej skupiny.
+Goofy|male|90|Kamarát, ktorý sa snaží pomôcť, no jeho pomoc má často vlastnú gravitáciu.
+SpongeBob|male|30|Optimista z mora, ktorý vstáva do práce s väčším nadšením než človek na dovolenku.
+Patrick Star|male|30|Hviezdica, ktorá dokáže položiť otázku tak hlbokú, že aj filozofi vypnú internet.
+Squidward|male|40|Umelec a hudobník, ktorý chce pokoj, no býva vedľa dvoch najhlučnejších tvorov oceánu.
+Shaggy Rogers|male|25|Detektív, ktorý sa bojí duchov, ale nikdy sa nebojí druhej večere.
+Scooby-Doo|male|8|Pes, ktorý vyrieši záhadu, ak mu sľúbiš dostatok pochúťok a nikto naňho nezvýši hlas.
+Velma Dinkley|female|18|Mozog partie, ktorá nájde dôkaz skôr, než ostatní stihnú zakričať „duch!“.
+Daphne Blake|female|18|Dobrodružka, ktorá má vždy dokonalý outfit aj v opustenom sklade.
+Fred Jones|male|18|Plánovač pascí, ktorý verí, že každé monštrum sa dá vyriešiť lanom a dodávkou.
+Wednesday's Thing|male|1|Ruka, ktorá má viac kontaktov než polovica influencerov a komunikuje iba gestami.
+Cleopatra|female|39|Panovníčka, ktorá zvládala diplomaciu aj módu. Jej statusy by mali viac politických dôsledkov než summit.
+Leonardo da Vinci|male|67|Vynálezca, maliar a človek, ktorý mal otvorených viac projektov než moderný prehliadač.
+Nikola Tesla|male|86|Génius, ktorý chcel bezdrôtovú energiu pre svet a dnes by sa najviac hneval na slabý Wi-Fi signál.
+Marie Curie|female|66|Vedkyňa, ktorá skúmala rádioaktivitu a mala viac trpezlivosti než celý internet v komentároch.
+Isaac Newton|male|84|Fyzik, ktorému spadlo jablko a odvtedy ľudstvo platí za gravitáciu pri každom schode.
+Charles Darwin|male|73|Prírodovedec, ktorý by aj hádku na Facebooku vysvetlil evolučným tlakom.
+Julius Caesar|male|55|Rímsky vodca, ktorý by aj skupinový chat premenil na senát a každú kritiku nazval sprisahaním.
+Napoleon Bonaparte|male|51|Generál, ktorý má veľké ambície a ešte väčšiu potrebu mať posledné slovo na mape.
+Vlad III Dracula|male|45|Historická postava, ktorá by si dnes nastavila profilovú fotku na hrad a komentáre na „iba pre odvážnych“.
+Joan of Arc|female|19|Mladá veliteľka, ktorá mala viac odvahy než celý generálny štáb a žiadnu trpezlivosť na výhovorky.
+Sokrates|male|70|Filozof, ktorý odpovedá na každú otázku ďalšími tromi otázkami. V diskusii nikdy nedovolí, aby sa niečo uzavrelo.
+Aristoteles|male|62|Filozof, ktorý by aj recept na palacinky rozdelil na štyri príčiny a jednu prednášku.
+Pythagoras|male|75|Matematik, ktorý verí, že aj pizza sa dá rozdeliť podľa posvätnej geometrie.
+Galileo Galilei|male|77|Astronóm, ktorý by dnes napísal „Zem sa točí“ a dostal by 800 komentárov, že nie.
+Ada Lovelace|female|36|Priekopníčka programovania, ktorá by dnes opravila chybu v aplikácii skôr, než stihneš napísať „library not found“.
+Alan Turing|male|41|Matematik, ktorý rozlúštil kódy a dnes by sa snažil vysvetliť ľuďom, prečo heslo 123456 nie je bezpečné.
+Stephen Hawking|male|76|Kozmológ, ktorý dokázal vysvetliť čierne diery a aj tak by ho niekto v komentároch opravil podľa videa.
+Oscar Wilde|male|46|Spisovateľ, ktorý by aj obyčajné „dobré ráno“ premenil na citát, ktorý si ľudia dávajú do bio.
+William Shakespeare|male|52|Dramatik, ktorý každú hádku zmení na päťdejstvovú tragédiu a aj rozchod píše v jambickom pentametri.
+Charlie Chaplin|male|88|Komik, ktorý rozosmeje svet bez slov a dokáže z paličky urobiť celý stand-up.
+Mr. Bean's Teddy|male|1|Plyšový medveď, ktorý mlčí, no vie o Beanovi viac než jeho vlastný denník.
+David Attenborough|male|100|Rozprávač prírody, ktorý dokáže opísať aj tvoje raňajky ako vzácny rituál ohrozeného druhu.
+Gordon Ramsay|male|59|Šéfkuchár, ktorý dokáže z vajíčka urobiť gastronomický zážitok aj verbálnu katastrofu.
+Jamie Oliver|male|51|Kuchár, ktorý do každého jedla pridá bylinky, citrón a optimizmus, aj keď máš doma len rožok.
+Nigella Lawson|female|66|Kuchárka, ktorá vysloví slovo čokoláda tak, že aj chladnička sa začne červenať.
+MrBeast|male|28|YouTuber, ktorý by ti dal milión eur, keby si 24 hodín vydržal nepozerať na notifikácie.
+Jimmy Fallon|male|52|Moderátor, ktorý sa smeje skôr, než hosť dokončí vetu, a z každej celebrity urobí súťaž s kartičkami.
+Conan O'Brien|male|63|Moderátor s humorom, ktorý je dlhší než jeho účes a často aj múdrejší než celý panel.
+Sacha Baron Cohen|male|55|Herec, ktorý sa dokáže tváriť tak presvedčivo, že aj vlastná rodina potrebuje overiť jeho identitu.
+Kevin Hart|male|47|Komik, ktorý rozpráva tak rýchlo, že titulky potrebujú vlastného osobného trénera.
+Dave Chappelle|male|53|Stand-up komik, ktorý vie z jedného pozorovania vyrobiť diskusiu na celý týždeň.
+Bill Murray|male|76|Herec, ktorý sa objaví na nečakanom mieste a všetci sa tvária, že je to úplne normálne.
+Jim Carrey|male|64|Komik s mimikou, ktorá dokáže nahradiť tri odseky a jeden terapeutický rozhovor.
+Adam Sandler|male|60|Herec, ktorý dokáže z kamarátskeho výletu spraviť film a z každého filmu rodinnú dovolenku.
+Brad Pitt|male|63|Herec, ktorý vyzerá, že starne opačným smerom a aj obyčajné nakupovanie má ako filmovú premiéru.
+Angelina Jolie|female|51|Herečka a humanitárna osobnosť, ktorá zvládne akčný film aj diplomatické stretnutie s rovnakým pokojom.
+Keanu Reeves|male|62|Herec, ktorý je taký slušný, že aj internetové meme o ňom majú dobré vychovanie.
+Johnny Depp|male|63|Herec, ktorý mení identitu častejšie než heslo a vždy má pripravený klobúk s vlastným príbehom.
+Meryl Streep|female|77|Herečka, ktorá dokáže zahrať aj obyčajné čítanie návodu na práčku ako oscarovú scénu.
+Tom Hanks|male|70|Herec, ktorému by ľudia zverili aj posledný záchranný čln a ešte by mu poďakovali za organizáciu.
+Leonardo DiCaprio|male|52|Herec, ktorý zbiera ceny, role a ekologické témy. Na každej párty má aspoň jednu prednášku o planéte.
+Britney Spears|female|45|Popová hviezda, ktorej každý tanečný krok sa stane udalosťou a každý status má vlastnú fanúšikovskú detektívku.
+Taylor Swift|female|36|Speváčka, ktorá dokáže z rozchodu vytvoriť album, turné a tri ekonomické ukazovatele.
+Eminem|male|54|Raper, ktorý dokáže zrýmovať aj návod na mikrovlnku a v komentároch má vždy poslednú slohu.
+Snoop Dogg|male|55|Raper, ktorý pôsobí, akoby mal na všetko čas, aj keď sa svet práve ponáhľa.
+Drake|male|40|Hudobník, ktorého každý status vyzerá ako náznak novej pesničky alebo nepriamy odkaz bývalej.
+Kanye West|male|49|Umelec s veľkými nápadmi, ešte väčším sebavedomím a statusmi, ktoré potrebujú vlastný tlačový tím.
+Lady Gaga|female|40|Speváčka, ktorá dokáže prísť v šatách z mäsa a aj tak bude najlepšie oblečená v miestnosti.
+Rihanna|female|38|Speváčka a podnikateľka, ktorá dokáže jedným pohľadom zmeniť trend aj náladu celého internetu.
+Beyoncé|female|45|Hviezda, ktorej príchod na akciu vyzerá ako štátny sviatok a každý výkon má vlastnú legendu.
+Freddie Mercury|male|45|Frontman, ktorý by aj obyčajné „ahoj“ zaspieval tak, že by sa pridali susedia z troch ulíc.
+Elvis Presley|male|42|Kráľ rock'n'rollu, ktorý by aj dnes dostal viac lajkov než všetky nové aplikácie dokopy.
+David Bowie|male|69|Hudobný chameleón, ktorý by zmenil profilovú fotku a tým spustil novú umeleckú éru.
+Shakira|female|49|Speváčka, ktorej boky majú vlastný životopis a rytmus, ktorý nezastaví ani pondelok.
+50 Cent|male|51|Raper, ktorý sa vie vysmiať aj vlastnému bankovému výpisu a každý konflikt premení na meme.
+Jay-Z|male|57|Hudobný magnát, ktorý rozmýšľa v albumoch, investíciách a dlhodobých plánoch.
+Dr. Dre|male|61|Producent, ktorý počuje rytmus aj v zvuku pokazenej tlačiarne.
+Cristiano Ronaldo|male|41|Futbalista, ktorý meria život v góloch, rekordoch a dokonalej disciplíne. Aj voda v jeho pohári musí podať výkon.
+Lionel Messi|male|39|Futbalový génius, ktorý dribluje tak pokojne, akoby sa ponáhľal iba na obed.
+Bruno Fernandes|male|32|Kapitán, ktorý gestikuluje aj pri objednávaní kávy a každú nepresnú prihrávku považuje za osobnú tragédiu.
+Kylian Mbappé|male|27|Útočník, ktorý je rýchlejší než špekulácie o jeho prestupe a stále má čas na ďalšiu oslavu.
+Erling Haaland|male|26|Gólostroj, ktorý vyzerá, že namiesto raňajok zje obrannú líniu súpera.
+Neymar|male|34|Futbalista, ktorý dokáže získať faul aj vtedy, keď sa ho lopta iba opýta na cestu.
+Zlatan Ibrahimović|male|45|Zlatan nehrá futbal, futbal hrá Zlatana. Aj jeho vlastný životopis potrebuje asistenta.
+Wayne Rooney|male|41|Futbalová legenda, ktorá by aj v záhrade kopala loptu tak, že sused zavolá rozhodcu.
+David Beckham|male|51|Ikona, ktorej účes má viac historických míľnikov než niektoré futbalové kluby.
+Michael Jordan|male|63|Basketbalista, ktorý berie každú prehru osobne, aj keď ide o kameň-papier-nožnice.
+LeBron James|male|42|Hráč, ktorý počíta sezóny, body a rekordy. Aj rodinný výlet má štatistiku plus-mínus.
+Kobe Bryant|male|48|Legenda, ktorej pracovná morálka by dokázala motivovať aj budík o piatej ráno.
+Serena Williams|female|45|Šampiónka, ktorá dokáže premeniť každý zápas na lekciu odhodlania a každý tréning na nový rekord.
+Roger Federer|male|45|Tenista, ktorý aj pri obyčajnom podaní vyzerá, že hrá finále Wimbledonu v obleku.
+Rafael Nadal|male|40|Tenista, ktorý upravuje fľaše na lavičke s väčšou presnosťou než niektorí chirurgovia.
+Novak Djoković|male|39|Tenista, ktorý má názor na každú loptičku, každú výživu a každý povrch planéty.
+Jaromír Jágr|male|54|Hokejista, ktorý hrá tak dlho, že jeho prvé korčule už majú vlastnú historickú hodnotu.
+Wayne Gretzky|male|65|Hokejová legenda, ktorá videla prihrávku skôr, než sa spoluhráč rozhodol, že vôbec vyrazí.
+Chuck Norris|male|86|Chuck Norris nekliká na obnoviť. Stránka sa obnoví sama, len čo sa na ňu pozrie.
+Mr. Bean|male|40|Muž, ktorý dokáže pokaziť aj ticho, no všetci mu to odpustia, lebo má plyšového kamaráta.
+
+George Bush|male|80|Prezident, ktorého si ľudia často mýlia s iným Bushom. Na rodinných stretnutiach potrebuje menovku aj historický kontext.
+Natasha Romanoff|female|35|Špiónka, ktorá pozná všetky tvoje tajomstvá ešte predtým, než ich stihneš napísať. Jej súkromný režim je naozaj súkromný.
+Samuel L. Jackson|male|77|Herec s hlasom, ktorý dokáže z obyčajnej vety urobiť ultimátum. Aj keď povie „dobrý deň“, znie to ako posledné varovanie.
+Macik Ted|male|30|Rozprávkový macík, ktorý rozdáva múdre rady, no sám sa stratí v obchode s plyšákmi. Každý problém rieši objatím a medom.
+Mr. Hankey|male|30|Vianočná postavička, ktorá sa objaví v najnevhodnejšej chvíli a aj tak očakáva, že ju všetci pozvú na večeru.
+Vočko Szyslak|male|50|Krčmár, ktorý pozná všetky klebety v meste a každú novinku komentuje tak, akoby mu dlžili nájom.
+Monty Burns|male|104|Miliardár, ktorý šetrí aj na úsmeve. Jeho ideálna charita je, keď niekto iný zaplatí za jeho meno.
+Walker, Texas Ranger|male|65|Strážca zákona, ktorý vyrieši každý problém kopom z otočky. Aj parkovací lístok by najprv vypočul a potom kopol.
+Michael Jackson|male|50|Kráľ popu, ktorého tanečné kroky by aj dnes zahanbili gravitáciu. Každý status má rytmus a každý komentár potrebuje moonwalk.
+Morpheus|male|50|Muž, ktorý ti ponúkne červenú alebo modrú tabletku aj pri výbere prílohy k obedu. Nikdy neprestane hovoriť o prebudení.
+Trinity|female|35|Hackerka a akčná legenda, ktorá dokáže zachrániť svet a zároveň opraviť tvoje Wi-Fi bez reštartu routera.
+Mufasa|male|50|Kráľ savany, ktorý dáva životné lekcie z oblakov a očakáva, že ich syn bude počúvať aspoň raz.
+Simba|male|25|Kráľ levov, ktorý sa roky vyhýbal zodpovednosti a potom zistil, že dospelosť je len nekonečné zasadnutie.
+Scar|male|45|Rodinný stratég, ktorý má vždy plán, ale nikdy nevie, prečo mu nikto neverí.
+Elsa|female|25|Kráľovná ľadu, ktorá dokáže zmraziť miestnosť jediným pohľadom a potom tvrdí, že potrebuje trochu priestoru.
+Olaf|male|5|Snehuliak, ktorý miluje leto a ignoruje základné fyzikálne zákony. Jeho optimizmus má vlastnú klimatickú zmenu.
+Buzz Lightyear|male|30|Vesmírny ranger, ktorý si myslí, že každá obývačka je galaxia a každý gauč štartovacia rampa.
+Woody|male|35|Šerif hračiek, ktorý sa snaží udržať partiu pokope, hoci všetci majú existenčnú krízu zakaždým, keď príde nový darček.
+Dory|female|20|Ryba s krátkou pamäťou, ktorá sa ťa päťkrát opýta na meno a zakaždým sa úprimne poteší, že ťa spoznala.
+Pán Prsteňov|male|100|Legendárny fantasy svet v jednej osobe, ktorá každú diskusiu zmení na otázku, kto má vlastne právo nosiť šperk.
+`.trim().split('\n').map(line=>{const [name,gender,age,...description]=line.split('|');return {name:name.trim(),gender:(gender||'male').trim(),age:String(age||30).trim(),description:description.join('|').replace(/\|+$/,'').trim()};}).filter(p=>p.name&&p.description).filter((p,i,a)=>a.findIndex(x=>x.name.toLowerCase()===p.name.toLowerCase())===i);
+        // Stable reciprocal network: build 20–30 mutual contacts, prioritising each character's universe.
+        const CATALOG_SOCIAL_GRAPH=(()=>{const people=SUGGESTED_PEOPLE_CATALOG.slice();const graph=new Map(people.map(p=>[p.name,[]]));const pairs=[];for(let i=0;i<people.length;i++)for(let j=i+1;j<people.length;j++){const a=people[i],b=people[j];pairs.push({a:a.name,b:b.name,affinity:getCharacterAffinity(a.name,b.name)});}pairs.sort((x,y)=>y.affinity-x.affinity||x.a.localeCompare(y.a)||x.b.localeCompare(y.b));const link=(a,b)=>{if(!graph.get(a).includes(b)&&!graph.get(b).includes(a)&&graph.get(a).length<30&&graph.get(b).length<30){graph.get(a).push(b);graph.get(b).push(a);}};pairs.forEach(e=>{if(graph.get(e.a).length<25&&graph.get(e.b).length<25)link(e.a,e.b);});for(const person of people){const name=person.name;if(graph.get(name).length<20){const candidates=people.filter(p=>p.name!==name).sort((a,b)=>Number(getCharacterUniverse(b.name)===getCharacterUniverse(name))-Number(getCharacterUniverse(a.name)===getCharacterUniverse(name))||a.name.localeCompare(b.name));for(const candidate of candidates){if(graph.get(name).length>=20)break;link(name,candidate.name);}}}return graph;})();
         function getSuggestedPeopleDeck(){
             const existing=new Set(friendsList.map(f=>String(f.name||'').toLowerCase()));
             return SUGGESTED_PEOPLE_CATALOG.filter(p=>!existing.has(p.name.toLowerCase()));
@@ -2659,7 +2917,7 @@ Igor Matovič|male|53|Politik, ktorého statusy majú viac zvratov než kriminá
             const person=SUGGESTED_PEOPLE_CATALOG.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase());if(!person)return;
             if(friendsList.some(f=>String(f.name||'').toLowerCase()===person.name.toLowerCase())){alert('Tento človek už je medzi priateľmi.');return;}
             const f={name:person.name,gender:person.gender,age:person.age,msgChances:{0:95,1:2.5,2:1.25,3:1.25},unansweredFollowupChance:.1,replyChances:{0:5,1:70,2:20,3:5,4:5},ghostChance:5,emojiStyle:'normal',personalities:['friendly'],grammar:generateRandomGrammar(),messageCountBehavior:generateRandomMsgCount(),romance:generateRandomRomance(),relationships:['comments'],favoriteTopics:[],customTopics:[],profileDescription:person.description,profilePhoto:'',profileCoverPhoto:'',friendList:[],commonFriends:[],commentChance:25,webMemory:[],webActive:false,isBlocked:false,ignoredCount:0,unreadCount:0,dateAdded:Date.now(),contactLevel:'Poznáme sa',isCatalogCharacter:true};
-            friendsList.push(f);seedFriendNetwork(f);saveFriendsData();renderFriends();updateUnreadUI();renderAssistant();shuffleSuggestedPeople();
+            friendsList.push(f);seedFriendNetwork(f);saveFriendsData();renderFriends();updateUnreadUI();renderAssistant();shuffleSuggestedPeople();renderFriendsHubSuggestions();
             const modal=document.getElementById('suggested-people-modal');if(modal&&modal.style.display==='flex')renderSuggestedPeopleModal();
             renderGrid();
         }
@@ -2811,6 +3069,7 @@ Igor Matovič|male|53|Politik, ktorého statusy majú viac zvratov než kriminá
             }
 
             ensureFriendNetwork();
+            enrichCatalogFriendNetworks();
             shuffleSuggestedPeople();
             updateUserAvatarsUI();
             updateUnreadUI();
@@ -2884,7 +3143,7 @@ Igor Matovič|male|53|Politik, ktorého statusy majú viac zvratov než kriminá
             feedData.forEach((slot,sIdx)=>{
                 (slot?.posts||[]).forEach((post,pIdx)=>{
                     const author=String(post.author_name||'').toLowerCase();
-                    if(post.isUserStatus && author===me){ activities.push({post,sIdx,pIdx,isStatus:true,isUserStatus:true,activityTimestamp:post.createdAt||slot.createdAt||slot.timestamp||0,activityLabel:'status',fallbackIndex:activities.length}); }
+                    if((post.isUserStatus||post.isOwnPost||post.isUserShare||post.isSharedByUser||author===me||String(post.sharedByUser||'').toLowerCase()===me) && !sharedPosts.some(x=>x.id&&x.id===post.id)){ activities.push({post,sIdx,pIdx,isStatus:!!post.isUserStatus,isUserStatus:!!post.isUserStatus,isUserShare:!!(post.isUserShare||post.isSharedByUser||post.sharedByUser),activityTimestamp:post.createdAt||post.sharedAt||slot.createdAt||slot.timestamp||0,activityLabel:(post.isUserShare||post.isSharedByUser||post.sharedByUser)?'shared':(post.isUserStatus?'status':'post'),fallbackIndex:activities.length}); }
                     const cts=latestUserCommentTimestamp(post.comments);
                     if(cts){ const key=`comment|${sIdx}|${pIdx}|${cts}`; if(!seen.has(key)){seen.add(key); activities.push({post,sIdx,pIdx,isCommentedOnly:true,isUserComment:true,activityTimestamp:cts,activityLabel:'comment',fallbackIndex:activities.length});} }
                     if(post.hasLiked){ activities.push({post,sIdx,pIdx,isLiked:true,activityTimestamp:post.likedAt||post.createdAt||slot.createdAt||slot.timestamp||0,activityLabel:'like',fallbackIndex:activities.length}); }
@@ -3117,7 +3376,7 @@ Igor Matovič|male|53|Politik, ktorého statusy majú viac zvratov než kriminá
                 const prompt=post.image_prompt||'A candid realistic social media photo related to the post';
                 post.image_url=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true&seed=${Math.floor(Math.random()*1000000)}`;
                 post.image_prompt=prompt;post.createdAt=Date.now();if(!post.id)post.id=`fb-post-${Date.now()}-${Math.random().toString(36).slice(2,9)}`;
-                if(!Array.isArray(post.comments)||!post.comments.length){const seedName=getRandomNames(1)[0]||'Diskutér';post.comments=[{id:`fb-seed-comment-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,username:seedName,text:appLanguage==='en'?'This one deserves a proper discussion.':(appLanguage==='sr'?'Ovo zaslužuje pravu diskusiju.':'Toto si zaslúži poriadnu diskusiu.'),replies:[],timestamp:Date.now()}];}
+                if(!Array.isArray(post.comments)||!post.comments.length){const seedName=getRandomSocialSpeaker().name;post.comments=[{id:`fb-seed-comment-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,username:seedName,text:appLanguage==='en'?'This one deserves a proper discussion.':(appLanguage==='sr'?'Ovo zaslužuje pravu diskusiju.':'Toto si zaslúži poriadnu diskusiu.'),replies:[],timestamp:Date.now()}];}
                 if(refreshGenerationMode==='share'){
                     post.isFriendShare=true;post.sharedByFriend=refreshShareFriendName;
                     post.sharedOpinion=`Toto som si musel/a pozrieť. Čo na to hovoríte?`;
@@ -3157,15 +3416,17 @@ Igor Matovič|male|53|Politik, ktorého statusy majú viac zvratov než kriminá
             });
             if(!targets.length)return;
             const lang=appLanguage==='en'?'English':(appLanguage==='sr'?'Serbian':'Slovak');
-            const speakers=getRandomNames(4).filter(Boolean);
-            const speakerFor=i=>{let n=speakers[i]||`Diskutér ${i+1}`;if(n.toLowerCase()===String(targets[i]?.targetName||'').toLowerCase()||n.toLowerCase()===String(currentUsername).toLowerCase())n=speakers[i+2]||`Diskutér ${i+1}`;return n;};
+            const speakerPool=getRandomNames(4).filter(Boolean);
+            const pickRealSpeaker=()=>{if(friendsList.length&&Math.random()<.20){const f=friendsList[Math.floor(Math.random()*friendsList.length)];return {name:f.name,description:f.profileDescription||''};}if(typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'&&Math.random()<.18){const p=SUGGESTED_PEOPLE_CATALOG[Math.floor(Math.random()*SUGGESTED_PEOPLE_CATALOG.length)];return {name:p.name,description:p.description||''};}return {name:speakerPool.shift()||getRandomNames(1)[0]||'Diskutér',description:''};};
+            const selectedSpeakers=targets.map(()=>pickRealSpeaker());if(selectedSpeakers.length>1&&selectedSpeakers[0].name===selectedSpeakers[1].name){selectedSpeakers[1]=pickRealSpeaker();}
+            const speakerFor=i=>{let item=selectedSpeakers[i]||{name:`Diskutér ${i+1}`,description:''};let n=item.name;if(n.toLowerCase()===String(targets[i]?.targetName||'').toLowerCase()||n.toLowerCase()===String(currentUsername).toLowerCase())n=speakerPool.shift()||getRandomNames(1)[0]||`Diskutér ${i+1}`;return n;};
             const context=targets.map((t,i)=>`TARGET ${i+1}
 POST: ${t.post.title||'Príspevok'}
 CONTENT: ${Array.isArray(t.post.content)?t.post.content.join(' '):(t.post.content||'')}
 THREAD:
 ${t.thread}
 REPLY TO: ${t.targetName}: ${t.targetText}
-NEW SPEAKER: ${speakerFor(i)}`).join('\n\n---\n\n');
+NEW SPEAKER: ${speakerFor(i)}\nPERSONA: ${selectedSpeakers[i]?.description||'regular social media user'}`).join('\n\n---\n\n');
             const prompt=`You write two believable, natural Facebook comment replies in ${lang}. Continue the exact conversations below. Each reply must directly address the specified target comment, understand the post and existing thread, add a fresh thought, and match the tone (serious, funny, sarcastic or argumentative). Do not repeat the target, do not change the subject, do not mention AI. Use the exact NEW SPEAKER names provided. Return strict JSON only: {"replies":[{"target":1,"username":"name","text":"reply"},{"target":2,"username":"name","text":"reply"}]}
 
 ${context}`;
@@ -3286,7 +3547,14 @@ ${context}`;
         function openInfoModalFromSettings() { closeApiModal(); openInfoModal(); }
         function openInfoModal() { closeApiModal(); document.getElementById('info-modal').style.display = 'flex'; pushModalState(); }
         function closeInfoModal() { document.getElementById('info-modal').style.display = 'none'; }
-        function openFriendsModal() { document.getElementById('friends-modal').style.display = 'flex'; sortAndRenderFriends(); pushModalState(); }
+        function toggleFriendAddForm(){const form=document.getElementById('friend-add-form');if(!form)return;form.classList.toggle('open');if(form.classList.contains('open'))document.getElementById('new-friend-input')?.focus();}
+        function openProfilePhotoEditor(){showProfileTab('photos');const block=document.getElementById('my-profile-settings-block');if(block&&block.style.display==='none')toggleMyProfileEditor();const label=document.getElementById('profile-cover-edit-label');if(label)label.textContent=appLanguage==='en'?'Add photos':(appLanguage==='sr'?'Dodaj fotografije':'Pridať fotky');}
+        function openFriendsModal() { const modal=document.getElementById('friends-modal');modal.style.display='flex';const heads=modal.querySelectorAll('.friends-hub-section h4');if(heads[0])heads[0].textContent=appLanguage==='en'?'Friend requests':(appLanguage==='sr'?'Zahtevi za prijateljstvo':'Žiadosti o priateľstvo');if(heads[1])heads[1].textContent=appLanguage==='en'?'People you may know':(appLanguage==='sr'?'Ljudi koje možda poznajete':'Ľudia, ktorých možno poznáte');if(heads[2])heads[2].textContent=appLanguage==='en'?'My friends':(appLanguage==='sr'?'Moji prijatelji':'Moji priatelia');const addLabel=document.getElementById('btn-add-friend-toggle-label');if(addLabel)addLabel.textContent=appLanguage==='en'?'Add friend':(appLanguage==='sr'?'Dodaj prijatelja':'Pridať priateľa');const req=document.getElementById('friend-requests-panel');const reqSection=document.getElementById('friends-requests-section');if(req&&reqSection&&!reqSection.contains(req))reqSection.appendChild(req);updateNotificationUI();const reqPanel=document.getElementById('friend-requests-panel'),reqBox=document.getElementById('friends-requests-section');if(reqBox)reqBox.style.display=reqPanel&&reqPanel.innerHTML.trim()?'block':'none';renderFriendsHubSuggestions();sortAndRenderFriends();pushModalState(); }
+        function searchFakebookPeople(query){const host=document.getElementById('navbar-search-results');if(!host)return;const q=String(query||'').trim().toLocaleLowerCase('sk');if(q.length<2){host.classList.remove('open');host.innerHTML='';return;}const friends=friendsList.filter(f=>String(f.name||'').toLocaleLowerCase('sk').includes(q)).slice(0,8).map(f=>({name:f.name,kind:'friend',photo:f.profilePhoto||''}));const suggested=(typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG:[]).filter(p=>p.name.toLocaleLowerCase('sk').includes(q)&&!friendsList.some(f=>f.name.toLocaleLowerCase('sk')===p.name.toLocaleLowerCase('sk'))).slice(0,8).map(p=>({name:p.name,kind:'suggested',photo:''}));const all=friends.concat(suggested).slice(0,10);host.innerHTML=all.length?all.map(x=>`<button class="navbar-search-result" onclick="openPeopleSearchResult(decodeURIComponent('${encodeURIComponent(x.name)}'),'${x.kind}')"><span class="navbar-search-avatar" style="background:${generateColor(x.name)};${x.photo?`background-image:url('${x.photo.replace(/'/g,'%27')}');background-size:cover;`:''}">${x.photo?'':escapeHtml(x.name.split(/\s+/).map(y=>y[0]).slice(0,2).join('').toUpperCase())}</span><span><strong>${escapeHtml(x.name)}</strong><small style="display:block;color:var(--text-muted);font-size:.75rem;">${x.kind==='friend'?'Priateľ':'Ľudia, ktorých možno poznáte'}</small></span></button>`).join(''):`<div class="friends-hub-empty">${appLanguage==='en'?'No matches found.':(appLanguage==='sr'?'Nema rezultata pretrage.':'Nenašli sa žiadne zhody.')}</div>`;host.classList.add('open');}
+        function openPeopleSearchResult(name,kind){const host=document.getElementById('navbar-search-results');host?.classList.remove('open');const input=document.getElementById('navbar-search-input');if(input)input.value=name;if(kind==='friend'){openSelectedFriendProfile(name);return;}openFriendsModal();const q=document.getElementById('friends-suggested-inline');if(q){const person=SUGGESTED_PEOPLE_CATALOG.find(p=>p.name.toLowerCase()===name.toLowerCase());if(person)renderSuggestedPeopleCards(q,[person],'modal');}}
+        function handlePeopleSearchKey(e){if(e.key==='Escape'){document.getElementById('navbar-search-results')?.classList.remove('open');e.target.blur();}else if(e.key==='Enter'){const first=document.querySelector('#navbar-search-results .navbar-search-result');if(first)first.click();}}
+        document.addEventListener('click',e=>{if(!e.target.closest('#navbar-search-wrap'))document.getElementById('navbar-search-results')?.classList.remove('open');});
+        function renderFriendsHubSuggestions(){const host=document.getElementById('friends-suggested-inline');if(!host)return;renderSuggestedPeopleCards(host,getSuggestedPeopleBatch(6),'modal');}
         function closeFriendsModal() { document.getElementById('friends-modal').style.display = 'none'; }
         function saveFriendsData() { localStorage.setItem('fb_friends', JSON.stringify(friendsList)); updateUnreadUI(); }
         function saveChatsData() { localStorage.setItem('fb_messenger_chats', JSON.stringify(chatData)); }
@@ -3314,12 +3582,13 @@ ${context}`;
                 });
                 seedFriendNetwork(friendsList[friendsList.length-1]);
                 saveFriendsData();
-                input.value = ''; ageInput.value = '';
+                input.value = ''; ageInput.value = ''; document.getElementById('friend-add-form')?.classList.remove('open');
                 sortAndRenderFriends();
                 openFriendSettingsModal(friendsList.length-1);
             }
         }
 
+        function removeFriendFromSettings(){const idx=parseInt(document.getElementById('fs-friend-index')?.value,10);if(Number.isFinite(idx)){removeFriend(idx);closeFriendSettingsModal();}}
         function removeFriend(index) {
             if(confirm(UI_TEXTS[appLanguage].friendDeleteConfirmText)) {
                 let fName = friendsList[index].name;
@@ -3645,64 +3914,20 @@ ${context}`;
         }
 
         function renderFriends() {
-            const container = document.getElementById('friends-list-container');
-            if(!container) return;
-            container.innerHTML = '';
-            if(friendsList.length === 0) {
-                container.innerHTML = `<p style="font-size: 0.95rem;">${UI_TEXTS[appLanguage].noFriendsList}</p>`;
-                return;
-            }
-            friendsList.forEach((friend, idx) => {
-                let blockedLabel = friend.age + ' r.';
-                if (appLanguage === 'en') blockedLabel = friend.age + ' y.o.';
-                if (appLanguage === 'sr') blockedLabel = friend.age + ' god.';
-                let blockedBadge = friend.isBlocked ? `<span style="color:#f02849; font-size:0.75rem; border:1px solid #f02849; border-radius:4px; padding:2px 4px; margin-left:4px;">${UI_TEXTS[appLanguage].blockedStatusText}</span>` : '';
-                
-                let firstPersId = (friend.personalities && friend.personalities.length > 0) ? friend.personalities[0] : "friendly";
-                let matchPers = ALL_PERSONALITIES.find(ap => ap.id === firstPersId);
-                
-                let translatedPers = firstPersId;
-                if (matchPers) {
-                    if (appLanguage === 'sk') {
-                        let isFemale = (friend.gender === 'female' || friend.gender === 'žena');
-                        translatedPers = isFemale ? matchPers.sk_female : matchPers.sk_male;
-                    } else {
-                        translatedPers = matchPers[appLanguage];
-                    }
-                }
-                if(friend.personalities && friend.personalities.length > 1) translatedPers += '...';
-
-                let translatedGender = friend.gender;
-                if(friend.gender === 'male' || friend.gender === 'muž') translatedGender = UI_TEXTS[appLanguage].genderMale;
-                if(friend.gender === 'female' || friend.gender === 'žena') translatedGender = UI_TEXTS[appLanguage].genderFemale;
-                
-                container.innerHTML += `
-                    <div style="display:flex; flex-direction:column; padding: 10px; background-color: var(--bg-input); border-radius: 6px; margin-bottom: 4px; ${friend.isBlocked ? 'opacity:0.7;' : ''}">
-                        <div style="display:flex; justify-content:space-between; align-items: center;">
-                            <div style="display: flex; flex-direction: column; gap: 2px;">
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    ${friend.profilePhoto ? `<img src="${friend.profilePhoto}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;">` : ''}
-                                    <div><div style="font-weight: 600; font-size: 0.95rem; color: var(--global-font-color); cursor:pointer;" onclick="openSelectedFriendProfile('${String(friend.name).replace(/'/g,"\\'")}')" title="Profil">${friend.name} ${blockedBadge}</div>
-                                    <span style="font-size: 0.8rem; color: var(--text-muted);">${translatedGender}, ${blockedLabel} | ${translatedPers}</span></div>
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <span class="friend-settings-icon" onclick="openFriendSettingsModal(${idx})" title="${UI_TEXTS[appLanguage].settings}">⚙️</span>
-                                <span style="font-size: 1.1rem; cursor:pointer;" onclick="openSelectedFriendProfile('${friend.name}')" title="${UI_TEXTS[appLanguage].friends}">👤</span>
-                            </div>
-                        </div>
-                        <div class="friend-actions-menu">
-                            <button class="friend-action-sub-btn" onclick="openChatFromFriendsList('${friend.name}')">💬 ${UI_TEXTS[appLanguage].friendActionSendMsg}</button>
-                            <button class="friend-action-sub-btn" onclick="openSelectedFriendProfile('${friend.name}')">${UI_TEXTS[appLanguage].friendActionProfile}</button>
-                            <button class="friend-action-sub-btn" onclick="triggerAddStatusPrompt('${friend.name}', '${friend.gender}', '${friend.age}')">${UI_TEXTS[appLanguage].friendActionAddStatus}</button>
-                            <button class="friend-action-sub-btn" onclick="triggerShareFriendArticle('${friend.name}')">${UI_TEXTS[appLanguage].friendActionShareArt}</button>
-                            <button class="friend-action-sub-btn" onclick="triggerCreateFriendArticle('${friend.name}', '${friend.gender}', '${friend.age}')">${UI_TEXTS[appLanguage].friendActionCreateArt}</button>
-                            <button class="friend-action-sub-btn friend-delete-sub-btn" onclick="removeFriend(${idx})">${UI_TEXTS[appLanguage].friendActionDelete}</button>
-                        </div>
-                    </div>
-                `;
+            const container=document.getElementById('friends-list-container');if(!container)return;container.innerHTML='';
+            const count=document.getElementById('friends-hub-count');if(count)count.textContent=appLanguage==='en'?`${friendsList.length} friends`:(appLanguage==='sr'?`${friendsList.length} prijatelja`:`${friendsList.length} priateľov`);
+            if(!friendsList.length){container.innerHTML=`<div class="friends-hub-empty">${UI_TEXTS[appLanguage].noFriendsList}</div>`;return;}
+            friendsList.forEach((friend,idx)=>{
+                const age=friend.age?`${friend.age} ${appLanguage==='en'?'y.o.':(appLanguage==='sr'?'god.':'r.')}`:'';
+                const gender=(friend.gender==='female'||friend.gender==='žena')?UI_TEXTS[appLanguage].genderFemale:UI_TEXTS[appLanguage].genderMale;
+                const persId=friend.personalities?.[0]||'friendly',pers=ALL_PERSONALITIES.find(x=>x.id===persId);let persLabel=pers?(appLanguage==='sk'?(friend.gender==='female'?pers.sk_female:pers.sk_male):pers[appLanguage]):persId;
+                if(friend.personalities?.length>1)persLabel+='…';
+                const avatar=friend.profilePhoto?`<img class="friend-modern-avatar" src="${friend.profilePhoto}" alt="">`:`<div class="friend-modern-avatar" style="background:${generateColor(friend.name)}">${escapeHtml(friend.name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase())}</div>`;
+                const blocked=friend.isBlocked?`<span style="color:#f02849;font-size:.72rem;font-weight:800;"> · ${UI_TEXTS[appLanguage].blockedStatusText}</span>`:'';
+                container.insertAdjacentHTML('beforeend',`<article class="friend-modern-card" style="${friend.isBlocked?'opacity:.72;':''}"><div class="friend-modern-top">${avatar}<div style="min-width:0;flex:1;"><div class="friend-modern-name" onclick="openSelectedFriendProfile(decodeURIComponent('${encodeURIComponent(friend.name)}'))">${escapeHtml(friend.name)}${blocked}</div><div class="friend-modern-meta">${[gender,age,persLabel].filter(Boolean).map(escapeHtml).join(' · ')}</div></div></div><div class="friend-modern-actions"><button onclick="openFriendSettingsModal(${idx})">⚙️ Nastavenia</button><button onclick="openChatFromFriendsList(decodeURIComponent('${encodeURIComponent(friend.name)}'))">💬 Správa</button><button class="primary" onclick="toggleFriendCreateMenu(${idx})">＋ Vytvoriť</button></div><div class="friend-create-menu" id="friend-create-menu-${idx}"><button onclick="triggerAddStatusPrompt(decodeURIComponent('${encodeURIComponent(friend.name)}'),'${friend.gender}','${String(friend.age||'').replace(/'/g, "\'")}')">✍️ Pridať status</button><button onclick="triggerCreateFriendArticle(decodeURIComponent('${encodeURIComponent(friend.name)}'),'${friend.gender}','${String(friend.age||'').replace(/'/g, "\'")}')">📝 Vytvoriť článok</button><button onclick="triggerShareFriendArticle(decodeURIComponent('${encodeURIComponent(friend.name)}'))">↗️ Zdieľať článok</button></div></article>`);
             });
         }
+        function toggleFriendCreateMenu(idx){const menu=document.getElementById(`friend-create-menu-${idx}`);if(menu)menu.classList.toggle('open');}
 
         function handleCommenterClick(commenterName, sIdx, pIdx) {
             let existingFriend = friendsList.find(f => f.name.toLowerCase() === commenterName.toLowerCase());
@@ -3954,7 +4179,7 @@ ${context}`;
 
 
         function ensureFriendNetwork(){
-            const names=friendsList.map(f=>f.name).filter(Boolean);
+            const names=[...friendsList.map(f=>f.name).filter(Boolean),...(typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG.map(p=>p.name):[])];
             let changed=false;
             friendsList.forEach(friend=>{
                 const before=Array.isArray(friend.friendList)?friend.friendList:[];
@@ -3966,18 +4191,59 @@ ${context}`;
                 if(JSON.stringify(before)!==JSON.stringify(list)){friend.friendList=list;changed=true;}
             });
             if(changed)localStorage.setItem('fb_friends',JSON.stringify(friendsList));
+            enrichCatalogFriendNetworks();
+        }
+        function getCharacterUniverse(name){
+            const n=String(name||'').toLowerCase();
+            const groups={
+                wizard:['harry potter','voldemort','albus dumbledore','hermiona grangerová','ron weasley','draco malfoy','hagrid','dobby','minerva mcgonagallová','neville longbottom','sirius black','remus lupin','tom riddle','severus snape'],
+                middleearth:['frodo baggins','sauron','gandalf šedý','gandalf biely','aragorn','legolas','gimli','galadriel','saruman','bilbo baggins','samwise gamgee','gollum'],
+                marvel:['tony stark','iron man','peter parker','natasha romanovová','natasha romanoff','peter quill','groot','wanda maximovová','ultron','vision','bruce banner','thanos','loki','thor','deadpool','wolverine','doctor strange','black panther','captain america','ant-man','wasp','captain marvel'],
+                dc:['bruce wayne','batman','clark kent','superman','wonder woman','the flash','aquaman','green lantern','lex luthor','robin','alfred pennyworth','joker','harley quinn'],
+                starwars:['yoda','obi-wan kenobi','darth vader','luke skywalker','princess leia','chewbacca','han solo'],
+                disney:['mickey mouse','donald duck','goofy','mufasa','simba','scar','elsa','olaf','buzz lightyear','woody','dory'],
+                matrix:['neo','morpheus','trinity'],
+                simpsons:['homer simpson','bart simpson','marge simpson','lisa simpson','maggie simpson','vočko szyzlak','vočko szyslak','monty burns'],
+                southpark:['eric cartman','kenny mccormick','stan marsh','kyle broflowski','mr.hankey','mr. hankey','pan garrison'],
+                friends:['joey tribbiani','ross geller','jennifer aniston','phoebe buffay','chandler bing','monica geller','rachel green'],
+                office:['michael scott','dwight schrute','jim halpert','pam beesly'],
+                bigbang:['sheldon cooper','leonard hofstadter','penny','howard wolowitz','raj koothrappali'],
+                sitcom:['barney stinson','ted mosby','lily aldrin','marshall eriksen','jerry seinfeld','george costanza','elaine benes','kramer'],
+                pirates:['jack sparrow','johnny depp'],
+                musicians:['slim shady','eminem','50 cent','dr. dre','jay-z','rihanna','beyoncé','p. diddy','snoop dogg','drake','taylor swift','freddie mercury','elvis presley','david bowie','shakira','lady gaga'],
+                football:['bruno fernandes','cristiano ronaldo','lionel messi','kylian mbappé','erling haaland','neymar','zlatan ibrahimović','wayne rooney','david beckham','jose mourinho'],
+                basketball:['michael jordan','lebron james','kobe bryant'],
+                actors:['jim carrey','adam sandler','brad pitt','angelina jolie','bradgelina pittjollie','samuel l jackson','samuel l. jackson','walker, texas ranger','leslie nielson','silvester stalone','chuck norris','keanu reeves','tom hanks','leonardo dicaprio','meryl streep','jackie chan','rowan atkinson'],
+                presidents:['donald trump','george bush','george w. bush','barack obama','vladimir putin','joe biden','boris johnson','angela merkelová','emmanuel macron','volodymyr zelenskyj','robert fico','igor matovič'],
+                history:['gandhi','mahatma gandhi','ježiš nazaretský','saddám husajn','kleopatra','cleopatra','julius caesar','július caesar','ježiš nazaretský','mojžiš','galileo galilei','albert einstein','nikola tesla','thomas edison','tomas edison','isaac newton','leonardo da vinci','nelson mandela','saddám husajn']
+            };
+            for(const [key,names] of Object.entries(groups))if(names.some(x=>n===x||n.includes(x)||x.includes(n)))return key;
+            return 'general';
+        }
+        function getCharacterAffinity(a,b){const x=getCharacterUniverse(a),y=getCharacterUniverse(b);if(x===y)return 3;const bridges=[['wizard','middleearth'],['marvel','dc'],['actors','pirates'],['actors','friends'],['actors','office'],['actors','bigbang'],['friends','sitcom'],['office','sitcom'],['bigbang','sitcom'],['football','basketball'],['presidents','history'],['musicians','actors'],['history','wizard'],['history','middleearth'],['disney','cartoon'],['matrix','marvel'],['matrix','dc']];return bridges.some(pair=>(pair[0]===x&&pair[1]===y)||(pair[0]===y&&pair[1]===x))?2:0;}
+        function getCharacterConnections(name){
+            const exact=SUGGESTED_PEOPLE_CATALOG.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase());
+            if(exact&&CATALOG_SOCIAL_GRAPH.has(exact.name))return CATALOG_SOCIAL_GRAPH.get(exact.name).slice();
+            const universe=getCharacterUniverse(name),catalog=SUGGESTED_PEOPLE_CATALOG;
+            return catalog.filter(p=>p.name.toLowerCase()!==String(name).toLowerCase()&&getCharacterUniverse(p.name)===universe).slice(0,24).map(p=>p.name);
         }
         function seedFriendNetwork(newFriend){
-            if(!newFriend)return;const others=friendsList.filter(f=>f!==newFriend);
-            const pool=others.map(f=>f.name).filter(Boolean);
-            newFriend.friendList=pool.length?pool.slice().sort(()=>Math.random()-.5).slice(0,Math.min(pool.length,1+Math.floor(Math.random()*Math.min(4,pool.length)))):[];
+            if(!newFriend)return;const others=friendsList.filter(f=>f!==newFriend);const realPool=others.map(f=>f.name).filter(Boolean);
+            const catalogue=typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG.map(p=>p.name).filter(n=>n.toLowerCase()!==String(newFriend.name).toLowerCase()):[];
+            const pool=newFriend.isCatalogCharacter?Array.from(new Set([...getCharacterConnections(newFriend.name),...realPool,...catalogue])):realPool;
+            const wanted=newFriend.isCatalogCharacter?Math.min(pool.length,20+Math.floor(Math.random()*11)):Math.min(pool.length,Math.max(1,Math.floor(Math.random()*5)+1));
+            newFriend.friendList=pool.slice(0,wanted);
             newFriend.commonFriends=Array.isArray(newFriend.commonFriends)?newFriend.commonFriends:[];
-            others.forEach(f=>{if(Math.random()<.28){if(!Array.isArray(f.friendList))f.friendList=[];if(!f.friendList.includes(newFriend.name))f.friendList.push(newFriend.name);}});
+            others.forEach(f=>{if(Math.random()<(newFriend.isCatalogCharacter?.42:.28)){if(!Array.isArray(f.friendList))f.friendList=[];if(!f.friendList.includes(newFriend.name))f.friendList.push(newFriend.name);}});
+        }
+        function enrichCatalogFriendNetworks(){
+            const catalog=typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG:[];let changed=false;
+            friendsList.filter(f=>f.isCatalogCharacter).forEach(f=>{const allowed=[...getCharacterConnections(f.name),...catalog.map(p=>p.name)].filter((n,i,a)=>n.toLowerCase()!==f.name.toLowerCase()&&a.findIndex(x=>x.toLowerCase()===n.toLowerCase())===i);let list=Array.isArray(f.friendList)?f.friendList.filter(n=>n&&n.toLowerCase()!==f.name.toLowerCase()):[];if(list.length<20){const pool=allowed.filter(n=>!list.some(x=>x.toLowerCase()===n.toLowerCase())).sort(()=>Math.random()-.5);list=list.concat(pool.slice(0,Math.min(30-list.length,20-list.length)));}if(list.length>30)list=list.slice(0,30);if(JSON.stringify(list)!==JSON.stringify(f.friendList||[])){f.friendList=list;changed=true;}});if(changed)saveFriendsData();
         }
         function profileCountPostsForFriend(friendName){
             let count=0;feedData.forEach(slot=>(slot.posts||[]).forEach(post=>{if(String(post.author_name||'').toLowerCase()===String(friendName||'').toLowerCase()||(post.isFriendShare&&String(post.sharedByFriend||'').toLowerCase()===String(friendName||'').toLowerCase()))count++;}));return count;
         }
-        function profileCountPostsForUser(){let count=sharedPosts.length;feedData.forEach(slot=>(slot.posts||[]).forEach(post=>{if(post.isOwnPost||post.isUserStatus||String(post.author_name||'').toLowerCase()===String(currentUsername||'').toLowerCase())count++;}));return count;}
+        function profileCountPostsForUser(){const ids=new Set();let count=0;sharedPosts.forEach((post,i)=>{const k=post.id||`shared-${i}-${post.title||''}`;if(!ids.has(k)){ids.add(k);count++;}});feedData.forEach((slot,si)=>(slot.posts||[]).forEach((post,pi)=>{const owns=post.isOwnPost||post.isUserStatus||post.isUserShare||post.isSharedByUser||String(post.author_name||'').toLowerCase()===String(currentUsername||'').toLowerCase()||String(post.sharedByUser||'').toLowerCase()===String(currentUsername||'').toLowerCase();if(owns){const k=post.id||`${si}-${pi}-${post.title||''}`;if(!ids.has(k)){ids.add(k);count++;}}}));return count;}
         function profileCountText(count,kind){const p=UI_TEXTS[appLanguage];const one=kind==='friends'?p.profileFriendCountOne:p.profilePostCountOne;const few=kind==='friends'?p.profileFriendCountFew:p.profilePostCountFew;const many=kind==='friends'?p.profileFriendCount:p.profilePostCount;let template=many;if(count===1)template=one;else if(appLanguage!=='en'&&count%10>=2&&count%10<=4&&!(count%100>=12&&count%100<=14))template=few;return template.replace('{n}',count);}
         function setProfileSummary(friend){
             const host=document.getElementById('profile-summary-line');if(!host)return;
