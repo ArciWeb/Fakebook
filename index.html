@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fakebook v. 3.97</title>
+    <title>Fakebook v. 4.10</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1877f2">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -537,6 +537,32 @@
         .chat-context-menu button:hover { background:var(--bg-input); }
         .chat-context-menu .delete { color:#f02849; }
         .chat-context-menu .copy { color:var(--fb-blue); }
+
+        /* Fakebook 4.10: profile, notifications, assistant and feed controls */
+        .profile-header-card{ text-align:left; padding-bottom:18px; }
+        .profile-header-card .profile-avatar-wrapper{ margin-left:24px; }
+        .profile-header-card #profile-display-name{ margin-left:24px !important; }
+        .profile-header-card .username-edit-row{ margin-left:24px; justify-content:flex-start; max-width:420px; }
+        .profile-cover{height:220px;background:linear-gradient(120deg,#1877f2,#8ec5fc 55%,#e0c3fc);margin:0;}
+        .profile-avatar-large{width:150px;height:150px;border-radius:50%;font-size:3.5rem;}
+        .profile-summary-line{margin:4px 24px 0;color:var(--text-muted);font-size:.92rem}
+        .profile-facts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:10px}
+        .profile-fact{background:var(--bg-card);border:1px solid var(--border-color);border-radius:9px;padding:10px 12px;font-size:.9rem}
+        .profile-fact strong{display:block;font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+        .notification-list{display:flex;flex-direction:column;gap:8px}
+        .notification-item{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:10px;background:var(--bg-input);cursor:pointer;border:1px solid transparent}
+        .notification-item.unread{background:var(--unread-bg-color);border-color:var(--unread-glow-color)}
+        .notification-item:hover{filter:brightness(.97)}
+        .notification-icon{width:40px;height:40px;min-width:40px;border-radius:50%;display:grid;place-items:center;background:var(--nav-icon-bg);font-size:1.2rem}
+        .assistant-card{position:relative;background:linear-gradient(135deg,rgba(24,119,242,.12),rgba(24,119,242,.04));border:1px solid rgba(24,119,242,.3);border-radius:12px;padding:13px 14px;margin-bottom:14px}
+        .assistant-card strong{color:var(--fb-blue)}
+        .assistant-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+        .assistant-actions button{border:0;border-radius:18px;padding:7px 12px;background:var(--fb-blue);color:white;font-weight:700;cursor:pointer}
+        .feed-sort-label{font-size:.85rem;font-weight:700;color:var(--text-muted)}
+        #pull-refresh-indicator{display:none;text-align:center;padding:12px;color:var(--fb-blue);font-weight:700}
+        #btn-nav-home,#btn-nav-friends{position:relative}
+        @media(max-width:600px){.profile-cover{height:165px}.profile-avatar-large{width:124px;height:124px}.profile-header-card .profile-avatar-wrapper{margin-left:16px}.profile-header-card #profile-display-name,.profile-header-card .username-edit-row{margin-left:16px!important}}
+
 </style>
 </head>
 <body>
@@ -557,8 +583,8 @@
             <h1 class="navbar-text" id="lbl-nav-title">Fakebook</h1>
         </a>
         <div class="navbar-actions">
-            <button class="nav-btn" onclick="showGrid()" id="btn-nav-home" title="">🏠</button>
-            <button class="nav-btn" onclick="openFriendsModal()" id="btn-nav-friends" title="">👥</button>
+            <button class="nav-btn" onclick="showGrid(); openNotifications();" id="btn-nav-home" title="Domov a upozornenia">🏠<span class="msg-badge" id="global-notification-badge">0</span></button>
+            <button class="nav-btn" onclick="openFriendsModal()" id="btn-nav-friends" title="Priatelia">👥<span class="msg-badge" id="global-friend-request-badge">0</span></button>
             <button class="nav-btn" id="nav-messenger-btn" title="Messenger">
                 💬
                 <span class="msg-badge" id="global-msg-badge">0</span>
@@ -574,6 +600,8 @@
     <div class="main-container">
         
         <div id="view-grid" class="feed-layout">
+            <div id="assistant-card" class="assistant-card" style="display:none;"></div>
+            <div id="pull-refresh-indicator">↻ Načítavam nové dianie…</div>
             <div class="create-post-card" onclick="openCreateModal()">
                 <div class="create-post-top">
                     <div class="avatar" id="current-user-avatar" style="background-color: var(--fb-blue);">JA</div>
@@ -594,6 +622,7 @@
             <button class="close-modal-btn" onclick="closeFriendsModal()">&times;</button>
             <h3 id="lbl-friends-title"></h3>
             <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 16px;" id="lbl-friends-desc"></p>
+            <div class="assistant-card" style="margin-bottom:14px;"><strong>🤖 Tip asistenta</strong><div style="font-size:.88rem;margin-top:4px;">Po pridaní človeka otvor jeho nastavenia a napíš krátky opis povahy, záujmy, vzťah k tebe a spôsob komunikácie. Čím lepšie ho opíšeš, tým prirodzenejšie sa bude správať v príspevkoch a Messengeri.</div></div>
             
             <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
                 <input type="text" id="new-friend-input" placeholder="">
@@ -617,6 +646,16 @@
             </div>
 
             <div id="friends-list-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="notifications-modal">
+        <div class="modal-content" style="max-width:650px;">
+            <button class="close-modal-btn" onclick="closeNotifications()">&times;</button>
+            <h3>Upozornenia</h3>
+            <div id="friend-requests-panel"></div>
+            <div id="notifications-list" class="notification-list"></div>
+            <button class="btn btn-secondary" style="width:100%;margin-top:12px;" onclick="markAllNotificationsRead()">Označiť všetko ako prečítané</button>
         </div>
     </div>
 
@@ -986,6 +1025,20 @@
                 </div>
 </div>
             
+            <div style="border-top:1px solid var(--border-color);padding-top:14px;margin-top:12px;">
+                <h4 style="margin:0 0 8px;">Nastavenia časovej osi</h4>
+                <label style="display:block;font-size:.85rem;font-weight:700;margin-bottom:5px;">Usporiadať príspevky</label>
+                <select id="feed-sort-selector" onchange="saveFeedSort(this.value)" style="width:100%;margin-bottom:10px;">
+                    <option value="newest">Od najnovšieho</option>
+                    <option value="relevance">Podľa relevancie</option>
+                    <option value="random">Náhodne pri každom obnovení</option>
+                </select>
+                <label style="display:flex;align-items:center;gap:9px;font-weight:700;font-size:.9rem;">
+                    <input type="checkbox" id="assistant-enabled-toggle" onchange="setAssistantEnabled(this.checked)" style="width:auto;margin:0;">
+                    Asistent Fakebooku
+                </label>
+                <p style="font-size:.78rem;color:var(--text-muted);margin:5px 0 0;">Asistent bude odporúčať ďalšie kroky, doplnenie profilu, priateľov a príspevkov.</p>
+            </div>
             <div id="slots-container" style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;"></div>
 
             <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
@@ -1020,6 +1073,21 @@
                             <option value="žena" id="opt-mygender-female"></option>
                         </select>
                         <input type="number" id="my-profile-age" placeholder="" style="flex: 1; margin-bottom: 0;" onchange="saveMyDetails()">
+                    </div>
+                </div>
+
+                <div style="background:var(--bg-input);padding:12px;border-radius:8px;margin-bottom:16px;">
+                    <h4 style="margin:0 0 10px;">Informácie o profile</h4><div id="my-profile-facts" class="profile-facts-grid"></div>
+                </div>
+                <div style="background: var(--bg-input); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <h4 style="margin:0 0 10px;">O mne</h4>
+                    <textarea id="my-profile-bio" rows="3" maxlength="500" placeholder="Napíš niečo o sebe..." onchange="saveMyDetails()" style="height:80px;"></textarea>
+                    <div class="profile-facts-grid">
+                        <input type="text" id="my-profile-city" placeholder="Mesto / bydlisko" onchange="saveMyDetails()">
+                        <input type="text" id="my-profile-work" placeholder="Práca" onchange="saveMyDetails()">
+                        <input type="text" id="my-profile-education" placeholder="Vzdelanie" onchange="saveMyDetails()">
+                        <input type="text" id="my-profile-relationship" placeholder="Vzťahový status" onchange="saveMyDetails()">
+                        <input type="text" id="my-profile-website" placeholder="Webová stránka" onchange="saveMyDetails()">
                     </div>
                 </div>
 
@@ -1063,6 +1131,7 @@
             </div>
 
             <div id="friend-profile-common-area"></div>
+            <div id="my-profile-friends-preview" style="width:min(100% - 32px,980px);margin:0 auto 16px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:14px;"></div>
             <h3 id="profile-section-title" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; padding-left: 4px;"></h3>
             <div id="shared-posts-container"></div>
             <div id="private-profile-notice" style="display: none;"></div>
@@ -1147,7 +1216,7 @@
 
         // MANAGEMENT HISTÓRIE PRE TLAČIDLO SPÄŤ (PREVENCIA ZATVORENIA PWA)
         window.addEventListener('popstate', function(event) {
-            const modals = ['friends-modal', 'friend-settings-modal', 'messenger-modal', 'chat-modal', 'info-modal', 'create-modal', 'review-modal', 'api-modal', 'user-profile-modal'];
+            const modals = ['notifications-modal', 'friends-modal', 'friend-settings-modal', 'messenger-modal', 'chat-modal', 'info-modal', 'create-modal', 'review-modal', 'api-modal', 'user-profile-modal'];
             let anyOpen = false;
             
             modals.forEach(id => {
@@ -1422,6 +1491,14 @@ async function geminiFetch(request) {
 
         let feedData = [];
         let sharedPosts = [];
+        let fakebookNotifications = [];
+        let incomingFriendRequests = [];
+        let feedSortMode = localStorage.getItem('fb_feed_sort') || 'newest';
+        let assistantEnabled = localStorage.getItem('fb_assistant_enabled') !== '0';
+        let refreshGenerationMode = null;
+        let refreshShareFriendName = '';
+        let refreshInProgress = false;
+        let lastAssistantHint = '';
         let friendsList = [];
         let chatData = {}; 
         let currentUsername = "Používateľ";
@@ -2228,6 +2305,10 @@ function applyThemeAndFont() {
             currentFontFamily = localStorage.getItem('fb_font_family') || 'system';
             isMemoryEnabled = false;
             appLanguage = localStorage.getItem('fb_app_language') || 'sk';
+            try{fakebookNotifications=JSON.parse(localStorage.getItem('fb_notifications')||'[]')}catch(e){fakebookNotifications=[]}
+            try{incomingFriendRequests=JSON.parse(localStorage.getItem('fb_friend_requests')||'[]')}catch(e){incomingFriendRequests=[]}
+            feedSortMode=localStorage.getItem('fb_feed_sort')||'newest';
+            assistantEnabled=localStorage.getItem('fb_assistant_enabled')!=='0';
 
             userAge = localStorage.getItem('fb_user_age') || "";
             userGender = localStorage.getItem('fb_user_gender') || "";
@@ -2324,7 +2405,12 @@ function applyThemeAndFont() {
 
             updateUserAvatarsUI();
             updateUnreadUI();
+            updateNotificationUI();
+            maybeAddFriendReminder();
+            loadMyProfileDetails();
+            renderAssistant();
             renderGrid();
+            setupPullToRefresh();
         }
 
         function generateRandomGrammar() {
@@ -2403,7 +2489,7 @@ function applyThemeAndFont() {
             const input=document.getElementById('my-status-input'); const text=String(input?.value||'').trim();
             if(!text)return;
             const now=Date.now();
-            const slot={scenario:'User status',timestamp:now,createdAt:now,posts:[{id:`user-status-${now}-${Math.random().toString(36).slice(2,7)}`,author_name:currentUsername,title:'',content:[text],image_url:'',image_prompt:'',comments:[],likes:0,hasLiked:false,isUserStatus:true,createdAt:now}]};
+            const slot={scenario:'User status',timestamp:now,createdAt:now,posts:[{id:`user-status-${now}-${Math.random().toString(36).slice(2,7)}`,author_name:currentUsername,title:'',content:[text],image_url:'',image_prompt:'',comments:[],likes:0,hasLiked:false,isUserStatus:true,isOwnPost:true,createdAt:now}]};
             feedData.push(slot); saveToLocalStorage(); if(input)input.value=''; renderGrid(); openProfile();
         }
 
@@ -2455,6 +2541,187 @@ function applyThemeAndFont() {
             localStorage.setItem('fb_user_gender', userGender);
             localStorage.setItem('fb_user_age', userAge);
             localStorage.setItem('fb_user_prioritize_topics', prioritizeTopics ? '1' : '0');
+            ['bio','city','work','education','relationship','website'].forEach(k => {
+                const el=document.getElementById('my-profile-'+k);
+                if(el) localStorage.setItem('fb_user_'+k, el.value.trim());
+            });
+            renderMyProfileFacts();
+        }
+
+
+        function loadMyProfileDetails(){
+            ['bio','city','work','education','relationship','website'].forEach(k=>{
+                const el=document.getElementById('my-profile-'+k);
+                if(el) el.value=localStorage.getItem('fb_user_'+k)||'';
+            });
+            const gender=document.getElementById('my-profile-gender'), age=document.getElementById('my-profile-age');
+            if(gender) gender.value=userGender||''; if(age) age.value=userAge||'';
+            renderMyProfileFacts();
+        }
+        function renderMyProfileFacts(){
+            const host=document.getElementById('my-profile-facts');
+            if(!host)return;
+            const fields=[['O mne','bio'],['Mesto','city'],['Práca','work'],['Vzdelanie','education'],['Vzťah','relationship'],['Web','website'],['Vek','age'],['Pohlavie','gender']];
+            host.innerHTML=fields.map(([label,key])=>{
+                const value=key==='age'?userAge:(key==='gender'?userGender:(localStorage.getItem('fb_user_'+key)||''));
+                return value?`<div class="profile-fact"><strong>${label}</strong>${escapeHtml(value)}</div>`:'';
+            }).join('');
+        }
+        function addNotification(type,title,body,meta={}){
+            const item={id:'n-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),type,title,body,createdAt:Date.now(),read:false,...meta};
+            fakebookNotifications.unshift(item); fakebookNotifications=fakebookNotifications.slice(0,100);
+            localStorage.setItem('fb_notifications',JSON.stringify(fakebookNotifications));
+            updateNotificationUI();
+        }
+        function updateNotificationUI(){
+            const unread=fakebookNotifications.filter(n=>!n.read).length;
+            const badge=document.getElementById('global-notification-badge'), btn=document.getElementById('btn-nav-home');
+            if(badge){badge.textContent=unread>99?'99+':unread;badge.style.display=unread?'block':'none';}
+            if(btn)btn.classList.toggle('unread-glow',unread>0);
+            const reqBadge=document.getElementById('global-friend-request-badge'), fbtn=document.getElementById('btn-nav-friends');
+            const pending=incomingFriendRequests.filter(r=>!r.status||r.status==='pending').length;
+            if(reqBadge){reqBadge.textContent=pending>99?'99+':pending;reqBadge.style.display=pending?'block':'none';}
+            if(fbtn)fbtn.classList.toggle('unread-glow',pending>0);
+        }
+        function openNotifications(){
+            const modal=document.getElementById('notifications-modal'); if(!modal)return;
+            renderNotifications(); modal.style.display='flex'; pushModalState();
+        }
+        function closeNotifications(){const m=document.getElementById('notifications-modal');if(m)m.style.display='none';}
+        function renderNotifications(){
+            const req=document.getElementById('friend-requests-panel'), list=document.getElementById('notifications-list');
+            if(!req||!list)return;
+            const pending=incomingFriendRequests.filter(r=>!r.status||r.status==='pending');
+            req.innerHTML=pending.length?`<h4>Žiadosti o priateľstvo (${pending.length})</h4>`+pending.map(r=>`<div class="friend-request-box"><strong>👤 ${escapeHtml(r.name)}</strong><div style="color:var(--text-muted);font-size:.84rem;">${escapeHtml(r.gender==='female'?'Žena':'Muž')} · ${escapeHtml(r.age)} rokov</div><div class="friend-request-actions"><button class="btn btn-primary" onclick="resolveIncomingFriendRequest('${r.id}',true)">Potvrdiť</button><button class="btn btn-secondary" onclick="resolveIncomingFriendRequest('${r.id}',false)">Zrušiť</button></div></div>`).join(''):'';
+            list.innerHTML=fakebookNotifications.length?fakebookNotifications.map(n=>`<div class="notification-item ${n.read?'':'unread'}" onclick="openNotificationItem('${n.id}')"><div class="notification-icon">${n.type==='comment'?'💬':n.type==='mention'?'@':n.type==='friend'?'👥':'🔔'}</div><div style="flex:1"><strong>${escapeHtml(n.title)}</strong><div style="font-size:.88rem">${escapeHtml(n.body)}</div><div style="font-size:.75rem;color:var(--text-muted);margin-top:3px">${new Date(n.createdAt).toLocaleString('sk-SK')}</div></div>${n.read?'':'🔵'}</div>`).join(''):'<p style="color:var(--text-muted);text-align:center;padding:20px;">Zatiaľ tu nič nie je. Pokoj, aj Facebook občas mlčí.</p>';
+        }
+        function openNotificationItem(id){
+            const n=fakebookNotifications.find(x=>x.id===id);if(!n)return;n.read=true;
+            localStorage.setItem('fb_notifications',JSON.stringify(fakebookNotifications));updateNotificationUI();closeNotifications();
+            if(n.type==='friendReminder')openFriendsModal();else if(Number.isInteger(n.sIdx)&&Number.isInteger(n.pIdx)&&feedData[n.sIdx]?.posts?.[n.pIdx])openPost(n.sIdx,n.pIdx);
+        }
+        function markAllNotificationsRead(){fakebookNotifications.forEach(n=>n.read=true);localStorage.setItem('fb_notifications',JSON.stringify(fakebookNotifications));updateNotificationUI();renderNotifications();}
+        function createIncomingFriendRequest(){
+            if(!friendsList.length && Math.random()<0.5){} 
+            const name=getRandomNames(1)[0];
+            if(friendsList.some(f=>f.name.toLowerCase()===name.toLowerCase())||incomingFriendRequests.some(r=>r.name.toLowerCase()===name.toLowerCase()&&r.status==='pending'))return;
+            const age=Math.max(18,(parseInt(userAge)||25)+Math.floor(Math.random()*17)-8);
+            const female=FEMALE_NAMES.concat(FEMALE_NAMES_EN,FEMALE_NAMES_SR).some(n=>n.toLowerCase()===name.split(' ')[0].toLowerCase());
+            const req={id:'fr-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),name,gender:female?'female':'male',age,status:'pending',createdAt:Date.now()};
+            incomingFriendRequests.unshift(req);localStorage.setItem('fb_friend_requests',JSON.stringify(incomingFriendRequests));
+            addNotification('friend','Nová žiadosť o priateľstvo',`${name} si vás chce pridať medzi priateľov.`);
+            updateNotificationUI();
+        }
+        function resolveIncomingFriendRequest(id,accept){
+            const r=incomingFriendRequests.find(x=>x.id===id);if(!r||r.status!=='pending')return;
+            r.status=accept?'accepted':'declined';
+            if(accept){
+                const pers=ALL_PERSONALITIES[Math.floor(Math.random()*ALL_PERSONALITIES.length)];
+                friendsList.push({name:r.name,gender:r.gender,age:String(r.age),msgChances:{0:95,1:2.5,2:1.25,3:1.25},unansweredFollowupChance:.1,replyChances:{0:5,1:70,2:20,3:5,4:5},ghostChance:8,emojiStyle:'normal',personalities:[pers.id],grammar:generateRandomGrammar(),messageCountBehavior:generateRandomMsgCount(),romance:generateRandomRomance(),relationships:['comments'],favoriteTopics:[],customTopics:[],profileDescription:'',profilePhoto:'',isBlocked:false,unreadCount:0,dateAdded:Date.now(),contactLevel:'Poznáme sa'});
+                saveFriendsData();renderFriends();
+                addNotification('friend','Ste priatelia',`Vy a ${r.name} ste teraz priatelia.`);
+            }
+            localStorage.setItem('fb_friend_requests',JSON.stringify(incomingFriendRequests));updateNotificationUI();renderNotifications();
+        }
+        function saveFeedSort(value){feedSortMode=['newest','relevance','random'].includes(value)?value:'newest';localStorage.setItem('fb_feed_sort',feedSortMode);renderGrid();}
+        function setAssistantEnabled(enabled){assistantEnabled=!!enabled;localStorage.setItem('fb_assistant_enabled',assistantEnabled?'1':'0');renderAssistant();}
+        function maybeAddFriendReminder(){
+            if(friendsList.length>=3)return;
+            const last=Number(localStorage.getItem('fb_friend_reminder_at')||0);
+            if(Date.now()-last<24*60*60*1000)return;
+            localStorage.setItem('fb_friend_reminder_at',String(Date.now()));
+            addNotification('friendReminder','Rozšír si okruh priateľov',friendsList.length===0?'Zatiaľ nemáš žiadnych priateľov. Pridaj prvého a vytvor mu vlastný charakter.':'Máš zatiaľ len pár priateľov. Pridaj ďalších a vyplň im osobnosť a vlastnosti.');
+        }
+        function renderAssistant(){
+            const host=document.getElementById('assistant-card');if(!host)return;
+            const toggle=document.getElementById('assistant-enabled-toggle');if(toggle)toggle.checked=assistantEnabled;
+            if(!assistantEnabled){host.style.display='none';return;}
+            let title='Asistent Fakebooku',message='',action='openProfile()',label='Upraviť profil';
+            const profileComplete=['bio','city','work'].filter(k=>localStorage.getItem('fb_user_'+k)).length;
+            if(friendsList.length===0){message='Zatiaľ nemáš žiadnych priateľov. Pridaj prvého človeka, opíš jeho povahu a nastav mu vlastnosti – potom bude žiť vlastným životom.';action='openFriendsModal()';label='Pridať priateľa';}
+            else if(friendsList.length<3){message=`Máš ${friendsList.length} ${friendsList.length===1?'priateľa':'priateľov'}. Skús pridať ďalších a doplniť im charakter, záujmy a spôsob komunikácie.`;action='openFriendsModal()';label='Spravovať priateľov';}
+            else if(!profileComplete){message='Profil je zatiaľ trochu prázdny. Doplň o sebe pár informácií, aby pôsobil ako skutočný profil.';action='openProfile()';label='Doplniť profil';}
+            else if(!feedData.length){message='Tvoja časová os čaká na prvý príspevok. Vytvor článok alebo status a rozbehni Fakebook.';action='openCreateModal()';label='Vytvoriť príspevok';}
+            else {message='Skús otvoriť príspevok, reagovať na komentáre alebo vytvoriť status priateľa. Fakebook sa najviac rozbehne interakciami.';action='openCreateModal()';label='Pridať príspevok';}
+            lastAssistantHint=message;host.style.display='block';host.innerHTML=`<div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:1.6rem">🤖</div><div style="flex:1"><strong>${title}</strong><div style="font-size:.9rem;margin-top:3px">${message}</div><div class="assistant-actions"><button onclick="${action}">${label}</button><button onclick="dismissAssistantHint()">Neskôr</button></div></div></div>`;
+        }
+        function dismissAssistantHint(){const host=document.getElementById('assistant-card');if(host)host.style.display='none';}
+
+        function scanPostNotifications(post,sIdx,pIdx){
+            if(!post)return;
+            const own=!!(post.isOwnPost||post.isUserStatus||String(post.author_name||'').toLowerCase()===String(currentUsername).toLowerCase());
+            const articleText=[post.title||'',Array.isArray(post.content)?post.content.join(' '):(post.content||'')].join(' ');
+            const mentionPattern=new RegExp('(^|\\s)@?'+String(currentUsername).replace(/[.*+?^${}()|[\\]\\\\]/g,'\\$&')+'($|\\s|[,.!?])','i');
+            if(articleText&&mentionPattern.test(articleText))addNotification('mention','Spomenuli ťa v článku',`${post.author_name||'Niekto'} ťa spomenul/a v článku.`,{sIdx,pIdx});
+            const comments=Array.isArray(post.comments)?post.comments:[];
+            comments.forEach(c=>{
+                if(!c)return;
+                const who=String(c.username||'Niekto');
+                const txt=String(c.text||'');
+                if(own&&who!==currentUsername)addNotification('comment','Nový komentár',`${who} komentoval/a tvoj príspevok.`,{sIdx,pIdx});
+                if(txt.toLowerCase().includes('@'+String(currentUsername).toLowerCase()))addNotification('mention','Niekto ťa spomenul',`${who} ťa spomenul/a v komentári.`,{sIdx,pIdx});
+                (c.replies||[]).forEach(r=>{
+                    const rt=String(r.text||'');
+                    if(rt.toLowerCase().includes('@'+String(currentUsername).toLowerCase()))addNotification('mention','Niekto ťa spomenul',`${r.username||'Niekto'} ťa spomenul/a v odpovedi.`,{sIdx,pIdx});
+                    if(String(r.replyTo||'').toLowerCase()===String(currentUsername).toLowerCase())addNotification('comment','Odpoveď na tvoj komentár',`${r.username||'Niekto'} odpovedal/a na tvoj komentár.`,{sIdx,pIdx});
+                });
+            });
+        }
+
+        function beginRefreshGeneration(){
+            if(refreshInProgress)return;refreshInProgress=true;localStorage.removeItem('fb_random_feed_order');
+            const indicator=document.getElementById('pull-refresh-indicator');if(indicator){indicator.style.display='block';indicator.textContent='↻ Fakebook hľadá nové dianie…';}
+            const r=Math.random();refreshShareFriendName='';
+            if(r<.50){refreshGenerationMode='article';window.targetStatusFriend=null;}
+            else if(r<.60&&friendsList.length){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='status';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,type:'status'};}
+            else if(r<.90&&friendsList.length){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='share';refreshShareFriendName=f.name;window.targetStatusFriend=null;}
+            else if(friendsList.length){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='friendArticle';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,type:'clanok'};}
+            else {refreshGenerationMode='article';window.targetStatusFriend=null;}
+            if(Math.random()<.05)createIncomingFriendRequest();
+            if(!getSavedApiKey()){finishRefreshWithoutPost();return;}
+            document.getElementById('scenario-input').value='';
+            triggerGeneration().catch(err=>{console.warn('Refresh generation failed',err);finishRefreshWithoutPost(true);});
+        }
+        function finishRefreshWithoutPost(reload=false){
+            refreshInProgress=false;refreshGenerationMode=null;refreshShareFriendName='';
+            const indicator=document.getElementById('pull-refresh-indicator');if(indicator)indicator.style.display='none';
+            updateNotificationUI();renderAssistant();if(reload)setTimeout(()=>location.reload(),450);
+        }
+        function publishRefreshPosts(data){
+            if(!data?.posts?.length){finishRefreshWithoutPost();return;}
+            const ratios=[[800,450],[600,600],[600,750],[900,600],[750,500]];
+            data.posts.forEach(post=>{
+                const [w,h]=ratios[Math.floor(Math.random()*ratios.length)];
+                const prompt=post.image_prompt||'A candid realistic social media photo related to the post';
+                post.image_url=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true&seed=${Math.floor(Math.random()*1000000)}`;
+                post.image_prompt=prompt;post.createdAt=Date.now();
+                if(refreshGenerationMode==='share'){
+                    post.isFriendShare=true;post.sharedByFriend=refreshShareFriendName;
+                    post.sharedOpinion=`Toto som si musel/a pozrieť. Čo na to hovoríte?`;
+                    post.sharedAt=Date.now();post.likes=Math.floor(Math.random()*45)+4;
+                }
+            });
+            const timestamp=parseInt(localStorage.getItem('fb_global_time')||'0');
+            const slot={scenario:`Automatický príspevok: ${refreshGenerationMode}`,timestamp,posts:data.posts};
+            feedData.push(slot);
+            slot.posts.forEach((post,pIdx)=>{post.isOwnPost=refreshGenerationMode==='article';scanPostNotifications(post,feedData.length-1,pIdx);});
+            saveToLocalStorage();renderGrid();
+            if(refreshGenerationMode==='share')addNotification('activity','Priateľ zdieľal článok',`${refreshShareFriendName} zdieľal/a nový článok.`);
+            finishRefreshWithoutPost();
+        }
+        function setupPullToRefresh(){
+            let startY=0,startX=0,tracking=false;
+            document.addEventListener('touchstart',e=>{if(window.scrollY<=2&&!refreshInProgress&&e.touches.length===1){startY=e.touches[0].clientY;startX=e.touches[0].clientX;tracking=true;}},{passive:true});
+            document.addEventListener('touchmove',e=>{
+                if(!tracking||!e.touches.length)return;
+                const dy=e.touches[0].clientY-startY,dx=Math.abs(e.touches[0].clientX-startX);
+                if(dy>12&&dx<55&&window.scrollY<=2&&e.cancelable)e.preventDefault();
+            },{passive:false});
+            document.addEventListener('touchend',e=>{
+                if(!tracking)return;tracking=false;
+                const dy=e.changedTouches[0].clientY-startY,dx=Math.abs(e.changedTouches[0].clientX-startX);
+                if(dy>95&&dx<70&&window.scrollY<=2)beginRefreshGeneration();
+            },{passive:true});
         }
 
         function renderTopicsInProfile() {
@@ -2547,6 +2814,7 @@ function applyThemeAndFont() {
                 saveFriendsData();
                 input.value = ''; ageInput.value = '';
                 sortAndRenderFriends();
+                openFriendSettingsModal(friendsList.length-1);
             }
         }
 
@@ -3157,6 +3425,8 @@ function applyThemeAndFont() {
                 commonArea.innerHTML = names.length ? `<div class="profile-common-friends"><strong>${UI_TEXTS[appLanguage].commonFriendsTitle} (${names.length})</strong><div style="margin-top:7px;">${shown.map(n=>`<span style="display:inline-block;margin-right:8px;cursor:pointer;color:var(--fb-blue);font-weight:600;" onclick="openSelectedFriendProfile('${String(n).replace(/'/g,"\\'")}')">${escapeHtml(n)}</span>`).join('')}${names.length>3?`<span style="color:var(--fb-blue);font-weight:700;cursor:pointer;" onclick="showAllCommonFriends('${String(friendName).replace(/'/g,"\\'")}')">${UI_TEXTS[appLanguage].commonFriendsMore.replace('{n}',names.length-3)}</span>`:''}</div></div>` : '';
             }
 
+            const profileName=document.getElementById('profile-display-name');
+            if(profileName){let summary=document.getElementById('profile-summary-line');if(!summary){summary=document.createElement('div');summary.id='profile-summary-line';summary.className='profile-summary-line';profileName.insertAdjacentElement('afterend',summary);}summary.textContent=`${friendsList.length} priateľov · ${feedData.reduce((n,x)=>n+(x.posts?.length||0),0)} príspevkov`;}
             const titleSection = document.getElementById('profile-section-title');
             if(titleSection) titleSection.innerText = `${UI_TEXTS[appLanguage].profileActivityOf} ${friendName}`;
             const container = document.getElementById('shared-posts-container');
@@ -3198,6 +3468,14 @@ function applyThemeAndFont() {
             }
         }
 
+
+        function renderMyProfileFriends(){
+            const host=document.getElementById('my-profile-friends-preview');if(!host)return;
+            const visible=friendsList.slice(0,12);
+            host.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;"><div><strong style="font-size:1.05rem;">Priatelia</strong><div style="font-size:.8rem;color:var(--text-muted)">${friendsList.length} priateľov</div></div><button class="btn btn-secondary" onclick="closeProfile();openFriendsModal()">Zobraziť všetkých</button></div>`+
+                (visible.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;">${visible.map(f=>`<div onclick="closeProfile();openSelectedFriendProfile('${String(f.name).replace(/'/g,"&#39;")}')" style="cursor:pointer;min-width:0;"><div class="avatar" style="width:100%;height:86px;border-radius:9px;background:${generateColor(f.name)};${f.profilePhoto?`background-image:url('${f.profilePhoto}');background-size:cover;background-position:center;`:''}">${f.profilePhoto?'':escapeHtml(f.name.charAt(0).toUpperCase())}</div><div style="font-size:.82rem;font-weight:700;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(f.name)}</div></div>`).join('')}</div>`:'<div style="padding:18px;text-align:center;color:var(--text-muted)">Zatiaľ nemáš priateľov. Pridaj prvých ľudí a vytvor si vlastnú sociálnu sieť.</div>');
+        }
+
         function openProfile() {
             profileReturnMode = null; profileReturnFriendName = null; profileReturnChatFriendName = null;
             document.getElementById('user-profile-modal').style.display = 'flex';
@@ -3206,7 +3484,15 @@ function applyThemeAndFont() {
             document.getElementById('my-profile-settings-block').style.display = 'block';
             updateUserAvatarsUI();
             applyMyProfileMediaUI();
+            loadMyProfileDetails();
             renderTopicsInProfile();
+            renderMyProfileFriends();
+            const profileName=document.getElementById('profile-display-name');
+            if(profileName){
+                let summary=document.getElementById('profile-summary-line');
+                if(!summary){summary=document.createElement('div');summary.id='profile-summary-line';summary.className='profile-summary-line';profileName.insertAdjacentElement('afterend',summary);}
+                summary.textContent=`${friendsList.length} priateľov · ${feedData.reduce((n,x)=>n+(x.posts?.length||0),0)} príspevkov`;
+            }
             const titleSection = document.getElementById('profile-section-title');
             if(titleSection) titleSection.innerText = UI_TEXTS[appLanguage].myProfileTitle;
             const commonArea=document.getElementById('friend-profile-common-area'); if(commonArea) commonArea.innerHTML='';
@@ -3496,6 +3782,8 @@ function applyThemeAndFont() {
             document.getElementById('api-key-input').value = getSavedApiKey();
             updateLoginStatusUI();
             renderSlots();
+            const sortSel=document.getElementById('feed-sort-selector');if(sortSel)sortSel.value=feedSortMode;
+            const assistantToggle=document.getElementById('assistant-enabled-toggle');if(assistantToggle)assistantToggle.checked=assistantEnabled;
         }
         function closeApiModal() { document.getElementById('api-modal').style.display = 'none'; }
 
@@ -4509,7 +4797,7 @@ function checkAndTriggerFriendRequestChance(commenterName, sIdx, pIdx) {
             saveFriendsData();
             let box = document.getElementById(`freq-${sIdx}-${pIdx}`);
             if(box) box.remove();
-            renderFriends();
+            renderFriends();updateNotificationUI();
             alert(UI_TEXTS[appLanguage].friendPermanentSuccess.replace("{name}", name));
         }
 
@@ -4699,6 +4987,10 @@ Return STRICT JSON: {"replies":[${uniqueNames.map(n=>`{"username":"${n}","text":
                         if(!rep||!rep.text)return;
                         appendToCommentThread(post,targetCommentId,{id:Math.random().toString(36).substr(2,9),username:idx===0?samePerson:uniqueNames[idx],text:String(rep.text),replyTo:idx===0?currentUsername:samePerson,replies:[]});
                     });
+                    parsed.replies.slice(0,uniqueNames.length).forEach(rep=>{
+                        if(rep&&String(rep.replyTo||'').toLowerCase()===String(currentUsername).toLowerCase())addNotification('comment','Odpoveď na tvoj komentár',`${rep.username||'Niekto'} ti odpovedal/a.`,{sIdx,pIdx});
+                        if(rep&&String(rep.text||'').toLowerCase().includes('@'+String(currentUsername).toLowerCase()))addNotification('mention','Niekto ťa spomenul',`${rep.username||'Niekto'} ťa spomenul/a.`,{sIdx,pIdx});
+                    });
                     saveToLocalStorage(); if(document.getElementById('view-article').style.display==='block')openPost(sIdx,pIdx);else renderGrid();
                     const last=parsed.replies[parsed.replies.length-1]; if(last&&last.username)checkAndTriggerFriendRequestChance(last.username,sIdx,pIdx);
                 }
@@ -4864,6 +5156,8 @@ Article content: ${Array.isArray(post.content) ? post.content.join(' ') : (post.
             const found=findCommentById(post.comments||[],id); if(!found)return;
             const root=found.root||found.comment;
             appendToCommentThread(post,id,{id:Math.random().toString(36).substr(2,9),username:currentUsername,text:text,replyTo:replyToName,parentCommentId:root.id,replies:[],timestamp:Date.now()});
+            if(String(text).toLowerCase().includes('@'+String(currentUsername).toLowerCase()))addNotification('mention','Niekto ťa spomenul',`${replyToName} ťa spomenul/a v odpovedi.`,{sIdx,pIdx});
+            if(String(replyToName).toLowerCase()===String(currentUsername).toLowerCase())addNotification('comment','Odpoveď na tvoj komentár',`${post.author_name||'Niekto'} odpovedal/a na tvoj komentár.`,{sIdx,pIdx});
             input.value=''; saveToLocalStorage();
             if(document.getElementById('view-article').style.display==='block')openPost(sIdx,pIdx);else renderGrid();
             triggerUserCommentReactions(sIdx,pIdx,text,id,replyToName);
@@ -4926,6 +5220,9 @@ async function addManualComment(sIdx, pIdx) {
             
             let newCommentId = Math.random().toString(36).substr(2, 9);
             post.comments.push({ id: newCommentId, username: currentUsername, text: text, replies: [], timestamp: Date.now() });
+            const ownerName=String(post.author_name||'').toLowerCase();
+            if(ownerName===String(currentUsername).toLowerCase()||post.isOwnPost)addNotification('comment','Nový komentár',`${currentUsername} pridal/a komentár k tvojmu príspevku.`,{sIdx,pIdx});
+            if(text.toLowerCase().includes('@'+currentUsername.toLowerCase()))addNotification('mention','Niekto ťa spomenul',`${currentUsername} bol/a spomenutý/á v komentári.`,{sIdx,pIdx});
             input.value = ''; saveToLocalStorage(); renderGrid();
             if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
             triggerUserCommentReactions(sIdx, pIdx, text, newCommentId, null);
@@ -4934,23 +5231,30 @@ async function addManualComment(sIdx, pIdx) {
         function renderGrid() {
             const container = document.getElementById('feed-container');
             if(!container) return; container.innerHTML = '';
-            if(!feedData || feedData.length === 0) return;
+            if(!feedData || feedData.length === 0) { renderAssistant(); return; }
             const currentGlobalTime = parseInt(localStorage.getItem('fb_global_time') || '0');
-
-            feedData.slice().reverse().forEach((slot, revIdx) => {
-                const sIdx = feedData.length - 1 - revIdx;
-                if (!slot || !slot.posts || !Array.isArray(slot.posts)) return;
+            const entries=[];
+            feedData.forEach((slot,sIdx)=>{
+                if(!slot||!Array.isArray(slot.posts))return;
+                slot.posts.forEach((post,pIdx)=>{if(post)entries.push({slot,sIdx,post,pIdx});});
+            });
+            if(feedSortMode==='relevance') entries.sort((a,b)=>(countComments(b.post.comments)*3+(Number(b.post.likes)||0))-(countComments(a.post.comments)*3+(Number(a.post.likes)||0)));
+            else if(feedSortMode==='random') {
+                const keys=entries.map(e=>`${e.sIdx}:${e.pIdx}`);
+                let order=[];try{order=JSON.parse(localStorage.getItem('fb_random_feed_order')||'[]')}catch(e){}
+                if(order.length!==keys.length||keys.some(k=>!order.includes(k))){order=keys.slice().sort(()=>Math.random()-.5);localStorage.setItem('fb_random_feed_order',JSON.stringify(order));}
+                entries.sort((a,b)=>order.indexOf(`${a.sIdx}:${a.pIdx}`)-order.indexOf(`${b.sIdx}:${b.pIdx}`));
+            }
+            else entries.sort((a,b)=>(Number(b.post.createdAt||b.slot.timestamp)||0)-(Number(a.post.createdAt||a.slot.timestamp)||0));
+            entries.forEach(({slot,sIdx,post,pIdx})=>{
                 let ageMinutes = Math.max(0, currentGlobalTime - (slot.timestamp || 0));
                 const ageStr = formatAge(ageMinutes);
-                
-                slot.posts.forEach((post, pIdx) => {
-                    if(!post) return;
-                    const card = document.createElement('div');
-                    card.className = 'post-card';
-                    const avColor = generateColor(post.author_name || "Neznámy");
-                    const fullText = Array.isArray(post.content) ? post.content.join(" ") : (post.content || "");
-                    
-                    let visibleText = fullText; let hiddenText = ""; let marginHtml = "";
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                const avColor = generateColor(post.author_name || "Neznámy");
+                const fullText = Array.isArray(post.content) ? post.content.join(" ") : (post.content || "");
+
+            let visibleText = fullText; let hiddenText = ""; let marginHtml = "";
                     const uId = `txt-${sIdx}-${pIdx}`;
                     
                     if(fullText.length > 150) {
@@ -5013,8 +5317,8 @@ async function addManualComment(sIdx, pIdx) {
                         </div>
                     `;
                     container.appendChild(card);
-                });
             });
+            renderAssistant();
         }
 
         function showGrid() { document.getElementById('view-article').style.display = 'none'; document.getElementById('view-grid').style.display = 'flex'; if(profileReturnFriendName){ const n=profileReturnFriendName; profileReturnFriendName=null; setTimeout(()=>openSelectedFriendProfile(n),0); return; } renderGrid(); }
@@ -5097,7 +5401,10 @@ async function addManualComment(sIdx, pIdx) {
         async function triggerGeneration() {
             const apiKey = getSavedApiKey();
             let promptInput = document.getElementById('scenario-input').value.trim();
-            const countToGenerate = parseInt(document.getElementById('generation-count').value) || 1;
+            if(refreshGenerationMode==='article')promptInput='Create a completely random, original news article for Fakebook. Invent a fresh topic, publisher, story, and image concept.';
+            if(refreshGenerationMode==='share')promptInput='Create a completely new, random and engaging news article for a friend to share. Invent the topic, angle and details.';
+            if(refreshGenerationMode==='friendArticle')promptInput='';
+            const countToGenerate = refreshInProgress ? 1 : (parseInt(document.getElementById('generation-count').value) || 1);
             let createTopicSel = document.getElementById('create-topic-selector');
             let selectedCreateTopic = createTopicSel ? createTopicSel.value : 'random';
 
@@ -5250,12 +5557,14 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 currentGlobalTime += addedMinutes;
 
                 pendingGenerationData = { scenario: promptInput, timestamp: currentGlobalTime, posts: parsedData.posts, realism: realismValue, postLength: statusLengthValue, requestedCommentCount };
+                if(refreshInProgress){publishRefreshPosts(pendingGenerationData);pendingGenerationData=null;window.targetStatusFriend=null;return;}
                 openReviewModal();
             } catch (error) {
                 const now = new Date().toLocaleTimeString();
                 const msg = error?.message || String(error);
                 errorDisplay.innerText = `GEMINI DIAGNOSTIKA\n\nČas: ${now}\nModel: ${MODEL_NAME}\nEndpoint: ${API_URL}${MODEL_NAME}:generateContent\n\n${msg}\n\nOchrana kvóty: Gemini volania sú serializované a medzi požiadavkami je minimálne 4 s. Vytváranie príspevku používa 1 API požiadavku a kratší kontext/výstup. Bežné generovanie používa Gemini 3.5 Flash-Lite; online režim používa Gemini 3.5 Flash-Lite na plánovanie/overenie a viac externých webových vyhľadávačov. Pri dočasnej chybe 503/500/504 sa vykoná nanajvýš 1 opakovanie po 7 s. HTTP 429 sa automaticky neopakuje, aby aplikácia kvótu ďalej nemíňala.\n\nHTTP 429 = limit/quota; 402 = vyčerpaný kredit; 401/403 = kľúč/oprávnenia; 404 = model/endpoint; 500/503/504 = server alebo príliš veľká požiadavka.`;
-                errorDisplay.style.display = 'block'; spinner.style.display = 'none';
+                if(refreshInProgress){console.warn('Fakebook refresh generation failed:',error);finishRefreshWithoutPost(true);}
+                else {errorDisplay.style.display = 'block'; spinner.style.display = 'none';}
                 console.error('Gemini diagnostic:', error);
             } finally {
                 if (publishBtn) { publishBtn.disabled = false; publishBtn.style.opacity = ''; }
@@ -5417,6 +5726,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             pendingGenerationData.posts.forEach((post, i) => {
                 const creationTimestamp = Date.now();
                 post.createdAt = post.createdAt || creationTimestamp;
+                post.isOwnPost = !post.isFriendPost;
                 let prompt = document.getElementById(`review-prompt-${i}`).value.trim();
                 let wrapper = document.getElementById(`resize-wrapper-${i}`);
                 let w = Math.max(200, Math.round(wrapper.offsetWidth));
