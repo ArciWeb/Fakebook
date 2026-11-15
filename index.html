@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fakebook v. 4.13</title>
+    <title>Fakebook v. 4.14</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1877f2">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1547,7 +1547,15 @@ async function geminiFetch(request) {
             "Skrutka", "Motyka", "Podlaha", "Chobot", "Kladivo", "Tehla", "Kábel", "Lopata", "Žiarovka", "Dvere", 
             "Okno", "Kefa", "Metla", "Hrniec", "Pokrievka", "Zemiak", "Cibuľa", "Mrkva", "Stôl", "Stolička", 
             "Zásuvka", "Vankúš", "Perina", "Koberec", "Zrkadlo", "Pneumatika", "Výfuk", "Volant", "Sedadlo", 
-            "Kapor", "Pstruh", "Slanina", "Klobása", "Párok", "Horčica", "Kečup", "Chlieb", "Rožok", "Múka", "Bartoš", "Kováčik", "Šimko", "Polák", "Urban", "Blaško", "Krištof", "Valent", "Švec", "Kováč", "Novotný", "Bielik", "Hruška", "Kučera", "Mlynár", "Dúbravský", "Ondruš", "Mráz", "Tóth", "Baláž", "Varga", "Molnár", "Bartoň", "Konečný", "Štefánik", "Gregor", "Hudec", "Benková", "Kovář", "Černý", "Kováčová", "Lukáč", "Mikuš", "Pavlík", "Kamenický", "Šoltés", "Kováčiková", "Rybár", "Krajčír", "Brezina", "Škultéty", "Kováčik", "Macko", "Šimun", "Šarkan", "Blažek", "Kováčiková", "Blažej", "Kollár", "Veverka", "Švecík"
+            "Kapor", "Pstruh", "Slanina", "Klobása", "Párok", "Horčica", "Kečup", "Chlieb", "Rožok", "Múka", "Bartoš", "Kováčik", "Šimko", "Polák", "Urban", "Blaško", "Krištof", "Valent", "Švec", "Kováč", "Novotný", "Bielik", "Hruška", "Kučera", "Mlynár", "Dúbravský", "Ondruš", "Mráz", "Tóth", "Baláž", "Varga", "Molnár", "Bartoň", "Konečný", "Štefánik", "Gregor", "Hudec", "Benková", "Kovář", "Černý", "Kováčová", "Lukáč", "Mikuš", "Pavlík", "Kamenický", "Šoltés", "Kováčiková", "Rybár", "Krajčír", "Brezina", "Škultéty", "Kováčik", "Macko", "Šimun", "Šarkan", "Blažek", "Kováčiková", "Blažej", "Kollár", "Veverka", "Švecík",
+            "Abrahám", "Adamčík", "Andráš", "Antal", "Babjak", "Bajza", "Balog", "Bárta", "Barto", "Beblavý",
+            "Bednár", "Belák", "Benčík", "Benda", "Berec", "Beňo", "Bílek", "Blažík", "Bodnár", "Boháč",
+            "Bolek", "Borbely", "Borovský", "Borský", "Branický", "Brázda", "Brezovský", "Brož", "Bubeník", "Budaj",
+            "Bukovský", "Cibula", "Cíger", "Cintula", "Čapek", "Černák", "Červený", "Čižmár", "Danko", "Demeter",
+            "Dobiáš", "Dohnal", "Dráb", "Drahoš", "Duda", "Ďurica", "Eliáš", "Farkaš", "Ferenc", "Fiala",
+            "Filip", "Filo", "Foltýn", "Fúsek", "Gašpar", "Gajdoš", "Gál", "Gallo", "Gonda", "Grego",
+            "Hajný", "Hanák", "Harvan", "Havran", "Hlinka", "Hoch", "Holub", "Horváth", "Hrušovský", "Jančík",
+            "Jaroš", "Javorský", "Jendrišák", "Juriš", "Kalmár", "Kamenár", "Karásek", "Karas", "Kavický", "Kelemen", "Križan", "Krupka", "Kubala", "Kučík", "Lacko", "Lipták", "Macek", "Majer", "Malík", "Matuška"
         ];
 
         // POOLY PRE ANGLICKÝ A SRBSKÝ JAZYK
@@ -2031,18 +2039,23 @@ async function geminiFetch(request) {
         }
 
         function generateCommentersContextForPrompt(count) {
-            let names = getRandomNames(count);
-            return names.map(name => {
-                if (Math.random() < 0.5) {
-                    let randomPersObj = ALL_PERSONALITIES[Math.floor(Math.random() * ALL_PERSONALITIES.length)];
-                    let p = randomPersObj.en;
-                    let g = ['Gramaticky správne', 'Klasický Slovák', 'Debil'][Math.floor(Math.random()*3)];
-                    let e = ['normal', 'manual', 'none'][Math.floor(Math.random()*3)];
-                    return `${name} (Profile/Personality: ${p}, Grammar: ${g}, Emojis: ${e})`;
-                } else {
-                    return `${name} (Regular netizen)`;
+            const catalog=typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG:[];
+            const result=[],used=new Set();
+            const pick=arr=>{const choices=(arr||[]).filter(x=>x&&x.name&&!used.has(String(x.name).toLowerCase()));if(!choices.length)return null;const x=choices[Math.floor(Math.random()*choices.length)];used.add(String(x.name).toLowerCase());return x;};
+            for(let i=0;i<count;i++){
+                const roll=Math.random()*100;
+                if(roll<10 && friendsList.length){
+                    const f=pick(friendsList);
+                    if(f){result.push(`${f.name} (EXISTING FRIEND; custom description has highest priority: ${f.profileDescription||'none'}; personality ${getPersonalityRule(f.personalities)}; grammar ${getGrammarRule(f.grammar)}; emojis ${getEmojiPromptRule(f.emojiStyle)})`);continue;}
                 }
-            }).join(', ');
+                if(roll<40 && catalog.length){
+                    const p=pick(catalog.filter(person=>!friendsList.some(f=>String(f.name||'').toLowerCase()===String(person.name||'').toLowerCase())));
+                    if(p){result.push(`${p.name} (PERSON THEY MAY KNOW; description: ${p.description})`);continue;}
+                }
+                const name=getRandomNames(1)[0]||`Používateľ${i+1}`;
+                result.push(`${name} (NEW RANDOM PERSON; invent a distinct ordinary social-media voice)`);
+            }
+            return result.join('\n');
         }
 
         function getRandomFromWeights(weights) {
@@ -2899,6 +2912,7 @@ Woody|male|35|Šerif hračiek, ktorý sa snaží udržať partiu pokope, hoci v�
 Dory|female|20|Ryba s krátkou pamäťou, ktorá sa ťa päťkrát opýta na meno a zakaždým sa úprimne poteší, že ťa spoznala.
 Pán Prsteňov|male|100|Legendárny fantasy svet v jednej osobe, ktorá každú diskusiu zmení na otázku, kto má vlastne právo nosiť šperk.
 `.trim().split('\n').map(line=>{const [name,gender,age,...description]=line.split('|');return {name:name.trim(),gender:(gender||'male').trim(),age:String(age||30).trim(),description:description.join('|').replace(/\|+$/,'').trim()};}).filter(p=>p.name&&p.description).filter((p,i,a)=>a.findIndex(x=>x.name.toLowerCase()===p.name.toLowerCase())===i);
+        SUGGESTED_PEOPLE_CATALOG.push(...[{"name": "Adele", "gender": "female", "age": "38", "description": "Speváčka, ktorá vie z rozchodu urobiť hudobnú udalosť a z obyčajnej vety refrén."}, {"name": "Billie Eilish", "gender": "female", "age": "25", "description": "Speváčka s osobitým zvukom a štýlom, ktorý si ide vlastnou cestou."}, {"name": "Dua Lipa", "gender": "female", "age": "31", "description": "Popová speváčka, ktorá dokáže premeniť tanečný beat na globálny hit."}, {"name": "Bruno Mars", "gender": "male", "age": "41", "description": "Showman, ktorý sa na pódiu pohybuje, akoby sa narodil uprostred funkového koncertu."}, {"name": "The Weeknd", "gender": "male", "age": "36", "description": "Spevák s temnou popovou estetikou a hlasom, ktorý znie ako nočná jazda mestom."}, {"name": "Post Malone", "gender": "male", "age": "31", "description": "Spevák a raper, ktorý mieša žánre a pôsobí, akoby sa kamarátil s každým hudobným štýlom."}, {"name": "Harry Styles", "gender": "male", "age": "32", "description": "Spevák a herec s výrazným módnym vkusom a uvoľneným pódiovým prejavom."}, {"name": "Miley Cyrus", "gender": "female", "age": "34", "description": "Speváčka, ktorá sa nebojí meniť zvuk, imidž ani vlastné pravidlá."}, {"name": "Ariana Grande", "gender": "female", "age": "33", "description": "Speváčka s výrazným hlasom, precíznymi vokálmi a popovou citlivosťou."}, {"name": "Katy Perry", "gender": "female", "age": "42", "description": "Popová speváčka, ktorá má rada farebné nápady, veľké refrény a hravé vystupovanie."}, {"name": "Jennifer Lopez", "gender": "female", "age": "57", "description": "Speváčka, tanečnica a herečka, ktorá berie pracovné tempo ako športovú disciplínu."}, {"name": "Dolly Parton", "gender": "female", "age": "81", "description": "Country legenda, skladateľka a rozprávačka s humorom, ktorý odzbrojí aj kritikov."}, {"name": "Elton John", "gender": "male", "age": "79", "description": "Hudobná legenda s klavírom, výraznými okuliarmi a zbierkou nezabudnuteľných melódií."}, {"name": "Kurt Cobain", "gender": "male", "age": "27", "description": "Grungeová ikona, ktorej surové piesne zachytili náladu celej generácie."}, {"name": "Slash", "gender": "male", "age": "61", "description": "Gitarista s cylindrom a riffmi, ktoré spoznáš skôr, než začne refrén."}, {"name": "Lenny Kravitz", "gender": "male", "age": "62", "description": "Hudobník, ktorý mieša rock, soul a retro štýl s prirodzenou ľahkosťou."}, {"name": "Mick Jagger", "gender": "male", "age": "83", "description": "Frontman, ktorý aj po desaťročiach dokazuje, že rock nemá dôchodkový vek."}, {"name": "Paul McCartney", "gender": "male", "age": "84", "description": "Skladateľ a hudobník, ktorého melódie poznajú celé generácie."}, {"name": "Ringo Starr", "gender": "male", "age": "86", "description": "Bubeník s typickým úsmevom, ktorý zostal súčasťou hudobnej histórie."}, {"name": "Steven Tyler", "gender": "male", "age": "78", "description": "Rockový spevák s nezameniteľným hlasom a energiou, ktorá ignoruje kalendár."}, {"name": "Axl Rose", "gender": "male", "age": "64", "description": "Frontman s dramatickým hlasom a rockovou povahou, ktorá nikdy nebola nudná."}, {"name": "Ryan Gosling", "gender": "male", "age": "46", "description": "Herec, ktorý dokáže zahrať romantického hrdinu aj absurdne komickú postavu."}, {"name": "Jennifer Lawrence", "gender": "female", "age": "36", "description": "Herečka s prirodzeným humorom a schopnosťou odľahčiť aj formálny rozhovor."}, {"name": "Eddie Murphy", "gender": "male", "age": "65", "description": "Komik a herec známy rýchlymi dialógmi, imitáciami a komediálnou energiou."}, {"name": "Ben Stiller", "gender": "male", "age": "61", "description": "Herec a režisér, ktorý má cit pre trápne situácie a sebairóniu."}, {"name": "Melissa McCarthy", "gender": "female", "age": "56", "description": "Herečka s fyzickým komediálnym talentom a energiou, ktorá zaplní celú scénu."}, {"name": "Chris Rock", "gender": "male", "age": "62", "description": "Stand-up komik, ktorý rád rozoberá spoločenské paradoxy priamo a bez obalu."}, {"name": "Oprah Winfrey", "gender": "female", "age": "73", "description": "Moderátorka a producentka s darom viesť osobné rozhovory pred miliónmi divákov."}, {"name": "Martha Stewart", "gender": "female", "age": "85", "description": "Ikona domácnosti, varenia a dekorovania, ktorá dokáže zorganizovať aj chaos v zásuvke."}, {"name": "Bear Grylls", "gender": "male", "age": "52", "description": "Dobrodruh, ktorý by zrejme dokázal prežiť aj víkend v nákupnom centre."}, {"name": "PewDiePie", "gender": "male", "age": "37", "description": "Internetový tvorca, ktorý sa stal jednou z najznámejších tvárí herného YouTube."}, {"name": "Khaby Lame", "gender": "male", "age": "26", "description": "Tvorca krátkych videí, ktorý dokazuje, že gesto niekedy vysvetlí viac než návod."}, {"name": "Kim Kardashian", "gender": "female", "age": "46", "description": "Mediálna osobnosť a podnikateľka, ktorá premenila osobnú značku na globálny biznis."}, {"name": "Kylie Jenner", "gender": "female", "age": "29", "description": "Podnikateľka a mediálna osobnosť, ktorá vyrástla v centre reality televízie."}, {"name": "Paris Hilton", "gender": "female", "age": "46", "description": "Mediálna osobnosť, ktorá z ikonickej frázy a výrazného štýlu vytvorila značku."}, {"name": "Gigi Hadid", "gender": "female", "age": "31", "description": "Modelka známa z medzinárodných módnych kampaní a prehliadok."}, {"name": "Kendall Jenner", "gender": "female", "age": "31", "description": "Modelka, ktorá sa pohybuje medzi módnymi prehliadkami a televíznou popularitou."}, {"name": "Naomi Campbell", "gender": "female", "age": "56", "description": "Supermodelka, ktorá patrí medzi najvýraznejšie tváre svetovej módy."}, {"name": "Cindy Crawford", "gender": "female", "age": "60", "description": "Modelka a podnikateľka, ktorej kariéra definovala éru supermodeliek."}, {"name": "Jude Bellingham", "gender": "male", "age": "23", "description": "Mladý stredopoliar s výraznou osobnosťou a schopnosťou rozhodovať veľké zápasy."}, {"name": "Marcus Rashford", "gender": "male", "age": "29", "description": "Futbalista známy rýchlosťou, zakončením a verejnou podporou detí v núdzi."}, {"name": "Ronaldinho", "gender": "male", "age": "46", "description": "Futbalista, ktorého úsmev a technika pripomínali, že hra má byť predovšetkým zábava."}, {"name": "Pelé", "gender": "male", "age": "82", "description": "Futbalová legenda, ktorej meno patrí k najväčším príbehom svetového športu."}, {"name": "Diego Maradona", "gender": "male", "age": "61", "description": "Futbalový génius a kontroverzná osobnosť, ktorej príbeh presiahol samotný šport."}, {"name": "Maria Sharapova", "gender": "female", "age": "39", "description": "Bývalá tenistka a podnikateľka známa súťaživosťou a disciplínou."}, {"name": "Stephen Curry", "gender": "male", "age": "38", "description": "Basketbalista, ktorý zmenil spôsob, akým tímy premýšľajú o trojkových streľbách."}, {"name": "Shaquille O'Neal", "gender": "male", "age": "54", "description": "Basketbalový velikán, ktorý spája športovú autoritu s veľkým komediálnym talentom."}, {"name": "Usain Bolt", "gender": "male", "age": "40", "description": "Šprintér, ktorý premenil rýchlosť na športovú šou a svetové rekordy."}, {"name": "Michael Phelps", "gender": "male", "age": "41", "description": "Plavec s rekordnou zbierkou olympijských medailí a výnimočnou disciplínou."}, {"name": "Lewis Hamilton", "gender": "male", "age": "41", "description": "Pilot Formuly 1, ktorý spája rýchlosť, módu a podporu rozmanitosti."}, {"name": "Max Verstappen", "gender": "male", "age": "29", "description": "Pretekár s agresívnym tempom a presnosťou, ktorá často necháva súperov za sebou."}, {"name": "Fernando Alonso", "gender": "male", "age": "45", "description": "Skúsený pilot, ktorý dokazuje, že pretekárska vášeň nemá dátum spotreby."}, {"name": "Valentino Rossi", "gender": "male", "age": "47", "description": "Motocyklová legenda s prezývkou The Doctor a obrovskou fanúšikovskou základňou."}, {"name": "Conor McGregor", "gender": "male", "age": "38", "description": "MMA zápasník známy sebavedomím, mediálnymi výstupmi a výraznou osobnosťou."}, {"name": "Muhammad Ali", "gender": "male", "age": "74", "description": "Boxerská ikona, ktorá spájala športový talent s odvahou a spoločenským hlasom."}, {"name": "Bruce Willis", "gender": "male", "age": "71", "description": "Herec známy akčnými rolami a suchým humorom filmových hrdinov."}, {"name": "Vin Diesel", "gender": "male", "age": "59", "description": "Herec spojený s akčnými filmami, autami a filmovou predstavou rodiny."}, {"name": "Gal Gadot", "gender": "female", "age": "41", "description": "Herečka známa akčnými rolami a stvárnením komiksovej hrdinky."}, {"name": "Timothée Chalamet", "gender": "male", "age": "31", "description": "Herec známy výraznými dramatickými rolami a osobitým módnym štýlom."}, {"name": "Florence Pugh", "gender": "female", "age": "31", "description": "Herečka, ktorá si získala pozornosť intenzívnymi a rôznorodými rolami."}, {"name": "Pedro Pascal", "gender": "male", "age": "51", "description": "Herec, ktorého sympatický prejav a výrazné seriálové postavy si získali internet."}, {"name": "Cillian Murphy", "gender": "male", "age": "50", "description": "Herec známy intenzívnymi rolami a sústredeným, minimalistickým prejavom."}, {"name": "Margot Robbie", "gender": "female", "age": "36", "description": "Herečka a producentka, ktorá dokáže spojiť komédiu, drámu aj veľké filmové projekty."}, {"name": "Emma Stone", "gender": "female", "age": "38", "description": "Herečka s komediálnym načasovaním a citom pre netradičné filmové postavy."}, {"name": "Anne Hathaway", "gender": "female", "age": "44", "description": "Herečka, ktorá sa pohybuje od romantických komédií po veľké dramatické úlohy."}, {"name": "Natalie Portman", "gender": "female", "age": "45", "description": "Herečka a absolventka akademického štúdia, ktorá spája film s intelektuálnymi témami."}, {"name": "Daniel Radcliffe", "gender": "male", "age": "37", "description": "Herec, ktorý sa po čarodejníckej ságe rád púšťa do nezvyčajných rolí."}, {"name": "Emma Watson", "gender": "female", "age": "36", "description": "Herečka a aktivistka, ktorá sa venuje aj témam vzdelávania a rovnosti."}, {"name": "Rupert Grint", "gender": "male", "age": "38", "description": "Herec známy fantasy filmovou sériou a nenápadným britským humorom."}, {"name": "Millie Bobby Brown", "gender": "female", "age": "22", "description": "Herečka a podnikateľka, ktorá sa preslávila už v mladom veku."}, {"name": "Pedro Almodóvar", "gender": "male", "age": "77", "description": "Filmový režisér s osobitým vizuálnym štýlom a citom pre komplikované vzťahy."}, {"name": "Quentin Tarantino", "gender": "male", "age": "63", "description": "Režisér, ktorý miluje filmové odkazy, dlhé dialógy a nečakané dejové zvraty."}, {"name": "Steven Spielberg", "gender": "male", "age": "80", "description": "Režisér, ktorý dokáže z obyčajného príbehu vytvoriť filmovú udalosť."}, {"name": "Christopher Nolan", "gender": "male", "age": "56", "description": "Režisér, ktorý rád skladá čas, pamäť a realitu do filmových hlavolamov."}, {"name": "Martin Scorsese", "gender": "male", "age": "84", "description": "Režisér známy intenzívnymi príbehmi, výraznými postavami a filmovou vášňou."}, {"name": "Greta Gerwig", "gender": "female", "age": "43", "description": "Režisérka a scenáristka, ktorá prináša osobitý pohľad na dospievanie a identitu."}, {"name": "James Cameron", "gender": "male", "age": "72", "description": "Režisér, ktorý rád posúva filmové technológie až na hranice možností."}, {"name": "George Lucas", "gender": "male", "age": "82", "description": "Tvorca vesmírnej ságy, ktorá zmenila modernú filmovú kultúru."}, {"name": "Stan Lee", "gender": "male", "age": "95", "description": "Komiksový tvorca, ktorý pomohol vytvoriť množstvo ikonických superhrdinov."}, {"name": "J.K. Rowling", "gender": "female", "age": "61", "description": "Spisovateľka fantasy sveta, ktorý oslovil čitateľov naprieč generáciami."}, {"name": "Stephen King", "gender": "male", "age": "79", "description": "Autor hororov a napätia, ktorý dokáže urobiť strašidelným aj obyčajný hotel."}, {"name": "George R.R. Martin", "gender": "male", "age": "78", "description": "Autor fantasy ságy plnej rodov, intríg a postáv, ktoré by potrebovali rodinnú terapiu."}, {"name": "Dan Brown", "gender": "male", "age": "62", "description": "Autor thrillerov, v ktorých sa každá historická pamiatka mení na hádanku."}, {"name": "Margaret Atwood", "gender": "female", "age": "87", "description": "Spisovateľka, ktorá skúma moc, spoločnosť a možné budúcnosti."}, {"name": "Neil Gaiman", "gender": "male", "age": "66", "description": "Autor fantastických príbehov, ktoré prepájajú mytológiu s moderným svetom."}, {"name": "Steve Jobs", "gender": "male", "age": "61", "description": "Spoluzakladateľ Applu, ktorého dôraz na dizajn zmenil spotrebnú elektroniku."}, {"name": "Jeff Bezos", "gender": "male", "age": "62", "description": "Zakladateľ Amazonu, ktorý z internetového obchodu vybudoval logistické impérium."}, {"name": "Warren Buffett", "gender": "male", "age": "96", "description": "Investor známy trpezlivým prístupom, jednoduchými radami a dlhodobým horizontom."}, {"name": "Richard Branson", "gender": "male", "age": "76", "description": "Podnikateľ a dobrodruh, ktorý rád mení biznis na veľké dobrodružstvo."}, {"name": "Tim Cook", "gender": "male", "age": "66", "description": "Šéf Applu, ktorý kladie dôraz na ekosystém produktov, súkromie a dodávateľské reťazce."}, {"name": "Satya Nadella", "gender": "male", "age": "59", "description": "Šéf Microsoftu, ktorý presadzuje cloudové služby a umelú inteligenciu."}, {"name": "Jensen Huang", "gender": "male", "age": "63", "description": "Šéf Nvidie, ktorého kožená bunda sa stala takmer súčasťou technologickej identity firmy."}, {"name": "Sam Altman", "gender": "male", "age": "41", "description": "Technologický podnikateľ, ktorý sa stal jednou z najznámejších tvárí súčasnej AI debaty."}, {"name": "Greta Thunberg", "gender": "female", "age": "23", "description": "Klimatická aktivistka, ktorá sa preslávila priamymi výzvami svetovým lídrom."}, {"name": "Malala Yousafzai", "gender": "female", "age": "29", "description": "Aktivistka za vzdelávanie dievčat a laureátka Nobelovej ceny za mier."}, {"name": "Michelle Obama", "gender": "female", "age": "63", "description": "Autorka a bývalá prvá dáma, ktorá sa venuje vzdelávaniu, zdraviu a podpore mladých ľudí."}, {"name": "Pápež Lev XIV.", "gender": "male", "age": "71", "description": "Hlava katolíckej cirkvi, ktorej verejné vystupovanie sa sústreďuje na vieru a diplomaciu."}, {"name": "Dalajláma", "gender": "male", "age": "91", "description": "Duchovný líder známy pokojom, humorom a dôrazom na súcit."}, {"name": "Pope Francis", "gender": "male", "age": "89", "description": "Pápež známy skromným štýlom a dôrazom na sociálne otázky."}, {"name": "Neil deGrasse Tyson", "gender": "male", "age": "68", "description": "Astrofyzik a popularizátor, ktorý rád vysvetľuje vesmír cez každodenné príklady."}, {"name": "Jane Goodall", "gender": "female", "age": "92", "description": "Primatologička a ochrankyňa prírody, ktorá zasvätila život výskumu šimpanzov."}, {"name": "David Copperfield", "gender": "male", "age": "70", "description": "Iluzionista, ktorý dokázal premeniť javisko na miesto, kde prestávajú platiť očakávania."}, {"name": "Penn Jillette", "gender": "male", "age": "71", "description": "Iluzionista a zabávač, ktorý rád spája mágiu s filozofickými debatami."}, {"name": "Terry Pratchett", "gender": "male", "age": "67", "description": "Autor fantasy humoru, ktorý vedel cez absurdný svet rozprávať o skutočnom."}, {"name": "Agatha Christie", "gender": "female", "age": "85", "description": "Kráľovná detektívok, ktorá dokázala skryť vinníka priamo pred očami čitateľa."}, {"name": "Pablo Picasso", "gender": "male", "age": "91", "description": "Maliar, ktorý pomohol zmeniť moderné umenie a pravidlá zobrazovania reality."}, {"name": "Vincent van Gogh", "gender": "male", "age": "37", "description": "Maliar s výrazným rukopisom a životným príbehom, ktorý dodnes fascinuje publikum."}, {"name": "Salvador Dalí", "gender": "male", "age": "84", "description": "Surrealistický umelec, ktorý považoval realitu za materiál na poriadne zvláštny sen."}, {"name": "Banksy", "gender": "male", "age": "52", "description": "Anonymný streetartový umelec, ktorého diela spájajú humor a spoločenskú kritiku."}, {"name": "Andy Warhol", "gender": "male", "age": "58", "description": "Umelec, ktorý premenil celebrity, reklamu a každodenné predmety na pop-art."}, {"name": "Frida Kahlo", "gender": "female", "age": "47", "description": "Maliarka, ktorá cez autoportréty rozprávala o identite, bolesti a sile."}, {"name": "Wolfgang Amadeus Mozart", "gender": "male", "age": "35", "description": "Skladateľ s mimoriadnym hudobným talentom, ktorého melódie prežili stáročia."}, {"name": "Ludwig van Beethoven", "gender": "male", "age": "56", "description": "Skladateľ, ktorý tvoril veľké diela aj napriek postupnej strate sluchu."}, {"name": "Frederic Chopin", "gender": "male", "age": "39", "description": "Skladateľ a klavirista, ktorého romantické skladby dodnes patria k pianovým klasikám."}, {"name": "Hans Zimmer", "gender": "male", "age": "69", "description": "Filmový skladateľ, ktorý dokáže z pár tónov vytvoriť pocit blížiacej sa katastrofy."}, {"name": "Ennio Morricone", "gender": "male", "age": "91", "description": "Skladateľ, ktorého filmová hudba sa stala rovnako ikonickou ako samotné filmy."}, {"name": "Danny Elfman", "gender": "male", "age": "73", "description": "Skladateľ s osobitým zvukom, ktorý často sprevádza fantastické a výstredné filmové svety."}, {"name": "Yo-Yo Ma", "gender": "male", "age": "71", "description": "Cellista, ktorý spája klasickú hudbu s rôznymi kultúrami a žánrami."}, {"name": "Megan Fox", "gender": "female", "age": "40", "description": "Herečka známa filmovými rolami a výraznou mediálnou prítomnosťou."}, {"name": "Sofia Vergara", "gender": "female", "age": "54", "description": "Herečka a podnikateľka s výrazným humorom a energickým prejavom."}, {"name": "Eva Longoria", "gender": "female", "age": "51", "description": "Herečka a režisérka, ktorá sa venuje aj podpore latinskoamerickej komunity."}, {"name": "Salma Hayek", "gender": "female", "age": "60", "description": "Herečka a producentka, ktorá pôsobí v medzinárodnom filmovom prostredí."}, {"name": "Penélope Cruz", "gender": "female", "age": "52", "description": "Španielska herečka známa spoluprácou s výraznými filmovými režisérmi."}, {"name": "Monica Bellucci", "gender": "female", "age": "62", "description": "Talianska herečka a modelka s dlhou medzinárodnou kariérou."}, {"name": "Jean-Claude Van Damme", "gender": "male", "age": "66", "description": "Akčný herec a majster bojových umení, ktorého roznožka patrí do filmovej histórie."}, {"name": "Steven Seagal", "gender": "male", "age": "74", "description": "Akčný herec a bojovník, ktorého filmové postavy riešia konflikty veľmi priamo."}, {"name": "Christopher Walken", "gender": "male", "age": "83", "description": "Herec s osobitým rytmom reči, ktorý dokáže urobiť zvláštnou aj obyčajnú vetu."}, {"name": "Jeff Goldblum", "gender": "male", "age": "74", "description": "Herec s improvizačným prejavom a zvedavosťou, ktorá robí rozhovory nepredvídateľnými."}, {"name": "Patrick Stewart", "gender": "male", "age": "86", "description": "Herec s divadelným hlasom a ikonickými sci-fi rolami."}, {"name": "Ian McKellen", "gender": "male", "age": "87", "description": "Herec s bohatou divadelnou kariérou a nezabudnuteľnými fantasy postavami."}, {"name": "Christopher Lee", "gender": "male", "age": "103", "description": "Herecká legenda s hlbokým hlasom a množstvom ikonických filmových úloh."}, {"name": "Peter Jackson", "gender": "male", "age": "65", "description": "Režisér, ktorý preniesol rozsiahly fantasy svet na filmové plátno."}, {"name": "Taika Waititi", "gender": "male", "age": "51", "description": "Režisér a komik, ktorý spája absurdný humor s citlivými príbehmi."}, {"name": "Edgar Wright", "gender": "male", "age": "52", "description": "Režisér známy rýchlym strihom, vizuálnymi gagmi a precíznym komediálnym načasovaním."}, {"name": "Wes Anderson", "gender": "male", "age": "57", "description": "Režisér s dokonale symetrickými zábermi, pastelovými farbami a svojráznymi postavami."}, {"name": "Seth Rogen", "gender": "male", "age": "44", "description": "Komik, scenárista a producent s uvoľneným humorom a záľubou v absurdných situáciách."}, {"name": "James Franco", "gender": "male", "age": "48", "description": "Herec a tvorca, ktorý sa pohybuje medzi mainstreamom a nezávislými projektmi."}, {"name": "Jonah Hill", "gender": "male", "age": "43", "description": "Herec a režisér, ktorý začínal komédiami a postupne rozšíril dramatický rozsah."}, {"name": "Kristen Wiig", "gender": "female", "age": "53", "description": "Komediálna herečka a scenáristka s talentom na zvláštne a presné postavy."}, {"name": "Maya Rudolph", "gender": "female", "age": "54", "description": "Komediálna herečka známa imitáciami, hudobným talentom a výraznou energiou."}, {"name": "Terry Crews", "gender": "male", "age": "58", "description": "Herec a bývalý športovec, ktorý spája fyzickú silu s hravým humorom."}, {"name": "Danny Trejo", "gender": "male", "age": "82", "description": "Herec s drsným filmovým vzhľadom, ktorý často hrá nekompromisné postavy."}, {"name": "James Corden", "gender": "male", "age": "48", "description": "Moderátor a herec, ktorý preslávil hudobné jazdy a zábavné rozhovory."}, {"name": "Graham Norton", "gender": "male", "age": "63", "description": "Moderátor, ktorý dokáže z hostí dostať príbehy a spontánny humor."}, {"name": "David Letterman", "gender": "male", "age": "79", "description": "Televízny moderátor so suchým humorom a dlhoročnou talkshow tradíciou."}, {"name": "Ellen DeGeneres", "gender": "female", "age": "68", "description": "Komediálna moderátorka známa tanečným nástupom a televíznymi rozhovormi."}, {"name": "Tyler Perry", "gender": "male", "age": "57", "description": "Filmový tvorca a producent, ktorý vybudoval vlastné zábavné štúdio."}, {"name": "Quincy Jones", "gender": "male", "age": "93", "description": "Hudobný producent a skladateľ, ktorý spolupracoval s mnohými legendami popu."}, {"name": "Pharrell Williams", "gender": "male", "age": "53", "description": "Hudobník a producent, ktorého rytmy a melódie majú optimistickú energiu."}, {"name": "Calvin Harris", "gender": "male", "age": "43", "description": "DJ a producent, ktorý mení tanečné beaty na rádiové hity."}]);
         // Stable reciprocal network: build 20–30 mutual contacts, prioritising each character's universe.
         const CATALOG_SOCIAL_GRAPH=(()=>{const people=SUGGESTED_PEOPLE_CATALOG.slice();const graph=new Map(people.map(p=>[p.name,[]]));const pairs=[];for(let i=0;i<people.length;i++)for(let j=i+1;j<people.length;j++){const a=people[i],b=people[j];pairs.push({a:a.name,b:b.name,affinity:getCharacterAffinity(a.name,b.name)});}pairs.sort((x,y)=>y.affinity-x.affinity||x.a.localeCompare(y.a)||x.b.localeCompare(y.b));const link=(a,b)=>{if(!graph.get(a).includes(b)&&!graph.get(b).includes(a)&&graph.get(a).length<30&&graph.get(b).length<30){graph.get(a).push(b);graph.get(b).push(a);}};pairs.forEach(e=>{if(graph.get(e.a).length<25&&graph.get(e.b).length<25)link(e.a,e.b);});for(const person of people){const name=person.name;if(graph.get(name).length<20){const candidates=people.filter(p=>p.name!==name).sort((a,b)=>Number(getCharacterUniverse(b.name)===getCharacterUniverse(name))-Number(getCharacterUniverse(a.name)===getCharacterUniverse(name))||a.name.localeCompare(b.name));for(const candidate of candidates){if(graph.get(name).length>=20)break;link(name,candidate.name);}}}return graph;})();
         function getSuggestedPeopleDeck(){
@@ -3143,7 +3157,7 @@ Pán Prsteňov|male|100|Legendárny fantasy svet v jednej osobe, ktorá každú 
             feedData.forEach((slot,sIdx)=>{
                 (slot?.posts||[]).forEach((post,pIdx)=>{
                     const author=String(post.author_name||'').toLowerCase();
-                    if((post.isUserStatus||post.isOwnPost||post.isUserShare||post.isSharedByUser||author===me||String(post.sharedByUser||'').toLowerCase()===me) && !sharedPosts.some(x=>x.id&&x.id===post.id)){ activities.push({post,sIdx,pIdx,isStatus:!!post.isUserStatus,isUserStatus:!!post.isUserStatus,isUserShare:!!(post.isUserShare||post.isSharedByUser||post.sharedByUser),activityTimestamp:post.createdAt||post.sharedAt||slot.createdAt||slot.timestamp||0,activityLabel:(post.isUserShare||post.isSharedByUser||post.sharedByUser)?'shared':(post.isUserStatus?'status':'post'),fallbackIndex:activities.length}); }
+                    if((post.isUserStatus||post.isUserShare||post.isSharedByUser||post.profileSharedByUser||String(post.sharedByUser||'').toLowerCase()===me) && !sharedPosts.some(x=>x.id&&x.id===post.id)){ activities.push({post,sIdx,pIdx,isStatus:!!post.isUserStatus,isUserStatus:!!post.isUserStatus,isUserShare:!!(post.isUserShare||post.isSharedByUser||post.sharedByUser),activityTimestamp:post.createdAt||post.sharedAt||slot.createdAt||slot.timestamp||0,activityLabel:(post.isUserShare||post.isSharedByUser||post.sharedByUser)?'shared':(post.isUserStatus?'status':'post'),fallbackIndex:activities.length}); }
                     const cts=latestUserCommentTimestamp(post.comments);
                     if(cts){ const key=`comment|${sIdx}|${pIdx}|${cts}`; if(!seen.has(key)){seen.add(key); activities.push({post,sIdx,pIdx,isCommentedOnly:true,isUserComment:true,activityTimestamp:cts,activityLabel:'comment',fallbackIndex:activities.length});} }
                     if(post.hasLiked){ activities.push({post,sIdx,pIdx,isLiked:true,activityTimestamp:post.likedAt||post.createdAt||slot.createdAt||slot.timestamp||0,activityLabel:'like',fallbackIndex:activities.length}); }
@@ -4243,7 +4257,7 @@ ${context}`;
         function profileCountPostsForFriend(friendName){
             let count=0;feedData.forEach(slot=>(slot.posts||[]).forEach(post=>{if(String(post.author_name||'').toLowerCase()===String(friendName||'').toLowerCase()||(post.isFriendShare&&String(post.sharedByFriend||'').toLowerCase()===String(friendName||'').toLowerCase()))count++;}));return count;
         }
-        function profileCountPostsForUser(){const ids=new Set();let count=0;sharedPosts.forEach((post,i)=>{const k=post.id||`shared-${i}-${post.title||''}`;if(!ids.has(k)){ids.add(k);count++;}});feedData.forEach((slot,si)=>(slot.posts||[]).forEach((post,pi)=>{const owns=post.isOwnPost||post.isUserStatus||post.isUserShare||post.isSharedByUser||String(post.author_name||'').toLowerCase()===String(currentUsername||'').toLowerCase()||String(post.sharedByUser||'').toLowerCase()===String(currentUsername||'').toLowerCase();if(owns){const k=post.id||`${si}-${pi}-${post.title||''}`;if(!ids.has(k)){ids.add(k);count++;}}}));return count;}
+        function profileCountPostsForUser(){const ids=new Set();let count=0;sharedPosts.forEach((post,i)=>{const k=post.id||`shared-${i}-${post.title||''}`;if(!ids.has(k)){ids.add(k);count++;}});feedData.forEach((slot,si)=>(slot.posts||[]).forEach((post,pi)=>{const owns=post.isUserStatus||post.isUserShare||post.isSharedByUser||post.profileSharedByUser||String(post.sharedByUser||'').toLowerCase()===String(currentUsername||'').toLowerCase();if(owns){const k=post.id||`${si}-${pi}-${post.title||''}`;if(!ids.has(k)){ids.add(k);count++;}}}));return count;}
         function profileCountText(count,kind){const p=UI_TEXTS[appLanguage];const one=kind==='friends'?p.profileFriendCountOne:p.profilePostCountOne;const few=kind==='friends'?p.profileFriendCountFew:p.profilePostCountFew;const many=kind==='friends'?p.profileFriendCount:p.profilePostCount;let template=many;if(count===1)template=one;else if(appLanguage!=='en'&&count%10>=2&&count%10<=4&&!(count%100>=12&&count%100<=14))template=few;return template.replace('{n}',count);}
         function setProfileSummary(friend){
             const host=document.getElementById('profile-summary-line');if(!host)return;
@@ -4269,7 +4283,7 @@ ${context}`;
                 if(photo)items.push({url:photo,label:appLanguage==='en'?'Profile photo':(appLanguage==='sr'?'Profilna fotografija':'Profilová fotka')});if(cover)items.push({url:cover,label:appLanguage==='en'?'Cover photo':(appLanguage==='sr'?'Naslovna fotografija':'Titulná fotka')});
             }else{if(friend.profilePhoto)items.push({url:friend.profilePhoto,label:appLanguage==='en'?'Profile photo':(appLanguage==='sr'?'Profilna fotografija':'Profilová fotka')});if(friend.profileCoverPhoto)items.push({url:friend.profileCoverPhoto,label:appLanguage==='en'?'Cover photo':(appLanguage==='sr'?'Naslovna fotografija':'Titulná fotka')});}
             feedData.forEach((slot,sIdx)=>(slot.posts||[]).forEach((post,pIdx)=>{
-                const owns=friend?(String(post.author_name||'').toLowerCase()===owner.toLowerCase()||String(post.sharedByFriend||'').toLowerCase()===owner.toLowerCase()):(post.isOwnPost||post.isUserStatus||String(post.author_name||'').toLowerCase()===owner.toLowerCase());
+                const owns=friend?(String(post.author_name||'').toLowerCase()===owner.toLowerCase()||String(post.sharedByFriend||'').toLowerCase()===owner.toLowerCase()):(post.isUserStatus||post.isUserShare||post.isSharedByUser||post.profileSharedByUser||String(post.sharedByUser||'').toLowerCase()===owner.toLowerCase());
                 if(owns&&post.image_url)items.push({url:post.image_url,label:post.title||'Príspevok',sIdx,pIdx});
             }));
             host.innerHTML=`<div class="profile-about-card"><div class="profile-photos-heading"><strong>${appLanguage==='en'?'Photos':(appLanguage==='sr'?'Fotografije':'Fotografie')}</strong><span>${items.length}</span></div>${items.length?`<div class="profile-photos-grid">${items.map(it=>`<div class="profile-photo-tile" ${Number.isInteger(it.sIdx)?`onclick="openPost(${it.sIdx},${it.pIdx})"`:''}><img src="${it.url}" alt="${escapeHtml(it.label)}"><span>${escapeHtml(it.label)}</span></div>`).join('')}</div>`:`<div class="profile-about-empty">${appLanguage==='en'?'No photos yet.':(appLanguage==='sr'?'Još nema fotografija.':'Zatiaľ tu nie sú žiadne fotografie.')}</div>`}</div>`;
@@ -4719,7 +4733,8 @@ ${context}`;
                 const post=feedData[sIdx].posts[pIdx];
                 const sharedCopy = JSON.parse(JSON.stringify(post));
                 sharedCopy.profileSharedAt = Date.now(); sharedCopy.profileSharedByUser = true;
-                post.userSharedAt=Date.now();
+                post.userSharedAt=Date.now();post.profileSharedByUser=true;post.isUserShare=true;
+                sharedCopy.profileSharedByUser=true;sharedCopy.isUserShare=true;
                 sharedPosts.push(sharedCopy);
                 saveToLocalStorage();
                 alert(appLanguage==='sk'?"Príspevok bol pripnutý na váš profil.":(appLanguage==='en'?"Post pinned to your profile.":"Objava je zakačena na vaš profil."));
@@ -4733,7 +4748,7 @@ ${context}`;
             if(post.hasLiked) return; 
             post.likes = (post.likes || 0) + 1;
             post.hasLiked = true;
-            post.likedAt = Date.now();
+            post.likedAt = Date.now();post.userEngagedAt=Date.now();post.isUserLike=true;
             saveToLocalStorage(); renderGrid();
             if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
         }
@@ -5398,6 +5413,7 @@ ${webMemoryContext}`;
             let webSourcesForReply = [];
 
             const sysPrompt = `You are a human friend named ${activeChatFriend.name}. Age: ${activeChatFriend.age}, Gender: ${activeChatFriend.gender}. Person description: ${activeChatFriend.profileDescription || 'none'}.
+            PERSON DESCRIPTION — ABSOLUTE HIGHEST PRIORITY: ${activeChatFriend.profileDescription || 'No custom description supplied.'}. It overrides every generic personality, relationship, grammar and behavior setting when there is any conflict. Follow it in every message and situation.
             Connection: ${relStr}. Current Language parameter: ${appLanguage.toUpperCase()}. All response text MUST be written entirely in ${langName}.
             ${contactRule} ${personalityRule} ${grammarRule} ${romanceRule} ${emojiRule}
             ${webModeRule}
@@ -5462,6 +5478,7 @@ ${webMemoryContext}`;
             if (appLanguage === 'sr') langName = "Serbian";
 
             const sysPrompt = `You are a human friend named ${f.name}. Age: ${f.age}, Gender: ${f.gender}. Language mode: ${appLanguage.toUpperCase()}. Write entirely in ${langName}.
+            PERSON DESCRIPTION — ABSOLUTE HIGHEST PRIORITY: ${f.profileDescription || 'No custom description supplied.'}. This description overrides generic personality, relationship, grammar and behavior settings whenever they conflict. Apply it consistently to every message, reaction and decision.
             Connection: ${relStr}. ${contactRule} ${personalityRule} ${grammarRule} ${romanceRule} ${emojiRule}
             CRITICAL IDENTITY SEPARATION: Identify yourself exclusively as ${f.name}. Messages sent by the user are labeled "Me:". You must not speak for the user. Do not respond to questions you just asked yourself in the same block.
             Your output must be split into ${partsCount} structural parts. Instruction: ${contextPrompt}.
@@ -5509,7 +5526,7 @@ ${webMemoryContext}`;
                 if(msgs[i].from === 'system') { forgetIndex = i; break; }
             }
             let validMsgs = (forgetIndex > -1) ? msgs.slice(forgetIndex + 1) : msgs;
-            validMsgs.slice(-15).forEach(m => { hist += (m.from === 'me' ? "Me: " : fName + ": ") + m.text + "\n"; });
+            validMsgs.slice(-20).forEach(m => { hist += (m.from === 'me' ? "ME (the user wrote this): " : fName + " (you wrote this): ") + String(m.text || '').replace(/\s+/g,' ').trim() + "\n"; });
             return hist || UI_TEXTS[appLanguage].chatLogNone;
         }
 
@@ -5735,7 +5752,12 @@ Return STRICT JSON: {"username":"${name}","text":"reply body"}`;
                 stanceRule = `ESTABLISHED CONVERSATION — do NOT roll a new support/oppose probability. Infer ${speaker}'s established position from every earlier message they wrote in this thread. Preserve it. If the target has been agreeing with ${speaker}, continue that shared direction and deepen it; if the target has been challenging ${speaker}, defend/refine the existing position. The longer the disagreement continues, it may naturally become sharper, more sarcastic or mildly vulgar; the longer the agreement continues, it may naturally become warmer, more playful and mutually understanding. Never reverse a position just to create artificial variety.`;
             }
 
+            const replyFriendProfile=friendsList.find(f=>String(f.name||'').toLowerCase()===String(speaker||'').toLowerCase());
+            const speakerIdentityRule=replyFriendProfile
+                ? `SPEAKER PERSONAL DESCRIPTION — ABSOLUTE HIGHEST PRIORITY: ${replyFriendProfile.profileDescription||'none'}. It overrides generic traits and must govern this reply's opinions, tone, humor, choices and behavior. Additional configured style: ${getPersonalityRule(replyFriendProfile.personalities)} ${getGrammarRule(replyFriendProfile.grammar)} ${getEmojiPromptRule(replyFriendProfile.emojiStyle)}`
+                : 'If the speaker is an existing configured friend, use their stored personal description as the highest-priority identity instruction.';
             const prompt=`You are simulating a believable Facebook-style human conversation. Write in ${lang}. Speaker: ${speaker}.
+${speakerIdentityRule}
 ARTICLE TITLE: ${articleTitle}
 ARTICLE CONTENT: ${articleContent}
 ONE FLAT THREAD (root + every reply in chronological order):
@@ -6032,7 +6054,7 @@ async function addManualComment(sIdx, pIdx) {
             let post = feedData[sIdx].posts[pIdx]; if(!post.comments) post.comments = [];
             
             let newCommentId = Math.random().toString(36).substr(2, 9);
-            const newComment={id:newCommentId,username:currentUsername,text,replies:[],timestamp:Date.now()};post.comments.push(newComment);post.userEngagedAt=Date.now();
+            const newComment={id:newCommentId,username:currentUsername,text,replies:[],timestamp:Date.now()};post.comments.push(newComment);post.userEngagedAt=Date.now();post.isUserComment=true;
             notifyNewCommentActivity(post,sIdx,pIdx,newComment);
             input.value = ''; saveToLocalStorage(); renderGrid();
             if(document.getElementById('view-article').style.display === 'block') openPost(sIdx, pIdx);
@@ -6238,10 +6260,10 @@ async function addManualComment(sIdx, pIdx) {
                     if (statusLengthValue === "dlhy") lenInst = "long (8 to 15 sentences)";
                     const previousStatuses = getFriendPreviousStatuses(tf.name);
                     const statusHistoryInstruction = previousStatuses.length ? `\nPREVIOUS STATUSES ARE BACKGROUND ONLY — do NOT continue, paraphrase, recycle or make the same joke/topic the basis of the new status. The new status must be independently conceived first. Only mention an old detail as a tiny incidental aside if it genuinely fits the NEW status; it is never the main subject. Previous examples:\n${previousStatuses.map((x,i)=>`${i+1}. ${x}`).join('\n')}` : '\nThere are no previous statuses available. Invent a completely independent everyday event.';
-                    promptInput = `Generate a completely new, unique social-network status post explicitly written by ${tf.name} (${tf.gender}, ${tf.age} y.o.). Length: ${lenInst}. Realism level: ${realismValue}/10. Topic context: ${promptInput || 'choose a completely new personal everyday moment based on the person description'}.${statusHistoryInstruction} The old statuses are memory/context about the person, NOT a list of themes to repeat. Avoid recurring jokes, recurring objects and especially repeating the same incident.`;
+                    promptInput = `Generate a completely new, unique social-network status post explicitly written by ${tf.name} (${tf.gender}, ${tf.age} y.o.). PERSON DESCRIPTION — ABSOLUTE PRIORITY, overrides generic traits/personality: ${tf.profileDescription || friendsList.find(f=>f.name===tf.name)?.profileDescription || 'none'}. Follow it in every choice, opinion, action, joke, topic and wording. Length: ${lenInst}. Realism level: ${realismValue}/10. Topic context: ${promptInput || 'choose a completely new personal everyday moment based on the person description'}.${statusHistoryInstruction} The old statuses are memory/context about the person, NOT a list of themes to repeat. Avoid recurring jokes, recurring objects and especially repeating the same incident.`;
                 } else if (tf.type === 'clanok') {
                     generatedFriendPostType = "article";
-                    promptInput = `Generate a completely bizarre, hilarious parody tabloid news story exclusively focused on my real friend named ${tf.name}, aged ${tf.age}, gender ${tf.gender}. Inflate it into a massive viral clickbait scandal.`;
+                    promptInput = `Generate a completely bizarre, hilarious parody tabloid news story exclusively focused on my real friend named ${tf.name}, aged ${tf.age}, gender ${tf.gender}. PERSON DESCRIPTION — ABSOLUTE HIGHEST PRIORITY, overrides all generic traits: ${tf.profileDescription || friendsList.find(f=>f.name===tf.name)?.profileDescription || 'none'}. Every action, reaction, joke, opinion and decision in the story must reflect this description. Inflate it into a massive viral clickbait story without contradicting the description.`;
                 }
             } else if (!promptInput) {
                 let rand = Math.random();
@@ -6263,12 +6285,12 @@ async function addManualComment(sIdx, pIdx) {
                             const friendTopic = friendTopicPool.length ? friendTopicPool[Math.floor(Math.random() * friendTopicPool.length)] : "a completely new funny personal scenario";
                             const previousStatuses = getFriendPreviousStatuses(forcedFriendName);
                             const previousStatusNote = previousStatuses.length ? ` Previous statuses are only background memory. Do NOT repeat their central event, joke, object or wording. Previous examples: ${previousStatuses.slice(0,6).map((x,i)=>`${i+1}) ${x}`).join(' | ')}. Only reference an old detail as an incidental aside if it naturally fits the independently invented new status.` : '';
-                            promptInput = `Generate a completely new and unique status timeline post authored by ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} years old). Person description: ${randomFriend.profileDescription || 'none'}. Length restriction: ${lenInst}. Realism level: ${realismValue}/10. Theme inspiration: ${friendTopic}. Invent a fresh event first; old statuses are context about the person's life, NOT a list of topics to recycle. ${previousStatusNote}`;
+                            promptInput = `Generate a completely new and unique status timeline post authored by ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} years old). PERSON DESCRIPTION — ABSOLUTE PRIORITY, overrides generic traits/personality: ${randomFriend.profileDescription || 'none'}. Follow it in every choice, opinion, action, joke, topic and wording. Length restriction: ${lenInst}. Realism level: ${realismValue}/10. Theme inspiration: ${friendTopic}. Invent a fresh event first; old statuses are context about the person's life, NOT a list of topics to recycle. ${previousStatusNote}`;
                         } else {
                             generatedFriendPostType = "article";
                             const friendTopicPool = [...(randomFriend.favoriteTopics || []), ...(randomFriend.customTopics || [])];
                             const friendTopic = friendTopicPool.length ? friendTopicPool[Math.floor(Math.random() * friendTopicPool.length)] : "a completely new funny incident";
-                            promptInput = `Write an extreme, creative, comedic tabloid story starring my friend ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} y.o.). Person description: ${randomFriend.profileDescription || 'none'}. Topic: ${friendTopic}. Turn it into a hilarious viral incident that is fresh and unique.`;
+                            promptInput = `Write an extreme, creative, comedic tabloid story starring my friend ${forcedFriendName} (${randomFriend.gender}, ${randomFriend.age} y.o.). PERSON DESCRIPTION — ABSOLUTE PRIORITY over generic traits: ${randomFriend.profileDescription || 'none'}. The story must reflect this person description. Topic: ${friendTopic}. Turn it into a hilarious viral incident that is fresh and unique.`;
                         }
                     } else {
                         promptInput = `Pick a prominent real world event or trend and warp it into an entirely absurd satirical news scoop.`;
@@ -6290,30 +6312,13 @@ async function addManualComment(sIdx, pIdx) {
 FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT recall, copy, paraphrase, imitate, or continue any previous Fakebook feed story. Unique generation ID: ${generationNonce}.`;
             let isFriendContentFocused = (generatedFriendPostType !== "" || isStatusFriendRequest);
             // Equal probability for every comment count from 1 through 7.
-            const requestedCommentCount = isStatusFriendRequest ? (refreshInProgress ? 1 + Math.floor(Math.random() * 6) : Math.floor(Math.random() * 7)) : (1 + Math.floor(Math.random() * 7));
+            const requestedCommentCount = refreshInProgress ? (5 + Math.floor(Math.random() * 5)) : (1 + Math.floor(Math.random() * 7));
             const commentsRange = String(requestedCommentCount);
             const lengthInstruction = statusLengthValue === 'kratky' ? 'slightly shorter than the current standard: 1–3 compact paragraphs, roughly 170–280 words' : (statusLengthValue === 'dlhy' ? 'slightly longer than the current standard: 3–5 paragraphs, roughly 300–500 words' : 'the current standard length: 2–4 compact paragraphs, roughly 220–380 words');
             const realismInstruction = realismValue <= 2 ? 'EXTREMELY ABSURD: make the supporting details wildly implausible and outrageous while still obeying the user\'s core topic.' : realismValue === 3 ? 'CURRENT STYLE: use the same moderately absurd, satirical credibility level as existing Fakebook articles.' : realismValue <= 5 ? 'MOSTLY BELIEVABLE: the core topic is retained, but add a few mildly crazy or unlikely supporting details.' : realismValue <= 7 ? 'NEARLY REAL: write mostly like a plausible news report, with only a small strange/absurd twist in the supporting details.' : realismValue <= 9 ? 'HIGHLY REALISTIC: supporting details should be plausible and restrained; only a subtle unusual element may remain.' : 'FULLY REALISTIC: write a genuinely plausible report about the user\'s described topic. Do not add absurd supporting details; it should be something that could realistically happen.';
             let injectedFriends = [];
-            const targetFriend = isStatusFriendRequest ? friendsList.find(f=>f.name.toLowerCase()===String(forcedFriendName).toLowerCase()) : null;
-            const mutualNames = targetFriend ? (targetFriend.commonFriends||[]).filter(n=>friendsList.some(f=>f.name===n)) : [];
-            const friendCandidates = (targetFriend ? mutualNames.map(n=>friendsList.find(f=>f.name===n)).filter(Boolean) : friendsList.slice()).filter(Boolean);
-            friendCandidates.forEach(f=>{ const chance=Math.max(0,Math.min(100,Number(f.commentChance ?? 20)))/100; if(Math.random()<chance) injectedFriends.push(f.name); });
-            if(isStatusFriendRequest && mutualNames.length){
-                mutualNames.forEach(n=>{ if(injectedFriends.length < requestedCommentCount && !injectedFriends.includes(n) && Math.random()<0.75) injectedFriends.push(n); });
-            }
-            injectedFriends=injectedFriends.slice(0,requestedCommentCount);
-            const injectedFriendProfiles = injectedFriends.map(name => {
-                const f = friendsList.find(x => String(x.name).toLowerCase() === String(name).toLowerCase());
-                if (!f) return `${name}: profile unavailable`;
-                const pers = getPersonalityRule(f.personalities);
-                const gram = getGrammarRule(f.grammar);
-                const emoji = getEmojiPromptRule(f.emojiStyle);
-                const rel = (f.relationships || []).map(id => (RELATIONSHIP_OPTIONS.find(r=>r.id===id)?.en || id)).join(', ') || 'Acquaintance';
-                return `${f.name} — age ${f.age}, gender ${f.gender}; description: ${f.profileDescription || 'none'}; personality: ${pers}; grammar: ${gram}; emojis: ${emoji}; relationship: ${rel}`;
-            }).join('\n');
-            let friendCommentaryRule = injectedFriends.length > 0 ? `These are REAL configured friends and must be used for the first ${injectedFriends.length} generated comments, in this exact order: ${injectedFriends.join(', ')}. For each of these commenters, FOLLOW THEIR INDIVIDUAL PROFILE below — personality, grammar, emoji style, relationship and description are mandatory. Do not replace their personality with a generic commenter persona.\n${injectedFriendProfiles}` : "";
-            let commentersContext = generateCommentersContextForPrompt(6);
+            let friendCommentaryRule = "";
+            let commentersContext = generateCommentersContextForPrompt(requestedCommentCount);
 
             let selectedPool = PAGES_POOL_SK;
             if (appLanguage === 'en') selectedPool = PAGES_POOL_EN;
@@ -6335,7 +6340,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             IMPORTANT: The user's prompt/topic is the creative foundation. Realism changes the plausibility of the surrounding details, wording, consequences, quotes and framing; it must NOT replace or ignore the requested central event.
             PUBLISHER STYLE: At realism 1–4, a fitting tabloid/satirical publisher is appropriate. At realism 5–7, use a plausible thematic media identity. At realism 8–10, prefer a serious, credible-sounding publisher generated from the topic. The review screen automatically prefers a suitable publisher from the predefined pool when one actually fits; otherwise it uses the contextual name.
             Comments: exactly ${commentsRange} short comments, one sentence each, NO nested replies. Every comment must show comprehension of the article's CENTRAL EVENT/CLAIM or a clearly relevant supporting point. When a commenter is a configured friend, write that comment using that friend's actual configured personality, grammar, relationship, emoji style and person description; never use a generic random personality for that friend. Do not make a decorative side detail the main topic. Do not invent unrelated facts, substances, scandals or motives. For satire, react to the absurd premise itself. Vary the angles while staying on-topic. Do not generate more comments than requested.
-            Traits: ${commentersContext}.
+            Mandatory commenter identities in exact comment order (use each listed name once): ${commentersContext}.
             ${friendCommentaryRule} ${contextInstruction}
             Return ONLY this JSON shape: {"posts":[{"author_name":"","title":"","content":["",""],"image_prompt":"","comments":[{"username":"","text":"","replies":[]}]}]}`;
 
@@ -6583,6 +6588,252 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             // after publishing and could exhaust the free RPM quota.
             pendingGenerationData = null; window.targetStatusFriend = null;
         }
+
+
+        /* Fakebook 4.14 — profile discovery, simple composer and balanced refresh */
+        (function(){
+            window.fakebookSimpleComposerEnabled = localStorage.getItem('fb_simple_composer') !== '0';
+            window.fakebookSimpleAutoPublish = false;
+
+            function ensureSimpleComposerSetting(){
+                const host=document.querySelector('#create-modal .modal-content');
+                if(!host)return;
+                const existing=document.getElementById('fb-simple-composer-setting');
+                if(existing){const current=existing.querySelector('input');if(current)current.checked=window.fakebookSimpleComposerEnabled;return;}
+                const row=document.createElement('label');
+                row.id='fb-simple-composer-setting';
+                row.style.cssText='display:flex;gap:9px;align-items:center;margin:0 0 12px;padding:10px 12px;border:1px solid var(--border-color);border-radius:9px;background:var(--bg-input);font-size:.9rem;';
+                row.innerHTML='<input id="fb-simple-composer-toggle-detailed" type="checkbox" style="width:18px;height:18px;margin:0;"> <span><strong>Zjednodušené vytváranie príspevkov</strong><br><small style="color:var(--text-muted)">Aktívne predvolene. Vypnutím sa vráti pôvodný podrobný editor.</small></span>';
+                const title=host.querySelector('h3');
+                if(title) title.insertAdjacentElement('afterend',row); else host.prepend(row);
+                const toggle=row.querySelector('input');
+                toggle.checked=window.fakebookSimpleComposerEnabled;
+                toggle.addEventListener('change',()=>{window.fakebookSimpleComposerEnabled=toggle.checked;localStorage.setItem('fb_simple_composer',toggle.checked?'1':'0');});
+            }
+            function ensureSimpleComposerModal(){
+                if(document.getElementById('fb-simple-composer-modal'))return;
+                const modal=document.createElement('div');modal.id='fb-simple-composer-modal';modal.className='modal-overlay';
+                modal.innerHTML=`<div class="modal-content" style="max-width:560px"><button class="close-modal-btn" onclick="closeSimpleComposer()">×</button><h3>Čo chceš zverejniť?</h3><p style="color:var(--text-muted);margin-top:-7px">Napíš tému alebo nechaj pole prázdne a Fakebook vymyslí niečo náhodné.</p><textarea id="fb-simple-composer-topic" placeholder="O čom má byť status? (nepovinné)" style="width:100%;min-height:130px;background:var(--bg-input);color:var(--global-font-color);border:1px solid var(--border-color);border-radius:9px;padding:12px"></textarea><label style="display:flex;gap:8px;align-items:center;margin:10px 0 14px;font-size:.88rem"><input id="fb-simple-composer-toggle" type="checkbox" checked> Zjednodušený režim vytvárania statusov</label><div class="modal-actions"><button class="btn btn-secondary" onclick="closeSimpleComposer()">Zrušiť</button><button class="btn btn-primary" onclick="submitSimpleComposer()">Potvrdiť</button></div></div>`;
+                document.body.appendChild(modal);
+            }
+            window.closeSimpleComposer=()=>{const m=document.getElementById('fb-simple-composer-modal');if(m)m.style.display='none';};
+            window.submitSimpleComposer=function(){
+                const topic=document.getElementById('fb-simple-composer-topic')?.value.trim()||'';
+                closeSimpleComposer();
+                const input=document.getElementById('scenario-input');if(input)input.value=topic;
+                const gc=document.getElementById('generation-count');if(gc)gc.value='1';
+                const pl=document.getElementById('post-length-selector');if(pl)pl.value='stredny';
+                const rs=document.getElementById('realism-selector');if(rs)rs.value='3';
+                if(typeof updateCreateTopicSelector==='function')updateCreateTopicSelector();
+                const topicSel=document.getElementById('create-topic-selector');if(topicSel)topicSel.value='random';
+                ['shift-days','shift-weeks'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='0';});
+                const h=document.getElementById('shift-hours');if(h)h.value='1';
+                window.fakebookSimpleAutoPublish=true;
+                triggerGeneration();
+            };
+            const originalOpenCreateModal=window.openCreateModal;
+            window.openCreateModal=function(){
+                ensureSimpleComposerSetting();ensureSimpleComposerModal();
+                if(window.fakebookSimpleComposerEnabled && getSavedApiKey()){
+                    document.getElementById('fb-simple-composer-topic').value='';
+                    document.getElementById('fb-simple-composer-modal').style.display='flex';
+                    const simpleToggle=document.getElementById('fb-simple-composer-toggle');if(simpleToggle){simpleToggle.checked=window.fakebookSimpleComposerEnabled;simpleToggle.onchange=()=>{window.fakebookSimpleComposerEnabled=simpleToggle.checked;localStorage.setItem('fb_simple_composer',simpleToggle.checked?'1':'0');};}
+                    if(typeof pushModalState==='function')pushModalState();
+                    return;
+                }
+                if(originalOpenCreateModal)originalOpenCreateModal();
+                setTimeout(ensureSimpleComposerSetting,0);
+            };
+            const originalOpenReviewModal=window.openReviewModal;
+            window.openReviewModal=function(){
+                if(originalOpenReviewModal)originalOpenReviewModal();
+                if(window.fakebookSimpleAutoPublish){
+                    window.fakebookSimpleAutoPublish=false;
+                    setTimeout(()=>{if(typeof confirmAndPublish==='function'&&pendingGenerationData)confirmAndPublish();},0);
+                }
+            };
+
+            function getFriendActivity(name){
+                const key=String(name||'').toLocaleLowerCase('sk'),out=[],seen=new Set();
+                feedData.forEach((slot,sIdx)=>(slot.posts||[]).forEach((post,pIdx)=>{
+                    let commentTs=0;
+                    const scan=a=>(a||[]).forEach(c=>{if(String(c.username||'').toLocaleLowerCase('sk')===key)commentTs=Math.max(commentTs,Number(c.timestamp)||0);scan(c.replies);});
+                    scan(post.comments);
+                    const authored=String(post.author_name||'').toLocaleLowerCase('sk')===key;
+                    const shared=String(post.sharedByFriend||'').toLocaleLowerCase('sk')===key;
+                    const articleText=String((post.title||'')+' '+(Array.isArray(post.content)?post.content.join(' '):(post.content||''))).toLocaleLowerCase('sk');
+                    const mentioned=articleText.includes(key);
+                    if(!authored&&!shared&&!commentTs&&!mentioned)return;
+                    const type=shared?'shared':(authored?'post':(commentTs?'comment':'mentioned')),id=`${post.id||sIdx+'-'+pIdx}|${type}`;
+                    if(seen.has(id))return;seen.add(id);
+                    out.push({post,sIdx,pIdx,isCommentedOnly:!authored&&!shared,isSharedOnly:shared&&!authored,isStatus:!!post.isFriendPost&&!post.title,friendName:name,activityTimestamp:Math.max(commentTs,Number(post.sharedAt)||0,Number(post.createdAt)||Number(slot.timestamp)||0)});
+                }));
+                return out.sort((a,b)=>(b.activityTimestamp||0)-(a.activityTimestamp||0));
+            }
+
+            const originalOpenFriendProfile=window.openSelectedFriendProfile;
+            window.openSelectedFriendProfile=function(name){
+                const friend=friendsList.find(f=>String(f.name).toLocaleLowerCase('sk')===String(name).toLocaleLowerCase('sk'));
+                if(!friend){
+                    const person=(typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG:[]).find(p=>String(p.name).toLocaleLowerCase('sk')===String(name).toLocaleLowerCase('sk'));
+                    if(!person){if(originalOpenFriendProfile)originalOpenFriendProfile(name);return;}
+                    const temp={name:person.name,gender:person.gender,age:person.age,profileDescription:person.description||'',profilePhoto:'',profileCoverPhoto:'',friendList:[],commonFriends:[]};
+                    currentProfileFriendName=temp.name;profileReturnMode=null;profileReturnFriendName=null;profileReturnChatFriendName=null;
+                    const modal=document.getElementById('user-profile-modal');modal.style.display='flex';pushModalState();
+                    const av=document.getElementById('profile-avatar-large');av.innerText=temp.name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();av.style.backgroundImage='none';av.style.backgroundColor=generateColor(temp.name);
+                    document.getElementById('profile-cover-image').style.backgroundImage='';
+                    document.getElementById('profile-display-name').innerText=temp.name;
+                    document.getElementById('profile-username-edit').style.display='none';document.getElementById('my-profile-settings-block').style.display='none';
+                    document.querySelector('#user-profile-modal .profile-action-bar').style.display='flex';
+                    ['profile-action-edit','profile-action-message','profile-action-friends','profile-cover-edit-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+                    document.getElementById('profile-nav-tabs').style.display='flex';
+                    setProfileSummary(temp);renderProfileFriends(temp);renderProfileAbout(temp);renderProfilePhotos(temp);
+                    document.getElementById('friend-profile-common-area').innerHTML='';
+                    const activity=getFriendActivity(temp.name),notice=document.getElementById('private-profile-notice');
+                    if(!activity.length){notice.style.display='block';notice.innerHTML=`<div class="private-profile-card"><span class="private-profile-lock-icon">🔒</span><strong>Tento profil je zatiaľ súkromný</strong><p>Nie je tu zatiaľ žiadny verejný príspevok ani komentár.</p><button class="btn btn-primary" onclick="addSuggestedPerson(decodeURIComponent('${encodeURIComponent(temp.name)}'))">＋ Pridať priateľa</button></div>`;document.getElementById('shared-posts-container').innerHTML='';}
+                    else{notice.style.display='none';notice.innerHTML='';renderProfilePosts(activity,document.getElementById('shared-posts-container'));}
+                    document.getElementById('profile-section-title').innerText='Aktivita používateľa '+temp.name;showProfileTab('posts');
+                    return;
+                }
+                originalOpenFriendProfile(name);
+                const common=document.getElementById('friend-profile-common-area');
+                if(common){
+                    const idx=friendsList.indexOf(friend),btn=document.createElement('button');
+                    btn.className='btn btn-secondary';btn.style.marginTop='8px';btn.textContent='⚙ Upraviť osobnosť a informácie';
+                    btn.onclick=()=>openFriendSettingsModal(idx);common.appendChild(btn);
+                }
+                const activity=getFriendActivity(friend.name),notice=document.getElementById('private-profile-notice');
+                if(!activity.length && !friend.profilePhoto && !friend.profileCoverPhoto){
+                    if(notice){notice.style.display='block';notice.innerHTML='<div class="private-profile-card"><span class="private-profile-lock-icon">🔒</span><strong>Tento profil je zatiaľ súkromný</strong><p>Profil sa odomkne, keď sa objaví aspoň jeden príspevok alebo komentár.</p></div>';}
+                    document.getElementById('shared-posts-container').innerHTML='';
+                }else{
+                    if(notice){notice.style.display='none';notice.innerHTML='';}
+                    renderProfilePosts(activity,document.getElementById('shared-posts-container'));
+                }
+                setProfileSummary(friend);
+            };
+
+            // Add unconnected mutual friends directly from a friend's profile.
+            const originalRenderProfileFriends=window.renderProfileFriends;
+            window.renderProfileFriends=function(friend){
+                originalRenderProfileFriends(friend);
+                if(!friend)return;
+                const host=document.getElementById('my-profile-friends-preview');if(!host)return;
+                host.querySelectorAll('.profile-friend-card').forEach(card=>{
+                    const name=card.querySelector('.profile-friend-name')?.textContent?.trim();if(!name)return;
+                    if(friendsList.some(f=>f.name.toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk')))return;
+                    const person=(typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG:[]).find(p=>p.name.toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));
+                    const btn=document.createElement('button');btn.className='btn btn-primary';btn.style.cssText='margin:0 8px 9px;padding:6px 9px;font-size:.75rem;width:calc(100% - 16px)';
+                    btn.textContent='＋ Pridať priateľa';
+                    btn.onclick=e=>{e.stopPropagation();if(person)addSuggestedPerson(person.name);else alert('Táto osoba zatiaľ nie je v katalógu.');};
+                    card.appendChild(btn);
+                });
+            };
+
+            // Suggested-person cards open the person's profile, not just the add action.
+            const originalSuggestedCards=window.renderSuggestedPeopleCards;
+            window.renderSuggestedPeopleCards=function(host,people,mode='feed'){
+                originalSuggestedCards(host,people,mode);
+                if(!host)return;
+                host.querySelectorAll('.suggested-person-card').forEach(card=>{
+                    const name=card.querySelector('.suggested-person-info strong')?.textContent?.trim();
+                    const info=card.querySelector('.suggested-person-info');
+                    const profileBtn=document.createElement('button');profileBtn.textContent='Zobraziť profil';profileBtn.style.cssText='margin-left:5px;background:var(--nav-icon-bg)!important;color:var(--global-font-color)!important';
+                    profileBtn.onclick=()=>openSelectedFriendProfile(name);
+                    info?.appendChild(profileBtn);
+                    const avatar=card.querySelector('.suggested-person-avatar');if(avatar){avatar.style.cursor='pointer';avatar.title='Otvoriť profil';avatar.onclick=()=>openSelectedFriendProfile(name);}
+                });
+            };
+
+            // Full-screen photo view with the corresponding post, likes and comments.
+            function ensurePhotoViewer(){
+                if(document.getElementById('fb-photo-viewer'))return;
+                const modal=document.createElement('div');modal.id='fb-photo-viewer';modal.style.cssText='display:none;position:fixed;inset:0;z-index:30000;background:rgba(0,0,0,.96);color:white;overflow-y:auto;';
+                modal.innerHTML='<button onclick="closeFakebookPhotoViewer()" style="position:fixed;right:14px;top:12px;z-index:3;border:0;border-radius:50%;width:42px;height:42px;background:#333;color:#fff;font-size:28px">×</button><div id="fb-photo-viewer-body" style="min-height:100%;display:flex;flex-direction:column;align-items:center;padding:55px 12px 30px"></div>';
+                document.body.appendChild(modal);
+            }
+            window.closeFakebookPhotoViewer=()=>{const m=document.getElementById('fb-photo-viewer');if(m)m.style.display='none';};
+            window.openFakebookPhotoViewer=function(si,pi,url,label){
+                ensurePhotoViewer();const body=document.getElementById('fb-photo-viewer-body');
+                const post=Number.isInteger(si)&&feedData[si]?.posts?.[pi]?feedData[si].posts[pi]:null;
+                body.innerHTML=`<img src="${escapeHtmlAttr(url)}" alt="" style="max-width:100%;max-height:72vh;object-fit:contain"><div style="width:min(100%,760px);background:#202124;margin-top:14px;padding:15px;border-radius:12px"><strong>${escapeHtml(label||post?.title||'Fotografia')}</strong>${post?`<p style="white-space:pre-wrap">${escapeHtml(Array.isArray(post.content)?post.content.join('\\n\\n'):(post.content||''))}</p><div>👍 ${Number(post.likes)||0} · ${(post.comments||[]).length} komentárov</div><div style="margin-top:10px">${(post.comments||[]).map(c=>`<p><strong>${escapeHtml(c.username||'')}</strong> ${escapeHtml(c.text||'')}</p>`).join('')}</div><button onclick="closeFakebookPhotoViewer();openPost(${si},${pi})" style="padding:9px 13px;border:0;border-radius:8px">Otvoriť celý príspevok</button>`:'<p>Fotografia profilu</p>'}</div>`;
+                document.getElementById('fb-photo-viewer').style.display='block';
+            };
+            const originalRenderPhotos=window.renderProfilePhotos;
+            window.renderProfilePhotos=function(friend){
+                originalRenderPhotos(friend);
+                const host=document.getElementById('profile-photos-content');if(!host)return;
+                const grid=host.querySelector('.profile-photos-grid');
+                if(grid){
+                    const owner=String(friend?.name||currentUsername||'').toLocaleLowerCase('sk'),seen=new Set(Array.from(grid.querySelectorAll('img')).map(img=>img.src));
+                    feedData.forEach((slot,si)=>(slot.posts||[]).forEach((post,pi)=>{
+                        if(!post.image_url)return;
+                        let engaged=!!(friend?false:(post.isUserLike||post.isUserComment||post.isUserShare||post.isSharedByUser));
+                        const scan=a=>(a||[]).forEach(c=>{if(String(c.username||'').toLocaleLowerCase('sk')===owner)engaged=true;scan(c.replies);});
+                        scan(post.comments);
+                        if(friend && (String(post.author_name||'').toLocaleLowerCase('sk')===owner || String((post.title||'')+' '+(Array.isArray(post.content)?post.content.join(' '):(post.content||''))).toLocaleLowerCase('sk').includes(owner)))engaged=true;
+                        if(!engaged||seen.has(post.image_url))return;seen.add(post.image_url);
+                        const tile=document.createElement('div');tile.className='profile-photo-tile';
+                        const img=document.createElement('img');img.src=post.image_url;img.alt=post.title||'Príspevok';
+                        const span=document.createElement('span');span.textContent=post.title||'Príspevok';
+                        tile.append(img,span);tile.onclick=()=>openFakebookPhotoViewer(si,pi,img.src,img.alt);grid.appendChild(tile);
+                    }));
+                    const count=host.querySelector('.profile-photos-heading span');if(count)count.textContent=String(grid.children.length);
+                }
+                host.querySelectorAll('.profile-photo-tile').forEach(tile=>{
+                    const img=tile.querySelector('img');if(!img)return;
+                    const m=tile.getAttribute('onclick')?.match(/openPost\((\d+),(\d+)\)/);
+                    const si=m?Number(m[1]):null,pi=m?Number(m[2]):null;
+                    tile.removeAttribute('onclick');tile.onclick=()=>openFakebookPhotoViewer(si,pi,img.src,img.alt);
+                });
+            };
+
+            // Correct mutually exclusive refresh outcomes: 50% article, 10% friend status,
+            // 30% friend share, 10% article about a friend (when friends exist).
+            window.beginRefreshGeneration=function(){
+                if(refreshInProgress)return;
+                refreshInProgress=true;refreshTimeOffsetMinutes=60;
+                localStorage.removeItem('fb_random_feed_order');
+                const indicator=document.getElementById('pull-refresh-indicator');
+                if(indicator){indicator.style.display='block';indicator.textContent=UI_TEXTS[appLanguage].refreshLoading;}
+                refreshShareFriendName='';window.targetStatusFriend=null;
+                const r=Math.random();
+                if(!friendsList.length||r<.50)refreshGenerationMode='article';
+                else if(r<.60){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='status';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,profileDescription:f.profileDescription||'',type:'status'};}
+                else if(r<.90){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='share';refreshShareFriendName=f.name;}
+                else{const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='friendArticle';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,profileDescription:f.profileDescription||'',type:'clanok'};}
+                if(Math.random()<.05)createIncomingFriendRequest();
+                if(!getSavedApiKey()){finishRefreshWithoutPost();return;}
+                ['shift-hours','shift-days','shift-weeks'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='0';});
+                document.getElementById('scenario-input').value='';
+                triggerGeneration().catch(err=>{console.warn('Refresh generation failed',err);finishRefreshWithoutPost(false);});
+            };
+
+            // Don't send repeated autonomous messages while the user is silent.
+            const originalAutoMessage=window.autoGenerateFriendMessage;
+            window.autoGenerateFriendMessage=async function(friend,contextPrompt,partsCount=1){
+                const msgs=chatData[friend.name]||[];let unanswered=0;
+                for(let i=msgs.length-1;i>=0;i--){if(msgs[i].from==='friend')unanswered++;else if(msgs[i].from==='me')break;}
+                if(unanswered>=1){friend.ignoredCount=unanswered;friend.isGhostingMe=true;saveFriendsData();return;}
+                if(originalAutoMessage)return originalAutoMessage(friend,contextPrompt,1);
+            };
+
+            const originalOpenFriendsModal=window.openFriendsModal;
+            window.openFriendsModal=function(){
+                if(originalOpenFriendsModal)originalOpenFriendsModal();
+                const modal=document.getElementById('friends-modal')?.querySelector('.modal-content');
+                const heading=modal?.querySelector('.friends-hub-heading');
+                const toggle=document.querySelector('#friends-modal .friend-add-toggle');
+                const form=document.getElementById('friend-add-form');
+                if(modal&&heading&&toggle){heading.insertAdjacentElement('afterend',toggle);if(form)toggle.insertAdjacentElement('afterend',form);}
+            };
+
+            // Counts are based on the same deduplicated activity list shown in the profile.
+            window.profileCountPostsForUser=function(){return typeof buildMyProfileActivity==='function'?buildMyProfileActivity().length:0;};
+            window.profileCountPostsForFriend=function(name){return getFriendActivity(name).length;};
+
+            setTimeout(ensureSimpleComposerSetting,0);
+        })();
 
         document.addEventListener('click', function(event) {
             const isDropdownBtn = event.target.closest('.post-options-btn');
