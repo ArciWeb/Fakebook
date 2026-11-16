@@ -3622,7 +3622,11 @@ ${context}`;
                 let fName = friendsList[index].name;
                 if(chatData[fName]) { delete chatData[fName]; saveChatsData(); }
                 friendsList.splice(index, 1);
-                friendsList.forEach(f=>{f.friendList=(f.friendList||[]).filter(n=>n!==fName);f.commonFriends=(f.commonFriends||[]).filter(n=>n!==fName);});
+                friendsList.forEach(f=>{
+                    f.friendList=(f.friendList||[]).filter(n=>n!==fName);
+                    f.commonFriends=(f.commonFriends||[]).filter(n=>n!==fName);
+                    f.friendListManual=(f.friendListManual||[]).filter(n=>n!==fName);
+                });
                 saveFriendsData();
                 sortAndRenderFriends();
             }
@@ -6978,6 +6982,407 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             window.profileCountPostsForFriend=function(name){return getFriendActivity(name).length;};
 
             setTimeout(ensureSimpleComposerSetting,0);
+            /* 4.15.1: unified profile galleries and explicit friend networks */
+            const fbNameKey = value => String(value || '').trim().toLocaleLowerCase('sk');
+            const fbUniqueNetworkNames = (list, selfName) => {
+                const self = fbNameKey(selfName);
+                const out = [];
+                (Array.isArray(list) ? list : []).forEach(value => {
+                    const name = String(value || '').trim();
+                    const key = fbNameKey(name);
+                    if (!key || key === self || out.some(x => fbNameKey(x) === key)) return;
+                    out.push(name);
+                });
+                return out;
+            };
+            const fbIsCatalogFriend = friend => !!friend && friend.isCatalogCharacter === true;
+            const fbIsRealFriend = friend => !!friend && friendsList.some(item => item === friend || fbNameKey(item.name) === fbNameKey(friend.name));
+
+            // Catalog personalities keep their generated 20–30 person network.
+            // Manually created/accepted friends keep only relationships explicitly added by the user.
+            window.seedFriendNetwork = function(friend) {
+                if (!friend) return;
+                if (fbIsCatalogFriend(friend)) {
+                    const existing = fbUniqueNetworkNames([...(friend.friendList || []), ...(friend.commonFriends || [])], friend.name);
+                    const target = 20 + Math.floor(Math.random() * 11);
+                    const suggested = typeof fbRelevantNetwork === 'function' ? fbRelevantNetwork(friend.name, 30) : getCharacterConnections(friend.name);
+                    const merged = fbUniqueNetworkNames([...existing, ...suggested], friend.name).slice(0, Math.max(target, existing.length));
+                    friend.friendList = merged.slice(0, 30);
+                    friend.commonFriends = fbUniqueNetworkNames(friend.commonFriends || [], friend.name);
+                } else {
+                    const explicit = fbUniqueNetworkNames([...(friend.friendListManual || []), ...(friend.commonFriends || [])], friend.name);
+                    friend.friendList = explicit.slice();
+                    friend.commonFriends = fbUniqueNetworkNames(friend.commonFriends || [], friend.name);
+                    friend.friendListManual = explicit.slice();
+                }
+            };
+
+            window.ensureFriendNetwork = function() {
+                let changed = false;
+                friendsList.forEach(friend => {
+                    const before = JSON.stringify(friend.friendList || []);
+                    if (fbIsCatalogFriend(friend)) {
+                        const existing = fbUniqueNetworkNames([...(friend.friendList || []), ...(friend.commonFriends || [])], friend.name);
+                        const target = existing.length >= 20 ? Math.min(30, existing.length) : 20 + Math.floor(Math.random() * 11);
+                        const source = typeof fbRelevantNetwork === 'function' ? fbRelevantNetwork(friend.name, 30) : getCharacterConnections(friend.name);
+                        friend.friendList = fbUniqueNetworkNames([...existing, ...source], friend.name).slice(0, target);
+                        friend.commonFriends = fbUniqueNetworkNames(friend.commonFriends || [], friend.name);
+                    } else {
+                        // Older builds generated random 1–5 and later 20–30 links for custom friends.
+                        // Preserve only explicitly selected/added links; do not retain those false links.
+                        const explicit = fbUniqueNetworkNames([...(friend.friendListManual || []), ...(friend.commonFriends || [])], friend.name);
+                        friend.friendList = explicit.slice();
+                        friend.commonFriends = fbUniqueNetworkNames(friend.commonFriends || [], friend.name);
+                        friend.friendListManual = explicit.slice();
+                    }
+                    if (before !== JSON.stringify(friend.friendList || [])) changed = true;
+                });
+                if (changed) saveFriendsData();
+            };
+            window.enrichCatalogFriendNetworks = function() { window.ensureFriendNetwork(); };
+
+            // A friend is always connected to the current user. This is a virtual relationship,
+            // so it is counted and shown without polluting saved friend-to-friend lists.
+            function fbProfileNetworkNames(friend) {
+                const names = fbUniqueNetworkNames([...(friend?.friendList || []), ...(friend?.commonFriends || []), ...(friend?.friendListManual || [])], friend?.name);
+                if (friend && fbIsRealFriend(friend) && fbNameKey(currentUsername) !== fbNameKey(friend.name) && !names.some(n => fbNameKey(n) === fbNameKey(currentUsername))) {
+                    names.unshift(currentUsername);
+                }
+                return names;
+            }
+
+            function fbAddFriendRelationship(ownerName, personName) {
+                const owner = friendsList.find(f => fbNameKey(f.name) === fbNameKey(ownerName));
+                if (!owner || !personName) return false;
+                let person = friendsList.find(f => fbNameKey(f.name) === fbNameKey(personName));
+                if (!person) {
+                    const catalogPerson = SUGGESTED_PEOPLE_CATALOG.find(p => fbNameKey(p.name) === fbNameKey(personName));
+                    if (!catalogPerson) return false;
+                    addSuggestedPerson(catalogPerson.name);
+                    person = friendsList.find(f => fbNameKey(f.name) === fbNameKey(catalogPerson.name));
+                }
+                if (!person || fbNameKey(person.name) === fbNameKey(owner.name)) return false;
+                const addExplicit = (friend, otherName) => {
+                    friend.friendList = fbUniqueNetworkNames([...(friend.friendList || []), ...(friend.friendListManual || []), ...(friend.commonFriends || []), otherName], friend.name);
+                    friend.commonFriends = fbUniqueNetworkNames([...(friend.commonFriends || []), otherName], friend.name);
+                    friend.friendListManual = fbUniqueNetworkNames([...(friend.friendListManual || []), otherName], friend.name);
+                };
+                addExplicit(owner, person.name);
+                addExplicit(person, owner.name);
+                saveFriendsData();
+                if (fbNameKey(currentProfileFriendName) === fbNameKey(owner.name)) {
+                    setProfileSummary(owner);
+                    renderProfileFriends(owner);
+                }
+                return true;
+            }
+            window.fbAddFriendRelationship = fbAddFriendRelationship;
+
+            window.setProfileSummary = function(friend) {
+                const host = document.getElementById('profile-summary-line');
+                if (!host) return;
+                const friendCount = friend ? fbProfileNetworkNames(friend).length : friendsList.length;
+                const postCount = friend ? profileCountPostsForFriend(friend.name) : profileCountPostsForUser();
+                host.innerHTML = `<button class="profile-stat-link" onclick="showProfileTab('friends')"><strong>${profileCountText(friendCount, 'friends')}</strong></button><span>·</span><button class="profile-stat-link" onclick="showProfileTab('posts')">${profileCountText(postCount, 'posts')}</button>`;
+            };
+
+            // Render both the person's existing network and a convenient list of the user's own
+            // friends who can be connected to this person with one tap.
+            window.renderProfileFriends = function(friend) {
+                const host = document.getElementById('my-profile-friends-preview');
+                if (!host) return;
+                const isMyProfile = !friend;
+                const names = isMyProfile ? friendsList.map(f => f.name).filter(Boolean) : fbProfileNetworkNames(friend);
+                const unique = fbUniqueNetworkNames(names, isMyProfile ? '' : friend.name);
+                const ownerName = friend?.name || '';
+                const escapeName = value => encodeURIComponent(String(value || ''));
+                const makeCard = (name, options = {}) => {
+                    const self = fbNameKey(name) === fbNameKey(currentUsername);
+                    const actual = friendsList.find(f => fbNameKey(f.name) === fbNameKey(name));
+                    const catalog = !actual && SUGGESTED_PEOPLE_CATALOG.find(p => fbNameKey(p.name) === fbNameKey(name));
+                    const photo = actual?.profilePhoto || '';
+                    const initial = self ? (String(currentUsername || 'JA').trim().charAt(0) || 'J') : String(name || '?').trim().charAt(0).toUpperCase();
+                    const card = document.createElement('article');
+                    card.className = 'profile-friend-card';
+                    card.innerHTML = `<div class="profile-friend-photo" style="background-color:${generateColor(name)};${photo ? `background-image:url('${escapeHtmlAttr(photo)}');background-size:cover;background-position:center;` : ''}">${photo ? '' : escapeHtml(initial)}</div><div class="profile-friend-name">${escapeHtml(name)}${self ? ' (ty)' : ''}</div>${options.status ? `<div style="padding:0 9px 9px;color:var(--text-muted);font-size:.75rem;">${escapeHtml(options.status)}</div>` : ''}`;
+                    card.addEventListener('click', () => {
+                        if (self) openProfile();
+                        else if (actual || catalog) openSelectedFriendProfile(name);
+                    });
+                    if (options.action) {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'btn btn-primary';
+                        button.style.cssText = 'margin:0 8px 10px;padding:7px 9px;font-size:.76rem;width:calc(100% - 16px);';
+                        button.textContent = options.action.label;
+                        button.addEventListener('click', event => {
+                            event.stopPropagation();
+                            options.action.run();
+                        });
+                        card.appendChild(button);
+                    }
+                    return card;
+                };
+
+                const heading = isMyProfile ? UI_TEXTS[appLanguage].profileTabFriends : `${UI_TEXTS[appLanguage].profileFriendsOf} ${friend.name}`;
+                host.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;"><div><strong style="font-size:1.12rem;">${escapeHtml(heading)}</strong><div style="font-size:.84rem;color:var(--text-muted);margin-top:3px;">${profileCountText(unique.length, 'friends')}</div></div>${isMyProfile ? `<button class="btn btn-secondary" onclick="openFriendsModal()">${UI_TEXTS[appLanguage].profileShowAllFriends}</button>` : ''}</div><div class="profile-friends-grid" id="fb-profile-network-grid"></div>${!isMyProfile ? `<div class="profile-about-card" style="margin-top:16px;"><div style="font-weight:800;margin-bottom:5px;">Pridať mojich priateľov</div><div style="font-size:.82rem;color:var(--text-muted);margin-bottom:11px;">Vyber priateľov, ktorých chceš prepojiť s profilom ${escapeHtml(friend.name)}.</div><div class="profile-friends-grid" id="fb-profile-add-friends-grid"></div></div>` : ''}`;
+                const grid = document.getElementById('fb-profile-network-grid');
+                unique.forEach(name => {
+                    const self = fbNameKey(name) === fbNameKey(currentUsername);
+                    const actual = friendsList.some(f => fbNameKey(f.name) === fbNameKey(name));
+                    const catalog = SUGGESTED_PEOPLE_CATALOG.some(p => fbNameKey(p.name) === fbNameKey(name));
+                    let action = null;
+                    let status = self ? 'Ty si priateľom tohto profilu' : (actual ? 'Tvoj priateľ' : '');
+                    if (!isMyProfile && !self && !actual && catalog) {
+                        action = { label: '＋ Pridať medzi mojich priateľov', run: () => {
+                            const ok = fbAddFriendRelationship(ownerName, name);
+                            if (!ok) alert('Tohto človeka sa nepodarilo pridať.');
+                        }};
+                    }
+                    grid.appendChild(makeCard(name, {status, action}));
+                });
+                const addGrid = document.getElementById('fb-profile-add-friends-grid');
+                if (addGrid && friend) {
+                    const linked = new Set(unique.map(fbNameKey));
+                    const candidates = friendsList.filter(f => fbNameKey(f.name) !== fbNameKey(friend.name) && !linked.has(fbNameKey(f.name)));
+                    if (!candidates.length) {
+                        const availableFriends = friendsList.filter(person => fbNameKey(person.name) !== fbNameKey(friend.name)).length;
+                        const message = availableFriends ? 'Všetci tvoji priatelia sú už prepojení s týmto profilom.' : 'Zatiaľ nemáš ďalších priateľov, ktorých by si mohol pridať.';
+                        addGrid.innerHTML = `<div class="profile-about-empty" style="grid-column:1/-1;">${message}</div>`;
+                    } else {
+                        candidates.forEach(person => addGrid.appendChild(makeCard(person.name, {
+                            status: 'Zatiaľ nie je priateľom tohto profilu',
+                            action: {label: `＋ Pridať ku ${friend.name}`, run: () => {
+                                if (!fbAddFriendRelationship(friend.name, person.name)) alert('Priateľa sa nepodarilo prepojiť.');
+                            }}
+                        })));
+                    }
+                }
+                if (isMyProfile && !unique.length) {
+                    host.insertAdjacentHTML('beforeend', `<div class="profile-about-empty">${UI_TEXTS[appLanguage].profileNoFriends}</div>`);
+                }
+            };
+
+            // Profile photos are a projection of the exact activity list shown in the Posts tab.
+            // This prevents old gallery-only image lists and unrelated article mentions from leaking in.
+            function fbResolvePhotoSource(post, activity) {
+                if (Number.isInteger(activity?.sIdx) && Number.isInteger(activity?.pIdx) && feedData[activity.sIdx]?.posts?.[activity.pIdx]) {
+                    const candidate = feedData[activity.sIdx].posts[activity.pIdx];
+                    if (candidate === post || (post?.id && candidate.id === post.id)) return {si: activity.sIdx, pi: activity.pIdx, post: candidate};
+                }
+                for (let si = 0; si < feedData.length; si++) {
+                    const posts = feedData[si]?.posts || [];
+                    for (let pi = 0; pi < posts.length; pi++) {
+                        const candidate = posts[pi];
+                        if (candidate === post || (post?.id && candidate.id === post.id) || (post?.sharedOriginalPostId && candidate.id === post.sharedOriginalPostId)) {
+                            return {si, pi, post: candidate};
+                        }
+                    }
+                }
+                return {si: null, pi: null, post};
+            }
+
+            function fbBuildProfilePhotoItems(friend) {
+                const activity = friend ? getFriendActivity(friend.name) : buildMyProfileActivity();
+                const items = [];
+                const seenUrls = new Set();
+                const add = (url, label, post, source, profileKind) => {
+                    const cleanUrl = String(url || '').trim();
+                    if (!cleanUrl || seenUrls.has(cleanUrl)) return;
+                    seenUrls.add(cleanUrl);
+                    items.push({url: cleanUrl, label: label || 'Fotografia', post: post || null, si: source?.si ?? null, pi: source?.pi ?? null, sourceId: source?.post?.id || post?.id || null, profileKind: profileKind || ''});
+                };
+                (Array.isArray(activity) ? activity : []).forEach(entry => {
+                    const post = entry?.post || entry;
+                    if (!post) return;
+                    let sourcePost = post;
+                    if (!post.image_url && post.id) {
+                        const resolved = fbResolvePhotoSource(post, entry);
+                        sourcePost = resolved.post || post;
+                    }
+                    const imageUrl = post.image_url || sourcePost.image_url || '';
+                    if (!imageUrl) return;
+                    const source = fbResolvePhotoSource(sourcePost, entry);
+                    add(imageUrl, post.title || sourcePost.title || (post.isFriendPost ? 'Príspevok priateľa' : 'Príspevok'), post, source, 'post');
+                });
+                // Profile and cover images remain available, but are not mixed with post activity.
+                if (friend) {
+                    if (friend.profilePhoto) add(friend.profilePhoto, 'Profilová fotka', null, null, 'profile');
+                    if (friend.profileCoverPhoto) add(friend.profileCoverPhoto, 'Titulná fotka', null, null, 'cover');
+                } else {
+                    const profilePhoto = getMyProfilePhoto();
+                    const coverPhoto = getMyProfileCover();
+                    if (profilePhoto) add(profilePhoto, 'Profilová fotka', null, null, 'profile');
+                    if (coverPhoto) add(coverPhoto, 'Titulná fotka', null, null, 'cover');
+                }
+                return items;
+            }
+
+            function fbEnsurePhotoViewer() {
+                let modal = document.getElementById('fb-photo-viewer');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'fb-photo-viewer';
+                    document.body.appendChild(modal);
+                }
+                modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:30000;background:rgba(0,0,0,.97);color:#fff;overflow-y:auto;overscroll-behavior:contain;';
+                modal.innerHTML = `<button type="button" id="fb-photo-close" aria-label="Zavrieť" style="position:fixed;right:14px;top:12px;z-index:4;border:0;border-radius:50%;width:44px;height:44px;background:rgba(50,50,50,.95);color:#fff;font-size:29px;cursor:pointer;">×</button><button type="button" id="fb-photo-prev" aria-label="Predchádzajúca fotografia" style="position:fixed;left:12px;top:40%;z-index:4;border:0;border-radius:50%;width:46px;height:46px;background:rgba(55,55,55,.9);color:#fff;font-size:28px;cursor:pointer;">‹</button><button type="button" id="fb-photo-next" aria-label="Ďalšia fotografia" style="position:fixed;right:12px;top:40%;z-index:4;border:0;border-radius:50%;width:46px;height:46px;background:rgba(55,55,55,.9);color:#fff;font-size:28px;cursor:pointer;">›</button><div id="fb-photo-viewer-body" style="min-height:100%;display:flex;flex-direction:column;align-items:center;padding:62px 66px 34px;box-sizing:border-box;"></div>`;
+                modal.querySelector('#fb-photo-close').onclick = () => window.closeFakebookPhotoViewer();
+                modal.querySelector('#fb-photo-prev').onclick = () => window.fbNavigatePhoto(-1);
+                modal.querySelector('#fb-photo-next').onclick = () => window.fbNavigatePhoto(1);
+                modal.onclick = event => { if (event.target === modal) window.closeFakebookPhotoViewer(); };
+                return modal;
+            }
+
+            window.closeFakebookPhotoViewer = function() {
+                const modal = document.getElementById('fb-photo-viewer');
+                if (modal) modal.style.display = 'none';
+            };
+            window.fbNavigatePhoto = function(direction) {
+                const items = window.__fbPhotoViewerItems || [];
+                if (!items.length) return;
+                const next = (Number(window.__fbPhotoViewerIndex || 0) + Number(direction) + items.length) % items.length;
+                window.__fbPhotoViewerIndex = next;
+                window.fbRenderPhotoViewer();
+            };
+            window.fbRenderPhotoViewer = function() {
+                const items = window.__fbPhotoViewerItems || [];
+                const index = Number(window.__fbPhotoViewerIndex || 0);
+                const item = items[index];
+                if (!item) return;
+                const modal = fbEnsurePhotoViewer();
+                const body = modal.querySelector('#fb-photo-viewer-body');
+                const post = item.post || null;
+                const text = Array.isArray(post?.content) ? post.content.join('\n\n') : String(post?.content || '');
+                const title = String(post?.title || item.label || 'Fotografia');
+                const comments = Array.isArray(post?.comments) ? post.comments : [];
+                let sourceLocation = null;
+                if (item.sourceId) {
+                    outerSource: for (let si = 0; si < feedData.length; si++) {
+                        const posts = feedData[si]?.posts || [];
+                        for (let pi = 0; pi < posts.length; pi++) { if (posts[pi]?.id === item.sourceId) { sourceLocation = {si, pi}; break outerSource; } }
+                    }
+                }
+                if (!sourceLocation && Number.isInteger(item.si) && Number.isInteger(item.pi) && feedData[item.si]?.posts?.[item.pi]) sourceLocation = {si:item.si, pi:item.pi};
+                const hasSource = !!sourceLocation;
+                body.innerHTML = `<div style="width:100%;max-width:1100px;text-align:center;color:#ddd;font-size:.84rem;margin-bottom:10px;">${index + 1} / ${items.length}</div><img id="fb-photo-viewer-image" src="${escapeHtmlAttr(item.url)}" alt="${escapeHtmlAttr(title)}" draggable="false" style="display:block;max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;user-select:none;-webkit-user-drag:none;"><div style="width:min(100%,760px);box-sizing:border-box;background:#202124;color:#fff;margin-top:16px;padding:17px;border-radius:12px;text-align:left;"><button type="button" id="fb-photo-open-post-title" style="display:block;border:0;background:none;color:#fff;padding:0;margin:0 0 10px;text-align:left;font-size:1.08rem;font-weight:800;cursor:${hasSource ? 'pointer' : 'default'};">${escapeHtml(title)}</button>${text ? `<div style="white-space:pre-wrap;line-height:1.55;color:#eee;">${escapeHtml(text)}</div>` : `<div style="color:#ccc;">${item.profileKind === 'profile' ? 'Profilová fotografia' : (item.profileKind === 'cover' ? 'Titulná fotografia' : 'K tomuto príspevku nie je uložený text.')}</div>`}<div style="margin-top:13px;color:#ccc;font-size:.88rem;">${post ? `👍 ${Number(post.likes) || 0} · ${comments.length} komentárov` : ''}</div>${hasSource ? `<button type="button" id="fb-photo-open-post" style="margin-top:14px;padding:10px 14px;border:0;border-radius:8px;background:#1877f2;color:#fff;font-weight:800;cursor:pointer;">Otvoriť celý príspevok a komentáre ↗</button>` : ''}</div>`;
+                const openSource = () => {
+                    if (!hasSource) return;
+                    window.closeFakebookPhotoViewer();
+                    openProfileActivityArticle(sourceLocation.si, sourceLocation.pi);
+                };
+                const titleButton = modal.querySelector('#fb-photo-open-post-title');
+                if (titleButton && hasSource) titleButton.onclick = openSource;
+                const openButton = modal.querySelector('#fb-photo-open-post');
+                if (openButton) openButton.onclick = openSource;
+                const previous = modal.querySelector('#fb-photo-prev');
+                const next = modal.querySelector('#fb-photo-next');
+                previous.style.display = items.length > 1 ? 'block' : 'none';
+                next.style.display = items.length > 1 ? 'block' : 'none';
+                modal.style.display = 'block';
+                const image = modal.querySelector('#fb-photo-viewer-image');
+                if (image) {
+                    let startX = 0;
+                    image.addEventListener('touchstart', event => { startX = event.changedTouches?.[0]?.clientX || 0; }, {passive:true});
+                    image.addEventListener('touchend', event => {
+                        const endX = event.changedTouches?.[0]?.clientX || 0;
+                        const delta = endX - startX;
+                        if (Math.abs(delta) > 45 && items.length > 1) window.fbNavigatePhoto(delta < 0 ? 1 : -1);
+                    }, {passive:true});
+                }
+            };
+            window.openFakebookPhotoViewerFromItem = function(index) {
+                const items = window.__fbPhotoViewerItems || [];
+                if (!items[index]) return;
+                window.__fbPhotoViewerIndex = index;
+                window.fbRenderPhotoViewer();
+            };
+            window.openFakebookPhotoViewer = function(si, pi, url, label) {
+                const post = Number.isInteger(si) ? feedData[si]?.posts?.[pi] : null;
+                const resolved = post ? {si, pi, post} : {si:null, pi:null, post:null};
+                window.__fbPhotoViewerItems = [{url, label, post:resolved.post, si:resolved.si, pi:resolved.pi}];
+                window.__fbPhotoViewerIndex = 0;
+                window.fbRenderPhotoViewer();
+            };
+            document.addEventListener('keydown', event => {
+                const modal = document.getElementById('fb-photo-viewer');
+                if (!modal || modal.style.display === 'none') return;
+                if (event.key === 'ArrowLeft') { event.preventDefault(); window.fbNavigatePhoto(-1); }
+                else if (event.key === 'ArrowRight') { event.preventDefault(); window.fbNavigatePhoto(1); }
+            });
+
+            window.renderProfilePhotos = function(friend) {
+                const host = document.getElementById('profile-photos-content');
+                if (!host) return;
+                const items = fbBuildProfilePhotoItems(friend);
+                window.__fbPhotoViewerItems = items;
+                const language = appLanguage;
+                const title = language === 'en' ? 'Photos' : (language === 'sr' ? 'Fotografije' : 'Fotografie');
+                const empty = language === 'en' ? 'No photos yet.' : (language === 'sr' ? 'Još nema fotografija.' : 'Zatiaľ tu nie sú žiadne fotografie.');
+                host.innerHTML = `<div class="profile-about-card"><div class="profile-photos-heading"><strong>${title}</strong><span>${items.length}</span></div>${items.length ? `<div class="profile-photos-grid">${items.map((item, index) => `<button type="button" class="profile-photo-tile" data-fb-photo-index="${index}" aria-label="Otvoriť fotografiu ${index + 1}" style="display:block;width:100%;padding:0;border:0;text-align:inherit;background:var(--profile-inset,var(--bg-input));font:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;"><img src="${escapeHtmlAttr(item.url)}" alt="${escapeHtmlAttr(item.label)}" loading="lazy" decoding="async"><span>${escapeHtml(item.label)}</span></button>`).join('')}</div>` : `<div class="profile-about-empty">${empty}</div>`}</div>`;
+                host.querySelectorAll('[data-fb-photo-index]').forEach(tile => {
+                    tile.addEventListener('click', () => window.openFakebookPhotoViewerFromItem(Number(tile.dataset.fbPhotoIndex)));
+                });
+            };
+
+            function fbGetCurrentProfilePerson() {
+                if (!currentProfileFriendName) return null;
+                const existing = friendsList.find(f => fbNameKey(f.name) === fbNameKey(currentProfileFriendName));
+                if (existing) return existing;
+                const person = SUGGESTED_PEOPLE_CATALOG.find(p => fbNameKey(p.name) === fbNameKey(currentProfileFriendName));
+                if (!person) return null;
+                return {name:person.name, gender:person.gender, age:person.age, profileDescription:person.description || '', profilePhoto:'', profileCoverPhoto:'', friendList:(CATALOG_SOCIAL_GRAPH.get(person.name) || getCharacterConnections(person.name) || []).slice(0,30), commonFriends:[], isCatalogCharacter:true, isTemporarySuggested:true};
+            }
+            function fbRefreshOpenProfilePhotos() {
+                const modal = document.getElementById('user-profile-modal');
+                const photoPanel = document.getElementById('profile-tab-photos');
+                if (!modal || modal.style.display !== 'flex' || !photoPanel || photoPanel.style.display === 'none') return;
+                window.renderProfilePhotos(fbGetCurrentProfilePerson());
+            }
+            window.fbRefreshOpenProfilePhotos = fbRefreshOpenProfilePhotos;
+
+            // Refresh the gallery after any saved engagement or generated post gets a new image URL.
+            const fbOriginalSaveToLocalStorage = window.saveToLocalStorage;
+            if (typeof fbOriginalSaveToLocalStorage === 'function') {
+                window.saveToLocalStorage = function(...args) {
+                    const result = fbOriginalSaveToLocalStorage.apply(this, args);
+                    fbRefreshOpenProfilePhotos();
+                    return result;
+                };
+            }
+
+            // Turn Like into a real toggle so removing a Like also removes the activity/photo,
+            // unless the same post is still shared or commented on in the profile.
+            window.likePost = function(sIdx, pIdx) {
+                const post = feedData[sIdx]?.posts?.[pIdx];
+                if (!post) return;
+                if (post.hasLiked) {
+                    post.hasLiked = false;
+                    post.likes = Math.max(0, (Number(post.likes) || 0) - 1);
+                    post.isUserLike = false;
+                    post.userLiked = false;
+                    delete post.likedAt;
+                } else {
+                    post.likes = (Number(post.likes) || 0) + 1;
+                    post.hasLiked = true;
+                    post.isUserLike = true;
+                    post.likedAt = Date.now();
+                    post.userEngagedAt = Date.now();
+                }
+                saveToLocalStorage();
+                renderGrid();
+                if (document.getElementById('view-article')?.style.display === 'block') openPost(sIdx, pIdx);
+                fbRefreshOpenProfilePhotos();
+            };
+
+            // Reopen the correct photo list when the user selects the Photos tab.
+            const fbOriginalShowProfileTab = window.showProfileTab;
+            window.showProfileTab = function(tab) {
+                if (typeof fbOriginalShowProfileTab === 'function') fbOriginalShowProfileTab(tab);
+                if (tab === 'photos') window.renderProfilePhotos(fbGetCurrentProfilePerson());
+            };
+
+
         })();
 
         document.addEventListener('click', function(event) {
