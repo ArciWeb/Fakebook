@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fakebook v. 4.14</title>
+    <title>Fakebook v. 4.16</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1877f2">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3370,8 +3370,8 @@ Pán Prsteňov|male|100|Legendárny fantasy svet v jednej osobe, ktorá každú 
             if(refreshInProgress)return;refreshInProgress=true;refreshTimeOffsetMinutes=Math.random()<0.40?60:0;localStorage.removeItem('fb_random_feed_order');
             const indicator=document.getElementById('pull-refresh-indicator');if(indicator){indicator.style.display='block';indicator.textContent=UI_TEXTS[appLanguage].refreshLoading;}
             const r=Math.random();refreshShareFriendName='';
-            if(r<.50){refreshGenerationMode='article';window.targetStatusFriend=null;}
-            else if(r<.60&&friendsList.length){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='status';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,type:'status'};}
+            if(r<.68){refreshGenerationMode='article';window.targetStatusFriend=null;}
+            else if(r<.80&&friendsList.length){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='status';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,type:'status'};}
             else if(r<.90&&friendsList.length){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='share';refreshShareFriendName=f.name;window.targetStatusFriend=null;}
             else if(friendsList.length){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='friendArticle';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,type:'clanok'};}
             else {refreshGenerationMode='article';window.targetStatusFriend=null;}
@@ -3495,16 +3495,16 @@ ${context}`;
             document.addEventListener('touchmove',e=>{
                 if(!tracking||!e.touches.length)return;
                 const dy=e.touches[0].clientY-startY,dx=Math.abs(e.touches[0].clientX-startX);
-                if(dy>0&&dx<60&&canPullRefreshFromHome({target:startTarget})){
-                    pull=Math.min(112,dy*.58);
-                    if(indicator){indicator.style.display='flex';indicator.style.height=pull+'px';indicator.style.padding='0';indicator.style.opacity=String(Math.min(1,pull/38));indicator.innerHTML='<span class="fb-pull-spinner"></span>'+(pull>65?'<span class="fb-pull-label">Uvoľni pre obnovenie</span>':'');}
+                if(dy>0&&dx<80&&canPullRefreshFromHome({target:startTarget})){
+                    pull=Math.min(112,dy*.68);
+                    if(indicator){indicator.style.display='flex';indicator.style.height=pull+'px';indicator.style.padding='0';indicator.style.opacity=String(Math.min(1,pull/34));indicator.innerHTML='<span class="fb-pull-spinner"></span>'+(pull>48?'<span class="fb-pull-label">Uvoľni pre obnovenie</span>':'');}
                     if(e.cancelable)e.preventDefault();
                 }
             },{passive:false});
             document.addEventListener('touchend',e=>{
                 if(!tracking)return;tracking=false;
                 const dy=e.changedTouches[0].clientY-startY,dx=Math.abs(e.changedTouches[0].clientX-startX);
-                if(dy>90&&dx<70&&canPullRefreshFromHome({target:startTarget})){
+                if(dy>65&&dx<80&&canPullRefreshFromHome({target:startTarget})){
                     if(indicator){indicator.style.transition='height .18s ease';indicator.style.height='58px';indicator.style.opacity='1';indicator.innerHTML='<span class="fb-pull-spinner"></span><span class="fb-pull-label">Načítavam nové príspevky…</span>';}
                     beginRefreshGeneration();
                 }else resetVisual();
@@ -6603,25 +6603,47 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
         }
 
 
-        /* Fakebook 4.16 — photo activity, complete social graph and native pull refresh */
+        /* Fakebook 4.16 — safe incremental fixes based on 4.15 */
         (function(){
             window.fakebookSimpleComposerEnabled = localStorage.getItem('fb_simple_composer') !== '0';
             window.fakebookSimpleAutoPublish = false;
 
             function ensureSimpleComposerSetting(){
+                const syncToggle=(toggle)=>{
+                    if(!toggle)return;
+                    toggle.checked=window.fakebookSimpleComposerEnabled;
+                    if(toggle.dataset.fbSimpleBound==='1')return;
+                    toggle.dataset.fbSimpleBound='1';
+                    toggle.addEventListener('change',()=>{
+                        window.fakebookSimpleComposerEnabled=toggle.checked;
+                        localStorage.setItem('fb_simple_composer',toggle.checked?'1':'0');
+                        document.querySelectorAll('#fb-simple-composer-toggle-detailed,#fb-simple-composer-settings-toggle').forEach(other=>{if(other!==toggle)other.checked=toggle.checked;});
+                    });
+                };
                 const host=document.querySelector('#create-modal .modal-content');
-                if(!host)return;
-                const existing=document.getElementById('fb-simple-composer-setting');
-                if(existing){const current=existing.querySelector('input');if(current)current.checked=window.fakebookSimpleComposerEnabled;return;}
-                const row=document.createElement('label');
-                row.id='fb-simple-composer-setting';
-                row.style.cssText='display:flex;gap:9px;align-items:center;margin:0 0 12px;padding:10px 12px;border:1px solid var(--border-color);border-radius:9px;background:var(--bg-input);font-size:.9rem;';
-                row.innerHTML='<input id="fb-simple-composer-toggle-detailed" type="checkbox" style="width:18px;height:18px;margin:0;"> <span><strong>Zjednodušené vytváranie príspevkov</strong><br><small style="color:var(--text-muted)">Aktívne predvolene. Vypnutím sa vráti pôvodný podrobný editor.</small></span>';
-                const title=host.querySelector('h3');
-                if(title) title.insertAdjacentElement('afterend',row); else host.prepend(row);
-                const toggle=row.querySelector('input');
-                toggle.checked=window.fakebookSimpleComposerEnabled;
-                toggle.addEventListener('change',()=>{window.fakebookSimpleComposerEnabled=toggle.checked;localStorage.setItem('fb_simple_composer',toggle.checked?'1':'0');});
+                if(host){
+                    let row=document.getElementById('fb-simple-composer-setting');
+                    if(!row){
+                        row=document.createElement('label');row.id='fb-simple-composer-setting';
+                        row.style.cssText='display:flex;gap:9px;align-items:center;margin:0 0 12px;padding:10px 12px;border:1px solid var(--border-color);border-radius:9px;background:var(--bg-input);font-size:.9rem;';
+                        row.innerHTML='<input id="fb-simple-composer-toggle-detailed" type="checkbox" style="width:18px;height:18px;margin:0;"> <span><strong>Zjednodušené vytváranie príspevkov</strong><br><small style="color:var(--text-muted)">Aktívne predvolene. Vypnutím sa vráti pôvodný podrobný editor.</small></span>';
+                        const title=host.querySelector('h3');if(title)title.insertAdjacentElement('afterend',row);else host.prepend(row);
+                    }
+                    syncToggle(row.querySelector('input'));
+                }
+                const settings=document.querySelector('#api-modal .modal-content');
+                if(settings){
+                    let row=document.getElementById('fb-simple-composer-settings-row');
+                    if(!row){
+                        row=document.createElement('div');row.id='fb-simple-composer-settings-row';
+                        row.style.cssText='display:flex;gap:10px;align-items:center;margin:14px 0;padding:12px;border:1px solid var(--border-color);border-radius:9px;background:var(--bg-input);';
+                        row.innerHTML='<input id="fb-simple-composer-settings-toggle" type="checkbox" style="width:18px;height:18px;flex:0 0 auto;margin:0"><label for="fb-simple-composer-settings-toggle" style="font-weight:600;cursor:pointer">Zjednodušený režim vytvárania príspevkov</label>';
+                        const keyStatus=settings.querySelector('#key-status-text');
+                        const anchor=keyStatus||settings.querySelector('#api-key-input')||settings.querySelector('h3');
+                        if(anchor)anchor.insertAdjacentElement('afterend',row);else settings.appendChild(row);
+                    }
+                    syncToggle(row.querySelector('input'));
+                }
             }
             function ensureSimpleComposerModal(){
                 if(document.getElementById('fb-simple-composer-modal'))return;
@@ -6759,129 +6781,6 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
             window.finishRefreshWithoutPost=function(...args){if(originalFinishRefresh)originalFinishRefresh(...args);const el=document.getElementById('pull-refresh-indicator');if(el){el.style.transition='height .22s ease,opacity .22s ease';el.style.height='0px';el.style.opacity='0';setTimeout(()=>{el.style.display='none';el.style.transition='';el.style.innerHTML='<span class="fb-pull-spinner"></span>';},240);}};
             const originalPublishRefresh=window.publishRefreshPosts;
             window.publishRefreshPosts=function(...args){if(originalPublishRefresh)originalPublishRefresh(...args);const el=document.getElementById('pull-refresh-indicator');if(el){el.style.transition='height .22s ease,opacity .22s ease';el.style.height='0px';el.style.opacity='0';setTimeout(()=>{el.style.display='none';el.style.transition='';el.innerHTML='<span class="fb-pull-spinner"></span>';},240);}};
-
-
-            {
-            // v4.16: make profile galleries a first-class view of every image-bearing post.
-            const fbPhotoItems=[];
-            const fbNorm=v=>String(v||'').trim().toLocaleLowerCase('sk');
-            const fbPostText=post=>[post?.title,post?.content].flat().filter(Boolean).join(' ');
-            const fbHasPerson=(post,name)=>{
-                const n=fbNorm(name); if(!n)return false;
-                const hay=fbNorm(fbPostText(post));
-                return hay.includes(n);
-            };
-            const fbCommentedBy=(comments,name)=>{
-                let yes=false; const walk=a=>(Array.isArray(a)?a:[]).forEach(c=>{if(fbNorm(c?.username)===fbNorm(name))yes=true;walk(c?.replies);});walk(comments);return yes;
-            };
-            const fbImageOf=post=>post?.image_url||post?.imageUrl||post?.image||post?.photo_url||post?.mediaUrl||post?.media_url||'';
-            const fbFindPostLocation=post=>{
-                for(let si=0;si<(feedData||[]).length;si++)for(let pi=0;pi<(feedData[si]?.posts||[]).length;pi++){
-                    const candidate=feedData[si].posts[pi];
-                    if(candidate===post||(post?.id&&candidate?.id===post.id))return {si,pi};
-                }
-                return null;
-            };
-            window.openFakebookPhotoViewer=function(si,pi,url,label,postOverride=null){
-                let post=Number.isInteger(si)&&feedData[si]?.posts?.[pi]?feedData[si].posts[pi]:(postOverride||null);
-                let loc=Number.isInteger(si)&&Number.isInteger(pi)&&feedData[si]?.posts?.[pi]?{si,pi}:null;
-                if(!loc&&post){const found=fbFindPostLocation(post);if(found)loc=found;}
-                ensurePhotoViewer();
-                const body=document.getElementById('fb-photo-viewer-body');
-                const comments=Array.isArray(post?.comments)?post.comments:[];
-                const commentHtml=comments.map(c=>`<div style="padding:7px 0;border-bottom:1px solid #ffffff22"><strong>${escapeHtml(c.username||'')}</strong> ${escapeHtml(c.text||'')}</div>`).join('');
-                body.innerHTML=`<img src="${escapeHtmlAttr(url)}" alt="" style="max-width:100%;max-height:68vh;object-fit:contain;border-radius:4px"><div style="width:min(100%,760px);background:#202124;margin-top:14px;padding:16px;border-radius:12px;box-sizing:border-box"><strong>${escapeHtml(label||post?.title||'Fotografia')}</strong>${post?`<p style="white-space:pre-wrap;line-height:1.5">${escapeHtml(Array.isArray(post.content)?post.content.join('\\n\\n'):(post.content||''))}</p><div style="color:#c7c7c7;margin:8px 0">👍 ${Number(post.likes)||0} · ${comments.length} komentárov</div><div>${commentHtml}</div><button id="fb-photo-open-post" style="margin-top:14px;padding:11px 16px;border:0;border-radius:8px;background:#1877f2;color:white;font-weight:700;width:100%">Otvoriť celý príspevok</button>`:'<p>Fotografia profilu</p>'}</div>`;
-                const openBtn=document.getElementById('fb-photo-open-post');
-                if(openBtn){openBtn.onclick=()=>{window.closeFakebookPhotoViewer();let target=loc;if(!target&&post){target=fbFindPostLocation(post);if(!target){const copy=JSON.parse(JSON.stringify(post));feedData.push({scenario:'Zdieľaný príspevok',timestamp:Date.now(),createdAt:Date.now(),posts:[copy]});target={si:feedData.length-1,pi:0};saveToLocalStorage();}}if(target)openPost(target.si,target.pi);};}
-                document.getElementById('fb-photo-viewer').style.display='block';
-            };
-            window.openFakebookPhotoViewerFromItem=function(index){const it=fbPhotoItems[index];if(!it)return;window.openFakebookPhotoViewer(it.si,it.pi,it.url,it.label,it.post);};
-            window.renderProfilePhotos=function(friend){
-                const host=document.getElementById('profile-photos-content');if(!host)return;
-                const owner=String(friend?.name||currentUsername||''),isMe=!friend,items=[],seen=new Set();
-                const add=(url,label,post=null,si=null,pi=null)=>{
-                    if(!url||typeof url!=='string')return;
-                    const key=(post?.id?`post:${post.id}`:`url:${url}`)+'|'+fbNorm(owner);
-                    if(seen.has(key))return;seen.add(key);items.push({url,label:label||post?.title||'Fotografia',post,si,pi});
-                };
-                if(isMe){add(getMyProfilePhoto(),'Profilová fotka');add(getMyProfileCover(),'Titulná fotka');}
-                else{add(friend.profilePhoto,'Profilová fotka');add(friend.profileCoverPhoto,'Titulná fotka');}
-                const all=[];
-                (feedData||[]).forEach((slot,si)=>(slot?.posts||[]).forEach((post,pi)=>all.push({post,si,pi})));
-                // Include standalone shared-post records too, resolving them back to the feed when possible.
-                (sharedPosts||[]).forEach(post=>{if(!all.some(x=>x.post===post||(post?.id&&x.post?.id===post.id)))all.push({post,loc:fbFindPostLocation(post)});});
-                all.forEach(({post,si,pi,loc})=>{
-                    const url=fbImageOf(post);if(!url)return;
-                    let relevant=false;
-                    if(isMe){
-                        relevant=!!(post.isUserStatus||post.isUserShare||post.isSharedByUser||post.profileSharedByUser||post.isUserLike||post.isUserComment||post.hasLiked||fbNorm(post.sharedByUser)===fbNorm(currentUsername));
-                        relevant=relevant||fbCommentedBy(post.comments,currentUsername);
-                        relevant=relevant||(Array.isArray(post.likedBy)&&post.likedBy.some(n=>fbNorm(n)===fbNorm(currentUsername)));
-                        relevant=relevant||(sharedPosts||[]).some(x=>x===post||(x?.id&&x.id===post.id));
-                    }else{
-                        relevant=fbNorm(post.author_name)===fbNorm(owner)||fbNorm(post.sharedByFriend)===fbNorm(owner)||fbNorm(post.sharedByUser)===fbNorm(owner)||fbNorm(post.sharedBy)===fbNorm(owner);
-                        relevant=relevant||fbCommentedBy(post.comments,owner)||fbHasPerson(post,owner);
-                        relevant=relevant||(Array.isArray(post.likedBy)&&post.likedBy.some(n=>fbNorm(n)===fbNorm(owner)));
-                    }
-                    if(!relevant)return;
-                    const location=Number.isInteger(si)&&Number.isInteger(pi)?{si,pi}:loc||fbFindPostLocation(post);
-                    add(url,post.title||post.author_name||'Príspevok',post,location?.si??null,location?.pi??null);
-                });
-                fbPhotoItems.splice(0,fbPhotoItems.length,...items);
-                host.innerHTML=`<div class="profile-about-card"><div class="profile-photos-heading"><strong>Fotografie</strong><span>${items.length}</span></div>${items.length?`<div class="profile-photos-grid">${items.map((it,i)=>`<div class="profile-photo-tile" role="button" tabindex="0" onclick="openFakebookPhotoViewerFromItem(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFakebookPhotoViewerFromItem(${i})}"><img loading="lazy" src="${escapeHtmlAttr(it.url)}" alt="${escapeHtmlAttr(it.label)}"><span>${escapeHtml(it.label)}</span></div>`).join('')}</div>`:'<div class="profile-about-empty">Zatiaľ tu nie sú žiadne fotografie.</div>'}</div>`;
-            };
-
-            // Catalog people are navigable profiles too; their generated friend graph is visible and clickable.
-            const fbCatalogPerson=name=>(typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG:[]).find(p=>fbNorm(p.name)===fbNorm(name));
-            const fbFriendNamesFor=name=>{
-                const actual=friendsList.find(f=>fbNorm(f.name)===fbNorm(name));
-                if(actual){let names=Array.isArray(actual.friendList)?actual.friendList.slice():[];if(names.length<20){const candidates=[...getCharacterConnections(actual.name),...(SUGGESTED_PEOPLE_CATALOG||[]).map(p=>p.name),...friendsList.map(f=>f.name)].filter(n=>fbNorm(n)!==fbNorm(name));for(const n of candidates){if(names.length>=25)break;if(!names.some(x=>fbNorm(x)===fbNorm(n)))names.push(n);}}actual.friendList=names.slice(0,30);if(typeof saveFriendsData==='function')saveFriendsData();return actual.friendList;}
-                const person=fbCatalogPerson(name);if(!person)return [];
-                const graph=(CATALOG_SOCIAL_GRAPH?.get(person.name)||getCharacterConnections(person.name)||[]).slice();
-                return graph.slice(0,30);
-            };
-            window.renderProfileFriends=function(friend){
-                const host=document.getElementById('my-profile-friends-preview');if(!host)return;
-                const names=friend?fbFriendNamesFor(friend.name):friendsList.map(f=>f.name);
-                const unique=names.filter((n,i,a)=>n&&a.findIndex(v=>fbNorm(v)===fbNorm(n))===i).slice(0,30);
-                const cards=unique.map(name=>{
-                    const f=friendsList.find(x=>fbNorm(x.name)===fbNorm(name));const person=fbCatalogPerson(name);const photo=f?.profilePhoto||person?.photo||'';
-                    const encoded=encodeURIComponent(name);
-                    return `<div class="profile-friend-card" onclick="openSelectedFriendProfile(decodeURIComponent('${encoded}'))" style="cursor:pointer"><div class="profile-friend-photo" style="background-color:${generateColor(name)};${photo?`background-image:url('${String(photo).replace(/'/g,'%27')}')`:''}">${photo?'':escapeHtml(String(name).trim().charAt(0).toUpperCase())}</div><div class="profile-friend-name">${escapeHtml(name)}</div></div>`;
-                }).join('');
-                host.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px"><div><strong style="font-size:1.12rem">${friend?`Priatelia používateľa ${escapeHtml(friend.name)}`:'Priatelia'}</strong><div style="font-size:.84rem;color:var(--text-muted);margin-top:3px">${unique.length} priateľov</div></div>${!friend?'<button class="btn btn-secondary" onclick="openFriendsModal()">Zobraziť všetkých</button>':''}</div>${unique.length?`<div class="profile-friends-grid">${cards}</div>`:'<div class="profile-about-empty">Zatiaľ bez priateľov.</div>'}`;
-            };
-
-            // Ensure suggested-person profiles always have a visible add-friend action under the profile header.
-            const fbOriginalOpenProfile=window.openSelectedFriendProfile;
-            window.openSelectedFriendProfile=function(name){
-                const person=fbCatalogPerson(name);const actual=friendsList.find(f=>fbNorm(f.name)===fbNorm(name));
-                const oldBtn=document.getElementById('fb-profile-add-person');if(oldBtn&&actual){oldBtn.style.display='none';oldBtn.disabled=false;}
-                fbOriginalOpenProfile(name);
-                if(!person||actual)return;
-                const bar=document.querySelector('#user-profile-modal .profile-action-bar');if(!bar)return;
-                let btn=document.getElementById('fb-profile-add-person');if(!btn){btn=document.createElement('button');btn.id='fb-profile-add-person';btn.className='btn btn-primary';bar.appendChild(btn);}
-                btn.textContent='＋ Pridať priateľa';btn.style.display='inline-flex';btn.onclick=()=>{addSuggestedPerson(person.name);btn.textContent='✓ Žiadosť odoslaná';btn.disabled=true;};
-                const graph=fbFriendNamesFor(person.name);const profileFriend={name:person.name,gender:person.gender,age:person.age,profileDescription:person.description||'',friendList:graph};
-                renderProfileFriends(profileFriend);renderProfilePhotos(profileFriend);
-            };
-            // When opening a real friend, hide the suggested-profile action.
-            const fbOriginalCloseProfile=window.closeProfile;
-            window.closeProfile=function(){const b=document.getElementById('fb-profile-add-person');if(b){b.style.display='none';b.disabled=false;}return fbOriginalCloseProfile();};
-
-            // Mirror the simple-composer preference in the main Settings dialog as well.
-            const fbOriginalEnsureSimpleSetting=ensureSimpleComposerSetting;
-            window.ensureSimpleComposerSetting=function(){
-                fbOriginalEnsureSimpleSetting();
-                const modal=document.querySelector('#api-modal .modal-content');if(!modal)return;
-                let row=document.getElementById('fb-simple-composer-main-setting');
-                if(!row){row=document.createElement('label');row.id='fb-simple-composer-main-setting';row.style.cssText='display:flex;align-items:flex-start;gap:9px;padding:12px;margin:12px 0;border:1px solid var(--border-color);border-radius:9px;font-size:.9rem';row.innerHTML='<input id="fb-simple-composer-toggle-main" type="checkbox" style="width:18px;height:18px;margin:2px 0 0"><span><strong>Zjednodušený režim vytvárania príspevkov</strong><br><small style="color:var(--text-muted)">Zapnuté: rýchle vytvorenie statusu. Vypnuté: podrobný editor.</small></span>';const anchor=document.getElementById('lbl-feed-settings-title')?.parentElement||modal.querySelector('#slots-container');if(anchor)anchor.insertAdjacentElement('beforebegin',row);else modal.appendChild(row);}
-                const toggle=document.getElementById('fb-simple-composer-toggle-main');if(toggle){toggle.checked=window.fakebookSimpleComposerEnabled;toggle.onchange=()=>{window.fakebookSimpleComposerEnabled=toggle.checked;localStorage.setItem('fb_simple_composer',toggle.checked?'1':'0');['fb-simple-composer-toggle','fb-simple-composer-toggle-detailed'].forEach(id=>{const x=document.getElementById(id);if(x)x.checked=toggle.checked;});};}
-            };
-            const fbOriginalOpenApi=window.openApiModal;
-            window.openApiModal=function(){if(fbOriginalOpenApi)fbOriginalOpenApi();window.ensureSimpleComposerSetting();};
-            setTimeout(()=>window.ensureSimpleComposerSetting(),0);
-            }
 
             setTimeout(ensureSimpleComposerSetting,0);
             };
@@ -7029,8 +6928,119 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 });
             };
 
-            // Correct mutually exclusive refresh outcomes: 50% article, 10% friend status,
-            // 30% friend share, 10% article about a friend (when friends exist).
+            // Final photo gallery pass: preserve the source post index for every tile.
+            // The previous wrapper replaced the tile handler and lost that index, so the
+            // viewer could show an image without being able to open its original post.
+            function fbFindOriginalPhotoPost(item){
+                if(Number.isInteger(item?.si)&&Number.isInteger(item?.pi)&&feedData[item.si]?.posts?.[item.pi])return {si:item.si,pi:item.pi,post:feedData[item.si].posts[item.pi]};
+                const id=item?.post?.id;
+                if(id){
+                    for(let si=0;si<feedData.length;si++){
+                        const posts=feedData[si]?.posts||[];
+                        const pi=posts.findIndex(p=>p&&p.id===id);
+                        if(pi>=0)return {si,pi,post:posts[pi]};
+                    }
+                }
+                if(item?.url){
+                    for(let si=0;si<feedData.length;si++){
+                        const posts=feedData[si]?.posts||[];
+                        const pi=posts.findIndex(p=>p&&p.image_url===item.url);
+                        if(pi>=0)return {si,pi,post:posts[pi]};
+                    }
+                }
+                return {si:null,pi:null,post:item?.post||null};
+            }
+            window.openFakebookPhotoViewerFromItem=function(index){
+                const item=window.__fbPhotoViewerItems?.[index];if(!item)return;
+                const found=fbFindOriginalPhotoPost(item),post=found.post;
+                ensurePhotoViewer();
+                const body=document.getElementById('fb-photo-viewer-body');
+                const comments=Array.isArray(post?.comments)?post.comments:[];
+                const openButton=Number.isInteger(found.si)&&Number.isInteger(found.pi)
+                    ? `<button class="fb-photo-open-post" onclick="closeFakebookPhotoViewer();openPost(${found.si},${found.pi})">Otvoriť pôvodný príspevok</button>` : '';
+                body.innerHTML=`<img src="${escapeHtmlAttr(item.url)}" alt="" style="max-width:100%;max-height:72vh;object-fit:contain"><div class="fb-photo-viewer-details"><strong>${escapeHtml(item.label||post?.title||'Fotografia')}</strong>${post?`<p style="white-space:pre-wrap">${escapeHtml(Array.isArray(post.content)?post.content.join('\n\n'):(post.content||''))}</p><div>👍 ${Number(post.likes)||0} · ${comments.length} komentárov</div><div class="fb-photo-viewer-comments">${comments.map(c=>`<p><strong>${escapeHtml(c.username||'')}</strong> ${escapeHtml(c.text||'')}</p>`).join('')}</div>${openButton}`:'<p>Fotografia profilu</p>'}</div>`;
+                document.getElementById('fb-photo-viewer').style.display='block';
+            };
+            window.renderProfilePhotos=function(friend){
+                const host=document.getElementById('profile-photos-content');if(!host)return;
+                const raw=fbCollectPhotoItems(friend),items=[];
+                const seen=new Set();
+                raw.forEach(item=>{
+                    if(!item?.url||seen.has(item.url))return;
+                    seen.add(item.url);
+                    const found=fbFindOriginalPhotoPost(item);
+                    items.push({...item,si:found.si,pi:found.pi,post:found.post});
+                });
+                window.__fbPhotoViewerItems=items;
+                host.innerHTML=`<div class="profile-about-card"><div class="profile-photos-heading"><strong>${appLanguage==='en'?'Photos':(appLanguage==='sr'?'Fotografije':'Fotografie')}</strong><span>${items.length}</span></div>${items.length?`<div class="profile-photos-grid">${items.map((it,i)=>`<button type="button" class="profile-photo-tile" onclick="openFakebookPhotoViewerFromItem(${i})" aria-label="Otvoriť fotografiu: ${escapeHtmlAttr(it.label)}"><img src="${escapeHtmlAttr(it.url)}" alt="${escapeHtmlAttr(it.label)}"><span>${escapeHtml(it.label)}</span></button>`).join('')}</div>`:`<div class="profile-about-empty">${appLanguage==='en'?'No photos yet.':(appLanguage==='sr'?'Još nema fotografija.':'Zatiaľ tu nie sú žiadne fotografie.')}</div>`}</div>`;
+            };
+            const fbPhotoStyle=document.createElement('style');
+            fbPhotoStyle.textContent='.profile-photo-tile{display:block;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;overflow:hidden}.profile-photo-tile img{display:block;width:100%;height:100%;object-fit:cover}.fb-photo-viewer-details{width:min(100%,760px);box-sizing:border-box;background:#202124;color:#fff;margin-top:14px;padding:15px;border-radius:12px}.fb-photo-viewer-comments{margin-top:10px}.fb-photo-viewer-comments p{margin:7px 0}.fb-photo-open-post{margin-top:12px;padding:10px 14px;border:0;border-radius:8px;background:#1877f2;color:#fff;font-weight:650;cursor:pointer}';
+            document.head.appendChild(fbPhotoStyle);
+
+            // Normalize friend cards after the earlier 4.15 wrappers: one add button only,
+            // and every name opens a profile even when that person is not in friendsList.
+            const fbPreviousRenderProfileFriends=window.renderProfileFriends;
+            window.renderProfileFriends=function(friend){
+                if(fbPreviousRenderProfileFriends)fbPreviousRenderProfileFriends(friend);
+                const host=document.getElementById('my-profile-friends-preview');if(!host)return;
+                host.querySelectorAll('.profile-friend-card').forEach(card=>{
+                    const name=card.querySelector('.profile-friend-name')?.textContent?.trim();if(!name)return;
+                    card.style.cursor='pointer';card.onclick=()=>openSelectedFriendProfile(name);
+                    card.querySelectorAll('button').forEach(button=>button.remove());
+                    const isFriend=friendsList.some(f=>String(f.name).toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));
+                    if(!isFriend){
+                        const person=SUGGESTED_PEOPLE_CATALOG.find(p=>String(p.name).toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));
+                        if(person){
+                            const btn=document.createElement('button');btn.type='button';btn.className='btn btn-primary fb-network-add';
+                            btn.style.cssText='margin:0 8px 9px;padding:6px 9px;font-size:.75rem;width:calc(100% - 16px)';
+                            btn.textContent='＋ Pridať priateľa';
+                            btn.onclick=event=>{event.stopPropagation();addSuggestedPerson(person.name);};
+                            card.appendChild(btn);
+                        }
+                    }
+                });
+            };
+
+            // Add a visible add-friend action to every non-friend profile, even when it has posts.
+            const fbPreviousOpenProfile=window.openSelectedFriendProfile;
+            window.openSelectedFriendProfile=function(name){
+                if(fbPreviousOpenProfile)fbPreviousOpenProfile(name);
+                const target=String(currentProfileFriendName||name||'').trim();
+                const bar=document.querySelector('#user-profile-modal .profile-action-bar');
+                if(!bar||!target)return;
+                const alreadyFriend=friendsList.some(f=>String(f.name).toLocaleLowerCase('sk')===target.toLocaleLowerCase('sk'));
+                bar.querySelectorAll('.fb-profile-add-friend').forEach(el=>el.remove());
+                if(alreadyFriend)return;
+                const btn=document.createElement('button');btn.type='button';btn.className='btn btn-primary fb-profile-add-friend';btn.textContent='＋ Pridať priateľa';
+                btn.onclick=()=>{
+                    const catalog=SUGGESTED_PEOPLE_CATALOG.find(p=>String(p.name).toLocaleLowerCase('sk')===target.toLocaleLowerCase('sk'));
+                    if(!catalog){alert('Túto osobu zatiaľ nemožno pridať.');return;}
+                    addSuggestedPerson(catalog.name);
+                    window.openSelectedFriendProfile(catalog.name);
+                };
+                bar.appendChild(btn);
+            };
+            const fbPreviousOpenOwnProfile=window.openProfile;
+            window.openProfile=function(...args){
+                if(fbPreviousOpenOwnProfile)fbPreviousOpenOwnProfile(...args);
+                document.querySelectorAll('.fb-profile-add-friend').forEach(el=>el.remove());
+            };
+
+            // The entire suggested-person card opens the profile; action buttons keep their own action.
+            const fbPreviousSuggestedCards=window.renderSuggestedPeopleCards;
+            window.renderSuggestedPeopleCards=function(host,people,mode='feed'){
+                if(fbPreviousSuggestedCards)fbPreviousSuggestedCards(host,people,mode);
+                if(!host)return;
+                host.querySelectorAll('.suggested-person-card').forEach(card=>{
+                    const name=card.querySelector('.suggested-person-info strong')?.textContent?.trim();if(!name)return;
+                    card.style.cursor='pointer';
+                    card.addEventListener('click',event=>{if(event.target.closest('button'))return;openSelectedFriendProfile(name);});
+                });
+            };
+
+            // Refresh outcomes: 68% article, 12% friend status, 10% friend share,
+            // 10% article about a friend (when friends exist).
             window.beginRefreshGeneration=function(){
                 if(refreshInProgress)return;
                 refreshInProgress=true;refreshTimeOffsetMinutes=60;
@@ -7039,8 +7049,8 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 if(indicator){indicator.style.display='block';indicator.textContent=UI_TEXTS[appLanguage].refreshLoading;}
                 refreshShareFriendName='';window.targetStatusFriend=null;
                 const r=Math.random();
-                if(!friendsList.length||r<.50)refreshGenerationMode='article';
-                else if(r<.60){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='status';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,profileDescription:f.profileDescription||'',type:'status'};}
+                if(!friendsList.length||r<.68)refreshGenerationMode='article';
+                else if(r<.80){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='status';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,profileDescription:f.profileDescription||'',type:'status'};}
                 else if(r<.90){const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='share';refreshShareFriendName=f.name;}
                 else{const f=friendsList[Math.floor(Math.random()*friendsList.length)];refreshGenerationMode='friendArticle';window.targetStatusFriend={name:f.name,gender:f.gender,age:f.age,profileDescription:f.profileDescription||'',type:'clanok'};}
                 if(Math.random()<.05)createIncomingFriendRequest();
