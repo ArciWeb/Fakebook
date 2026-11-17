@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fakebook v. 4.16</title>
+    <title>Fakebook v. 4.17</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1877f2">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1227,11 +1227,11 @@
         <div class="modal-content" style="max-height:100vh;overflow-y:auto;max-width:none;">
             <button class="profile-back-btn" type="button" onclick="closeProfile()">← <span id="profile-back-label">Späť</span></button>
             <div class="profile-header-card">
-                <div class="profile-cover" id="profile-cover-image">
-                    <button class="profile-cover-edit" id="profile-cover-edit-btn" onclick="openProfilePhotoEditor()" style="display:none;">📷 <span id="profile-cover-edit-label">Pridať fotky</span></button>
+                <div class="profile-cover" id="profile-cover-image" onclick="fbOpenCurrentProfileMedia('cover')" role="button" tabindex="0" aria-label="Open cover photo">
+                    <button class="profile-cover-edit" id="profile-cover-edit-btn" onclick="event.stopPropagation();openProfilePhotoEditor()" style="display:none;">📷 <span id="profile-cover-edit-label">Pridať fotky</span></button>
                 </div>
                 <div class="profile-identity">
-                    <div class="profile-avatar-wrapper"><div class="profile-avatar-large" id="profile-avatar-large" style="background-color:var(--fb-blue);">JA</div></div>
+                    <div class="profile-avatar-wrapper"><div class="profile-avatar-large" id="profile-avatar-large" style="background-color:var(--fb-blue);cursor:zoom-in;" onclick="fbOpenCurrentProfileMedia('profile')" role="button" tabindex="0" aria-label="Open profile photo">JA</div></div>
                     <div class="profile-identity-main">
                         <h2 id="profile-display-name"></h2>
                         <div id="profile-summary-line" class="profile-summary-line"></div>
@@ -1758,7 +1758,7 @@ async function geminiFetch(request) {
                 chatHeaderFriend: "Priateľ", chatClearConv: "Vymazať konverzáciu", chatForgetThemes: "Zabudnúť staré témy (Čistý štít)", chatInputPlace: "Napíšte správu...",
                 chatBlockedBanner: "Tento používateľ je zablokovaný. Ak ho chcete odblokovať, prejdite na jeho nastavenia.", chatIgnoredBanner: "Priateľ vám poslal už 5 správ bez vašej odpovede. Nové správy nebude posielať, kým neodpíšete.",
                 infoGuideTitle: "Návod na použitie", infoGuideDesc: "<strong>Kľúč Gemini API:</strong> Pre správne fungovanie aplikácie Fakebook budete potrebovať vlastný API Key zo stránky Google AI Studio, ktorý vložíte v nastaveniach (🔑).<br><br><strong>Môj Profil:</strong> Nastavte si svoje vlastné MENO, VEK a POHLAVIE pre personalizovaný zážitok.<br><br><strong>Systém Priateľov (👥):</strong> Pridajte si priateľov zadaním ich mena, pohlavia a veku. Systém im automaticky vygeneruje unikátne VLASTNOSTI, OSOBNOSŤ, GRAMATIKU a SPRÁVANIE, podľa ktorých budú komunikovať. Všetky tieto atribúty môžete kedykoľvek UPRAVIŤ, zmeniť šancu na odpoveď či frekvenciu správ. Priateľom môžete priamo na plochu vygenerovať osobný STATUS, nechať ich ZDIEĽAŤ ľubovoľný článok, vytvoriť o nich bulvárny ČLÁNOK alebo si s nimi PÍSAŤ.<br><br><strong>Messenger (💬) & Autonómne správy:</strong> Priatelia vám môžu napísať aj sami od seba. Pri prechádzaní plochy a otváraní Messengera existuje dynamická šanca, že vám PRÍDE SPRÁVA. Ak nechcete čakať, <u>podržte tlačidlo Messengera na 3 sekundy</u> a správa dorazí okamžite. Priatelia si konverzácie PAMÄTAJÚ a plynule v nich pokračujú.<br><br><strong>Generovanie Článkov:</strong> Kliknite na vrchné pole pre tvorbu statusov. BUĎ napíšte vlastnú tému, ALEBO pole nechajte prázdne a systém vytvorí náhodný virálny príspevok. Môžete nastaviť časový posun, vybrať tému, určiť počet verzií a v review okne flexibilne UPRAVIŤ FOTKU (zmenou pomeru strán a promptu) či NÁZOV STRÁNKY.<br><br><strong>Vojny v komentároch & Algoritmus interakcií:</strong> Každý článok generuje množstvo živých KOMENTÁROV. Na príspevky môžete odpovedať, čím vyvoláte reálnu diskusiu. Existuje šanca, že vám od aktívneho komentujúceho príde ŽIADOSŤ O PRIATEĽSTVO. Tlačidlom <em>🤖 AI Troll Reakcia</em> vyvoláte okamžitú provokatívnu odpoveď na konkrétny komentár, alebo môžete spustiť masívnu <em>VOJNU KOMENTÁROV</em>. Články môžete zdieľať na svoj profil, mazať či generovať ich alternatívy.<br><br><strong>Nastavenia Obľúbených tém:</strong> V profile a nastaveniach priateľa pribudol explicitný popis pre kategóriu 'Obľúbené témy', vďaka čomu môžete lepšie korigovať algoritmus záujmov entít.<br><br><strong>💡 Núdzový Reset:</strong> V prípade akýchkoľvek problémov s prekrývaním okien <u>podržte 5 sekúnd hlavné logo FAKEBOOK</u> v ľavom hornom rohu pre tvrdý reset zobrazenia a tém.",
-                infoVerTitle: "Aktualizácia 4.16: fotografie vo feede, profily a jazykové úpravy", infoVerList: "<li><strong>Fotogaléria:</strong> fotografie v profiloch vychádzajú z reálnych aktivít – zdieľaní, komentárov a označení Páči sa mi. Po odstránení poslednej príslušnej aktivity sa odstráni aj fotografia.</li><li><strong>Prehliadač fotografií:</strong> celoobrazovkové mobilné zobrazenie, posúvanie šípkami a potiahnutím prsta, prepojenie na pôvodný príspevok a jeho komentáre.</li><li><strong>Fotografie vo feede:</strong> kliknutie na obrázok otvorí rovnaký prehliadač ako v profile; tlačidlá komentovania a zobrazenia komentárov naďalej otvárajú klasický príspevok.</li><li><strong>Priatelia a profily:</strong> navigácia medzi profilmi, pridávanie priateľov priamo zo zoznamov a vzájomné prepojenia. Noví ručne vytvorení priatelia začínajú iba s tebou ako priateľom.</li><li><strong>Vytváranie príspevkov:</strong> zjednodušený režim má synchronizovaný prepínač v hlavnom nastavení aj v pôvodnom okne vytvárania.</li><li><strong>Obnovenie a aktivita:</strong> spoľahlivejšie potiahnutie na obnovenie a menej náhodných zdieľaní článkov priateľmi.</li><li><strong>Jazyky:</strong> doplnené preklady ovládacích prvkov, záloh JSON, asistenta, fotogalérie a profilov; predvolené opisy katalógových osôb sa prekladajú podľa jazyka a ukladajú do cache. Ručne upravené opisy zostávajú nezmenené.</li><li><strong>Predchádzajúce verzie 4.14–4.15:</strong> sekcia Priatelia so žiadosťami a návrhmi, vyhľadávanie ľudí a otváranie ich profilov; profily predvolených osôb s vlastnými zoznamami priateľov a sociálnou sieťou katalógu; pridávanie a správa priateľov, opravy ukladania a navigácie, fotogaléria podľa aktivít a mobilný prehliadač fotografií.</li>",
+                infoVerTitle: "Aktualizácia 4.17: fotografie vo feede, profily a jazykové úpravy", infoVerList: "<li><strong>Fotogaléria:</strong> fotografie v profiloch vychádzajú z reálnych aktivít – zdieľaní, komentárov a označení Páči sa mi. Po odstránení poslednej príslušnej aktivity sa odstráni aj fotografia.</li><li><strong>Prehliadač fotografií:</strong> celoobrazovkové mobilné zobrazenie, posúvanie šípkami a potiahnutím prsta, prepojenie na pôvodný príspevok a jeho komentáre.</li><li><strong>Fotografie vo feede:</strong> kliknutie na obrázok otvorí rovnaký prehliadač ako v profile; tlačidlá komentovania a zobrazenia komentárov naďalej otvárajú klasický príspevok.</li><li><strong>Priatelia a profily:</strong> navigácia medzi profilmi, pridávanie priateľov priamo zo zoznamov a vzájomné prepojenia. Noví ručne vytvorení priatelia začínajú iba s tebou ako priateľom.</li><li><strong>Vytváranie príspevkov:</strong> zjednodušený režim má synchronizovaný prepínač v hlavnom nastavení aj v pôvodnom okne vytvárania.</li><li><strong>Obnovenie a aktivita:</strong> spoľahlivejšie potiahnutie na obnovenie a menej náhodných zdieľaní článkov priateľmi.</li><li><strong>Jazyky:</strong> doplnené preklady ovládacích prvkov, záloh JSON, asistenta, fotogalérie a profilov; predvolené opisy katalógových osôb sa prekladajú podľa jazyka a ukladajú do cache. Ručne upravené opisy zostávajú nezmenené.</li><li><strong>Predchádzajúce verzie 4.14–4.15:</strong> sekcia Priatelia so žiadosťami a návrhmi, vyhľadávanie ľudí a otváranie ich profilov; profily predvolených osôb s vlastnými zoznamami priateľov a sociálnou sieťou katalógu; pridávanie a správa priateľov, opravy ukladania a navigácie, fotogaléria podľa aktivít a mobilný prehliadač fotografií.</li><li><strong>Profilové fotografie 4.17:</strong> tlačidlo „Pridať fotky“ ponúka samostatné pridanie profilovej a titulnej fotografie a používa rovnaké spracovanie ako editor profilu. Profilová aj titulná fotografia sa dajú otvoriť na celú obrazovku. Katalógové osoby majú pripravené vlastné PNG adresy v priečinku <code>profile-pictures</code>; ak súbor chýba alebo sa nedá načítať, zostanú zobrazené iniciály. Ručne nahraná fotka má prednosť pred katalógovou.</li>",
                 msgTitleForce: "Vynucujem správu od:", msgAlertForce: "Prišla nová správa od užívateľa", keyInputAlert: "Prosím, vložte najprv API kľúč.", activeFriendsAlert: "Nemáte žiadnych aktívnych priateľov.",
                 statusViewProfile: "Zobrazenie z profilu", statusFullFeedOnly: "Zobrazenie detailu článku je aktívne len z hlavnej plochy.", profileNoPosts: "Zatiaľ tu nie sú žiadne príspevky.", profileActivityOf: "Príspevky, statusy a aktivita používateľa", profileCommentedOn: "komentoval príspevok stránky", profileSharedArticle: "zdieľal príspevok", profileStatusLabel: "Status", profileLikedArticle: "Páči sa mi príspevok", profileActivityTime: "Aktivita", profileOpenFullActivity: "Otvoriť celý príspevok a komentáre", profileDescriptionLabel: "Popis osoby", profileDescriptionPlace: "Krátky popis osoby...", profilePhotoLabel: "Profilová fotka", profilePhotoChoose: "Vybrať PNG/JPG", profilePhotoRemove: "Odstrániť fotku",
                 targetStatusPlaceholder: "Vytvárate osobný status pre: {name}. Zadajte tému...", statusLengthTitle: "Dĺžka statusu priateľa:", statusLenShort: "Krátky (1-3 vety)", statusLenMid: "Stredný (3-8 viet)", statusLenLong: "Dlhý (8-15 viet)",
@@ -1828,7 +1828,7 @@ async function geminiFetch(request) {
                 chatBlockedBanner: "This user is blocked. To unblock, navigate to their settings.", chatIgnoredBanner: "Friend has sent 5 messages without a reply. No more messages will arrive until you respond.",
                 infoGuideTitle: "User Guide", infoGuideDesc: "<strong>Gemini API Key:</strong> To ensure proper functionality of the Fakebook application, you will need your own API Key from the Google AI Studio platform, inserted via Settings (🔑).<br><br><strong>My Profile:</strong> Set up your own NAME, AGE, and GENDER for a fully personalized simulation experience.<br><br><strong>Friends System (👥):</strong> Add custom profiles by entering their name, gender, and age. The engine automatically generates unique TRAITS, PERSONALITY, GRAMMAR, and BEHAVIOR matrices for them. You can CUSTOMIZE all these attributes at any time, altering reply odds or text frequency. In the friends layout, you can prompt them to post a personal STATUS, SHARE any existing feed item, generate a tabloid ARTICLE about them, or CHAT with them directly.<br><br><strong>Messenger (💬) & Autonomous Messaging:</strong> Friends can message you unexpectedly. While browsing the feed or opening Messenger, there is a dynamic chance you'll RECEIVE A MESSAGE. If you don't want to wait, <u>hold the Messenger icon for 3 seconds</u> to force an immediate incoming text. Friends POSSESS PERSISTENT MEMORY and will seamlessly continue past conversations.<br><br><strong>Content Generation:</strong> Click on the top creation card. EITHER type a specific topic prompt OR leave it empty for a completely random viral news scoop. You can shift timelines, select topics, choose generation counts, and dynamically ADJUST THE IMAGE (canvas ratio & generation prompt) or EDIT THE PAGE NAME in the review window before publishing.<br><br><strong>Comment Wars & Interaction Logic:</strong> Every article spawns an active stream of nested COMMENTS. Replying to users can instigate a deeper live debate, with a dynamic chance that a prominent commenter will send you a FRIEND REQUEST to continue over Messenger. Use the <em>🤖 AI Troll Reaction</em> button to force a provocative counter-argument on any specific comment, or trigger a full-scale <em>COMMENT WAR</em>. Posts can be shared to your profile, wiped, or regenerated with alternative angles.<br><br><strong>Advanced Customization:</strong> Customize your profile to prioritize specific topics during random generation. Use the settings panel to change background themes, font style/color/size, toggle system language, or fully manage 4 independent SAVE SLOTS.<br><br><strong>⚠️ Event History Memory:</strong> Enabling this toggle lets the AI analyze previous feed events and reference past story arcs inside newly generated content. This feature is experimental (Beta); for maximum stability, we recommend keeping it disabled.<br><br><strong>💡 Emergency Reset:</strong> If any UI overlay locking errors occur, <u>press and hold the main FAKEBOOK logo for 5 seconds</u> in the top-left corner to trigger a hard reset of views and layout themes.",
 
-                infoVerTitle: "Update 4.16: feed photos, profiles and language improvements", infoVerList: "<li><strong>Photo gallery:</strong> profile photos are derived from real activity – shares, comments and Likes. When the last related profile activity is removed, its photo disappears too.</li><li><strong>Photo viewer:</strong> full-screen mobile layout, arrow and swipe navigation, and a direct link to the original post and its comments.</li><li><strong>Feed photos:</strong> tapping an image opens the same viewer used by profiles; Comment and View comments still open the regular post.</li><li><strong>Friends and profiles:</strong> profile-to-profile navigation, adding friends directly from friend lists, and reciprocal connections. Newly created manual friends start with only you as their friend.</li><li><strong>Post creation:</strong> the simplified mode switch is synchronised between the main settings and the original post-creation window.</li><li><strong>Refresh and activity:</strong> more reliable pull-to-refresh and fewer random article shares by friends.</li><li><strong>Languages:</strong> added translations for controls, JSON backups, the assistant, photo gallery and profiles. Default catalogue descriptions are translated to the selected language and cached. Manually edited descriptions are preserved.</li><li><strong>Previous 4.14–4.15 improvements:</strong> a Friends hub with requests and suggestions, people search and profile viewing; suggested-person profiles with friend lists and a catalogue social graph; adding and managing friends, storage and navigation fixes, activity-based photo galleries and the mobile photo viewer.</li>",
+                infoVerTitle: "Update 4.17: feed photos, profiles and language improvements", infoVerList: "<li><strong>Photo gallery:</strong> profile photos are derived from real activity – shares, comments and Likes. When the last related profile activity is removed, its photo disappears too.</li><li><strong>Photo viewer:</strong> full-screen mobile layout, arrow and swipe navigation, and a direct link to the original post and its comments.</li><li><strong>Feed photos:</strong> tapping an image opens the same viewer used by profiles; Comment and View comments still open the regular post.</li><li><strong>Friends and profiles:</strong> profile-to-profile navigation, adding friends directly from friend lists, and reciprocal connections. Newly created manual friends start with only you as their friend.</li><li><strong>Post creation:</strong> the simplified mode switch is synchronised between the main settings and the original post-creation window.</li><li><strong>Refresh and activity:</strong> more reliable pull-to-refresh and fewer random article shares by friends.</li><li><strong>Languages:</strong> added translations for controls, JSON backups, the assistant, photo gallery and profiles. Default catalogue descriptions are translated to the selected language and cached. Manually edited descriptions are preserved.</li><li><strong>Previous 4.14–4.15 improvements:</strong> a Friends hub with requests and suggestions, people search and profile viewing; suggested-person profiles with friend lists and a catalogue social graph; adding and managing friends, storage and navigation fixes, activity-based photo galleries and the mobile photo viewer.</li><li><strong>4.17 profile photos:</strong> the “Add photos” button offers separate profile-photo and cover-photo choices and reuses the same upload handlers as the profile editor. Profile and cover photos can be opened full-screen. Catalogue people now have individual PNG paths in the <code>profile-pictures</code> folder; missing or unavailable files fall back to initials. A manually uploaded photo takes priority over the catalogue image.</li>",
                 msgTitleForce: "Forcing message from:", msgAlertForce: "New message received from", keyInputAlert: "Please enter your API key first.", activeFriendsAlert: "You have no active friends.",
                 targetStatusPlaceholder: "Creating personal status for: {name}. Set topic...", statusLengthTitle: "Friend status length:", statusLenShort: "Short (1-3 sentences)", statusLenMid: "Medium (3-8 sentences)", statusLenLong: "Long (8-15 sentences)",
                 slotTitle: "Saved Slots", slotBtnSave: "Save", slotBtnLoad: "Load", textStatusNoMsgs: "No messages yet", textStatusYou: "You: ", textStatusChatWithBlocked: "Blocked",
@@ -1897,7 +1897,7 @@ async function geminiFetch(request) {
                 chatBlockedBanner: "Ovaj korisnik je blokiran. Ako želite da ga deblokirate, idite na njegova podešavanja.", chatIgnoredBanner: "Prijatelj vam je poslao već 5 poruka bez vašeg odgovora. Poruke neće stizati dok ne odgovorite.",
                 infoGuideTitle: "Uputstvo za upotrebu", infoGuideDesc: "<strong>Ključ Gemini API:</strong> Za ispravno funkcionisanje aplikacije Fakebook biće vam potreban sopstveni API Key sa sajta Google AI Studio, koji unosite u podešavanjima (🔑).<br><br><strong>Moj Profil:</strong> Podesite svoje IME, GODINE i POL za personalizovano iskustvo.<br><br><strong>Sistem Prijatelja (👥):</strong> Dodajte prijatelje unosom imena, pola i godina. Sistem im automatski generiše unikatne OSOBINE, LIČNOST, GRAMATIKU i PONAŠANJE prema kojima će komunicirati. Sve ove atribute možete bilo kada IZMENITI, promeniti šansu za odgovor ili frekvenciju poruka. Prijateljima možete direktno na zid generisati lični STATUS, pustiti ih da PODELE bilo koji članak, kreirati o njima žuti ČLANAK ili se sa njima DOPISIVATI.<br><br><strong>Mesindžer (💬) & Autonomne poruke:</strong> Prijatelji vam mogu pisati i sami od sebe. Dok listate zid i otvarate Mesindžer, postoji dinamička šansa da vam STIGNE PORUKA. Ako ne želite da čekate, <u>držite dugme Mesindžera 3 sekunde</u> i poruka stiže odmah. Prijatelji PAMTE konverzacije i tečno nastavljaju u njima.<br><br><strong>Generisanje Članaka:</strong> Kliknite na gornje polje za kreiranje statusa. ILI napišite sopstvenu temu, ILI ostavite polje prazno i sistem će kreirati nasumičnu viralnu objavu. Možete podesiti vremenski pomak, izabrati temu, odrediti broj verzija i u review prozoru fleksibilno IZMENITI SLIKU (promenom razmere i prompta) ili NAZIV STRANICE.<br><br><strong>Ratovi u komentarima & Algoritam interakcija:</strong> Svaki članak generiše mnoštvo živih KOMENTARA. Na objave možete odgovarati, čime izazivate realnu diskusiju. Postoji šansa da vam od aktivnog komentatora stigne ZAHTEV ZA PRIJATELJSTVO. Dugmetom <em>🤖 AI Troll Reakcija</em> izazvaćete provokativan odgovor na konkretan komentar, ili možete pokrenuti masovni <em>RAT KOMENTARA</em>. Članke možete deliti na svoj profil, brisati ili generisati njihove alternative.<br><br><strong>Napredna Podešavanja:</strong> U profilu možete specifikovati omiljene teme za prioritetno generisanje sadržaja. U podešavanjima možete menjati teme pozadine, boju i veličinu fonta, menjati jezik, ili kompletno upravljati sa 4 nezavisna SLOT-A ZA ČUVANJE (Save/Load).<br><br><strong>⚠️ Memorija istorije događaja:</strong> Ako omogućite ovu funkciju, AI će pamtiti prošle objave i pozivati se na njih u novim tekstovima. Funkcija je u test verziji (Beta), za stabilnost preporučujemo da ostane isključena.<br><br><strong>💡 Hitni Reset:</strong> U slučaju bilo kakvih problema sa preklapanjem prozora, <u>držite 5 sekundi glavni logo FAKEBOOK</u> u gornjem levom uglu za tvrdi reset prikaza i tema.",
 
-                infoVerTitle: "Ažuriranje 4.16: fotografije u feedu, profili i jezička poboljšanja", infoVerList: "<li><strong>Galerija fotografija:</strong> fotografije na profilima zasnivaju se na stvarnoj aktivnosti – deljenjima, komentarima i lajkovima. Kada se ukloni poslednja povezana aktivnost sa profila, uklanja se i fotografija.</li><li><strong>Pregledač fotografija:</strong> prikaz preko celog ekrana na mobilnom telefonu, navigacija strelicama i prevlačenjem, kao i veza ka originalnoj objavi i komentarima.</li><li><strong>Fotografije u feedu:</strong> dodir fotografije otvara isti pregledač kao na profilu; dugmad za komentarisanje i prikaz komentara i dalje otvaraju klasičnu objavu.</li><li><strong>Prijatelji i profili:</strong> navigacija između profila, dodavanje prijatelja direktno iz spiskova prijatelja i uzajamne veze. Novokreirani prijatelji ručno počinju samo sa tobom kao prijateljem.</li><li><strong>Kreiranje objava:</strong> prekidač pojednostavljenog režima sinhronizovan je između glavnih podešavanja i originalnog prozora za kreiranje objava.</li><li><strong>Osvežavanje i aktivnost:</strong> pouzdanije osvežavanje prevlačenjem i manje nasumičnih deljenja članaka od strane prijatelja.</li><li><strong>Jezici:</strong> dopunjeni prevodi kontrola, JSON rezervnih kopija, asistenta, galerije fotografija i profila. Podrazumevani opisi osoba iz kataloga prevode se prema izabranom jeziku i čuvaju u kešu. Ručno izmenjeni opisi ostaju sačuvani.</li><li><strong>Prethodne verzije 4.14–4.15:</strong> odeljak Prijatelji sa zahtevima i predlozima, pretraga ljudi i otvaranje njihovih profila; profili predloženih osoba sa listama prijatelja i društvenom mrežom kataloga; dodavanje i upravljanje prijateljima, ispravke čuvanja i navigacije, galerije fotografija zasnovane na aktivnostima i mobilni pregledač fotografija.</li>",
+                infoVerTitle: "Ažuriranje 4.17: fotografije u feedu, profili i jezička poboljšanja", infoVerList: "<li><strong>Galerija fotografija:</strong> fotografije na profilima zasnivaju se na stvarnoj aktivnosti – deljenjima, komentarima i lajkovima. Kada se ukloni poslednja povezana aktivnost sa profila, uklanja se i fotografija.</li><li><strong>Pregledač fotografija:</strong> prikaz preko celog ekrana na mobilnom telefonu, navigacija strelicama i prevlačenjem, kao i veza ka originalnoj objavi i komentarima.</li><li><strong>Fotografije u feedu:</strong> dodir fotografije otvara isti pregledač kao na profilu; dugmad za komentarisanje i prikaz komentara i dalje otvaraju klasičnu objavu.</li><li><strong>Prijatelji i profili:</strong> navigacija između profila, dodavanje prijatelja direktno iz spiskova prijatelja i uzajamne veze. Novokreirani prijatelji ručno počinju samo sa tobom kao prijateljem.</li><li><strong>Kreiranje objava:</strong> prekidač pojednostavljenog režima sinhronizovan je između glavnih podešavanja i originalnog prozora za kreiranje objava.</li><li><strong>Osvežavanje i aktivnost:</strong> pouzdanije osvežavanje prevlačenjem i manje nasumičnih deljenja članaka od strane prijatelja.</li><li><strong>Jezici:</strong> dopunjeni prevodi kontrola, JSON rezervnih kopija, asistenta, galerije fotografija i profila. Podrazumevani opisi osoba iz kataloga prevode se prema izabranom jeziku i čuvaju u kešu. Ručno izmenjeni opisi ostaju sačuvani.</li><li><strong>Prethodne verzije 4.14–4.15:</strong> odeljak Prijatelji sa zahtevima i predlozima, pretraga ljudi i otvaranje njihovih profila; profili predloženih osoba sa listama prijatelja i društvenom mrežom kataloga; dodavanje i upravljanje prijateljima, ispravke čuvanja i navigacije, galerije fotografija zasnovane na aktivnostima i mobilni pregledač fotografija.</li><li><strong>Profilne fotografije 4.17:</strong> dugme „Dodaj fotografije“ nudi zasebno dodavanje profilne i naslovne fotografije i koristi iste postupke kao uređivanje profila. Profilna i naslovna fotografija mogu da se otvore preko celog ekrana. Osobe iz kataloga imaju pripremljene zasebne PNG putanje u fascikli <code>profile-pictures</code>; ako datoteka nedostaje ili ne može da se učita, prikazuju se inicijali. Ručno postavljena fotografija ima prednost u odnosu na katalošku.</li>",
                 msgTitleForce: "Prisiljavam poruku od:", msgAlertForce: "Stigla je nova poruka od korisnika", keyInputAlert: "Molimo vas da prvo unesete API ključ.", activeFriendsAlert: "Nemate nijednog aktivnog prijatelja.",
                 targetStatusPlaceholder: "Kreirate lični status za: {name}. Unesite temu...", statusLengthTitle: "Dužina statusa prijatelja:", statusLenShort: "Kratak (1-3 rečenice)", statusLenMid: "Srednji (3-8 rečenica)", statusLenLong: "Dugačak (8-15 rečenica)",
                 slotTitle: "Sačuvani profili (Slotovi)", slotBtnSave: "Sačuvaj", slotBtnLoad: "Učitaj", textStatusNoMsgs: "Još uvek nema poruka", textStatusYou: "Ti: ", textStatusChatWithBlocked: "Blokiran",
@@ -3173,6 +3173,7 @@ Pán Prsteňov|male|100|Legendárny fantasy svet v jednej osobe, ktorá každú 
             const more=appLanguage==='en'?'See more':(appLanguage==='sr'?'Prikaži još':'Zobraziť ďalších');
             if(!people.length){host.innerHTML=`<div class="suggested-people-empty">${appLanguage==='en'?'You already know everyone here. The chaos is complete.':(appLanguage==='sr'?'Već poznaješ sve. Haos je potpun.':'Všetkých už poznáš. Alebo si ich aspoň všetkých pridal do chaosu.')}</div>`;return;}
             host.innerHTML=`<div class="suggested-people-head"><div><strong>${title}</strong><small>${mode==='feed'?(appLanguage==='en'?'Fresh faces from the Fakebook catalogue':(appLanguage==='sr'?'Nova lica iz Fakebook kataloga':'Nové tváre z katalógu Fakebooku')):(appLanguage==='en'?'Choose who to add as a friend':(appLanguage==='sr'?'Izaberi koga želiš da dodaš':'Vyber si, koho chceš pridať medzi priateľov'))}</small></div><button class="suggested-more-btn" onclick="showMoreSuggestedPeople('${mode}')">${more} ↗</button></div><div class="suggested-people-grid">${people.map(p=>`<article class="suggested-person-card"><div class="suggested-person-avatar" style="background:${generateColor(p.name)}">${escapeHtml(p.name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase())}</div><div class="suggested-person-info"><strong>${escapeHtml(p.name)}</strong><p>${escapeHtml(p.description)}</p><button onclick="addSuggestedPerson(decodeURIComponent('${encodeURIComponent(p.name)}'))">＋ ${add}</button></div></article>`).join('')}</div>`;
+            host.querySelectorAll('.suggested-person-card').forEach(card=>{const name=card.querySelector('.suggested-person-info strong')?.textContent?.trim();const avatar=card.querySelector('.suggested-person-avatar');if(name&&avatar&&window.fbApplyCatalogAvatar)window.fbApplyCatalogAvatar(avatar,name);});
         }
         function appendSuggestedPeopleFeedCard(container){
             const card=document.createElement('section');card.className='suggested-people-feed-card';card.id='suggested-people-feed-card';
@@ -4191,6 +4192,7 @@ ${context}`;
                 const avatar=friend.profilePhoto?`<img class="friend-modern-avatar" src="${friend.profilePhoto}" alt="">`:`<div class="friend-modern-avatar" style="background:${generateColor(friend.name)}">${escapeHtml(friend.name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase())}</div>`;
                 const blocked=friend.isBlocked?`<span style="color:#f02849;font-size:.72rem;font-weight:800;"> · ${UI_TEXTS[appLanguage].blockedStatusText}</span>`:'';
                 container.insertAdjacentHTML('beforeend',`<article class="friend-modern-card" style="${friend.isBlocked?'opacity:.72;':''}"><div class="friend-modern-top">${avatar}<div style="min-width:0;flex:1;"><div class="friend-modern-name" onclick="openSelectedFriendProfile(decodeURIComponent('${encodeURIComponent(friend.name)}'))">${escapeHtml(friend.name)}${blocked}</div><div class="friend-modern-meta">${[gender,age,persLabel].filter(Boolean).map(escapeHtml).join(' · ')}</div></div></div><div class="friend-modern-actions"><button onclick="openFriendSettingsModal(${idx})">${UI_TEXTS[appLanguage].friendSettingsBtn}</button><button onclick="openChatFromFriendsList(decodeURIComponent('${encodeURIComponent(friend.name)}'))">${UI_TEXTS[appLanguage].friendMessageBtn}</button><button class="primary" onclick="toggleFriendCreateMenu(${idx})">${UI_TEXTS[appLanguage].friendCreateBtn}</button></div><div class="friend-create-menu" id="friend-create-menu-${idx}"><button onclick="triggerAddStatusPrompt(decodeURIComponent('${encodeURIComponent(friend.name)}'),'${friend.gender}','${String(friend.age||'').replace(/'/g, "\'")}')">${UI_TEXTS[appLanguage].friendAddStatusBtn}</button><button onclick="triggerCreateFriendArticle(decodeURIComponent('${encodeURIComponent(friend.name)}'),'${friend.gender}','${String(friend.age||'').replace(/'/g, "\'")}')">${UI_TEXTS[appLanguage].friendCreateArticleBtn}</button><button onclick="triggerShareFriendArticle(decodeURIComponent('${encodeURIComponent(friend.name)}'))">${UI_TEXTS[appLanguage].friendShareArticleBtn}</button></div></article>`);
+                const avatarNode=container.lastElementChild?.querySelector('.friend-modern-avatar');if(avatarNode&&window.fbApplyCatalogAvatar)window.fbApplyCatalogAvatar(avatarNode,friend.name,friend.profilePhoto||'');
             });
         }
         function toggleFriendCreateMenu(idx){const menu=document.getElementById(`friend-create-menu-${idx}`);if(menu)menu.classList.toggle('open');}
@@ -6845,7 +6847,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
         }
 
 
-        /* Fakebook 4.16 — feed photo viewer, profile links and locale completion */
+        /* Fakebook 4.17 — profile media picker and catalogue avatars */
         (function(){
             window.fakebookSimpleComposerEnabled = localStorage.getItem('fb_simple_composer') !== '0';
             window.fakebookSimpleAutoPublish = false;
@@ -7680,6 +7682,351 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 });
             }
 
+        })();
+
+
+
+        /* Fakebook 4.17 — shared profile media picker and optional catalogue portraits */
+        (function(){
+            const catalog = Array.isArray(SUGGESTED_PEOPLE_CATALOG) ? SUGGESTED_PEOPLE_CATALOG : [];
+            const keyOf = value => String(value || '').normalize('NFKC').toLocaleLowerCase('sk').replace(/\s+/g,' ').trim();
+            function fbProfilePhotoSlug(value){
+                return String(value||'')
+                    .normalize('NFKD')
+                    .replace(/[\u0300-\u036f]/g,'')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g,'');
+            }
+            function fbCatalogPhotoUrl(name){
+                const person=catalog.find(item=>keyOf(item.name)===keyOf(name));
+                if(!person)return '';
+                const filename=fbProfilePhotoSlug(person.name)+'.png';
+                if(!filename || filename==='.png')return '';
+                return new URL('profile-pictures/'+filename+'?v=417',document.baseURI).href;
+            }
+            window.fbCatalogPhotoFilename = name => {
+                const person=catalog.find(item=>keyOf(item.name)===keyOf(name));
+                return person ? fbProfilePhotoSlug(person.name)+'.png' : '';
+            };
+            window.fbCatalogPhotoUrl = fbCatalogPhotoUrl;
+
+            window.fbApplyCatalogAvatar = function(element,name,explicitUrl=''){
+                if(!element || !name)return;
+                let avatar=element;
+                if(avatar.tagName==='IMG'){
+                    const replacement=document.createElement('div');
+                    replacement.className=avatar.className;
+                    replacement.style.cssText=avatar.getAttribute('style')||'';
+                    avatar.replaceWith(replacement);
+                    avatar=replacement;
+                }
+                const originalText=String(avatar.textContent||'').trim();
+                const initials=originalText || String(name).trim().split(/\s+/).map(part=>part[0]||'').slice(0,2).join('').toUpperCase();
+                const photoUrl=String(explicitUrl||fbCatalogPhotoUrl(name)||'').trim();
+                const photoKey=String(name)+'|'+photoUrl;
+                if(avatar.dataset.fbPhotoKey===photoKey)return avatar;
+                avatar.dataset.fbPhotoKey=photoKey;
+                avatar.style.backgroundColor=generateColor(name);
+                avatar.style.backgroundImage='none';
+                avatar.style.backgroundSize='cover';
+                avatar.style.backgroundPosition='center';
+                avatar.textContent=initials;
+                avatar.dataset.fbPhotoName=String(name);
+                avatar.dataset.fbPhotoLoaded='0';
+                avatar.dataset.fbPhotoPending=photoUrl?'1':'0';
+                avatar.dataset.fbPhotoUrl='';
+                if(!photoUrl)return avatar;
+                const probe=new Image();
+                probe.onload=()=>{
+                    if(!avatar.isConnected || avatar.dataset.fbPhotoName!==String(name))return;
+                    avatar.style.backgroundImage=`url("${photoUrl.replace(/"/g,'%22')}")`;
+                    avatar.style.backgroundSize='cover';
+                    avatar.style.backgroundPosition='center';
+                    avatar.textContent='';
+                    avatar.dataset.fbPhotoLoaded='1';
+                    avatar.dataset.fbPhotoPending='0';
+                    avatar.dataset.fbPhotoUrl=photoUrl;
+                };
+                probe.onerror=()=>{
+                    if(!avatar.isConnected || avatar.dataset.fbPhotoName!==String(name))return;
+                    avatar.style.backgroundImage='none';
+                    avatar.textContent=initials;
+                    avatar.dataset.fbPhotoLoaded='0';
+                    avatar.dataset.fbPhotoPending='0';
+                    avatar.dataset.fbPhotoUrl='';
+                };
+                probe.src=photoUrl;
+                return avatar;
+            };
+
+            function fbCurrentProfileName(){
+                return String(currentProfileFriendName || document.getElementById('profile-display-name')?.textContent || currentUsername || '').trim();
+            }
+            function fbCurrentProfilePerson(){
+                const name=fbCurrentProfileName();
+                if(!name)return null;
+                return friendsList.find(friend=>keyOf(friend.name)===keyOf(name)) ||
+                    (window.__fbTemporarySuggestedProfile && keyOf(window.__fbTemporarySuggestedProfile.name)===keyOf(name) ? window.__fbTemporarySuggestedProfile : null) ||
+                    catalog.find(person=>keyOf(person.name)===keyOf(name)) || null;
+            }
+            function fbCurrentProfileMediaUrl(kind){
+                const name=fbCurrentProfileName();
+                if(!name || keyOf(name)===keyOf(currentUsername)){
+                    return kind==='cover' ? getMyProfileCover() : getMyProfilePhoto();
+                }
+                const person=fbCurrentProfilePerson();
+                if(!person)return '';
+                if(kind==='cover')return person.profileCoverPhoto||'';
+                return person.profilePhoto||fbCatalogPhotoUrl(person.name)||'';
+            }
+            window.fbOpenCurrentProfileMedia=function(kind){
+                const photoKind=kind==='cover'?'cover':'profile';
+                const url=fbCurrentProfileMediaUrl(photoKind);
+                if(!url)return;
+                const expectedName=fbCurrentProfileName();
+                const probe=new Image();
+                probe.onload=()=>{
+                    const currentName=fbCurrentProfileName();
+                    if(keyOf(currentName)!==keyOf(expectedName))return;
+                    const labelKey=photoKind==='cover'?'photoViewerCoverPhoto':'photoViewerProfilePhoto';
+                    const t=UI_TEXTS[appLanguage]||UI_TEXTS.sk;
+                    window.__fbPhotoViewerItems=[{url,label:t[labelKey]|| (photoKind==='cover'?'Cover photo':'Profile photo'),post:null,si:null,pi:null,profileKind:photoKind}];
+                    window.__fbPhotoViewerIndex=0;
+                    if(typeof window.fbRenderPhotoViewer==='function')window.fbRenderPhotoViewer();
+                    else if(typeof window.openFakebookPhotoViewer==='function')window.openFakebookPhotoViewer(null,null,url,t[labelKey]||'Profile photo');
+                };
+                probe.onerror=()=>{};
+                probe.src=url;
+            };
+
+            // The same existing handlers are used by the profile editor and this quick picker.
+            function pickerText(){
+                if(appLanguage==='en')return {title:'Add photos',profile:'Add profile photo',cover:'Add cover photo',cancel:'Cancel',hint:'Choose which profile image you want to update.'};
+                if(appLanguage==='sr')return {title:'Dodaj fotografije',profile:'Dodaj profilnu fotografiju',cover:'Dodaj naslovnu fotografiju',cancel:'Otkaži',hint:'Izaberi koju fotografiju profila želiš da promeniš.'};
+                return {title:'Pridať fotky',profile:'Pridať profilovú fotku',cover:'Pridať titulnú fotku',cancel:'Zrušiť',hint:'Vyber, ktorú fotografiu profilu chceš zmeniť.'};
+            }
+            function ensureMediaPicker(){
+                let overlay=document.getElementById('fb-profile-media-picker');
+                if(overlay)return overlay;
+                overlay=document.createElement('div');
+                overlay.id='fb-profile-media-picker';
+                overlay.style.cssText='display:none;position:fixed;inset:0;z-index:29000;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.58);box-sizing:border-box;';
+                overlay.innerHTML='<section role="dialog" aria-modal="true" aria-labelledby="fb-profile-media-picker-title" style="width:min(100%,420px);background:var(--bg-card);color:var(--global-font-color);border:1px solid var(--border-color);border-radius:16px;padding:20px;box-shadow:0 18px 55px rgba(0,0,0,.3);"><h3 id="fb-profile-media-picker-title" style="margin:0 0 7px;font-size:1.15rem;"></h3><p id="fb-profile-media-picker-hint" style="margin:0 0 16px;color:var(--text-muted);font-size:.88rem;"></p><div style="display:grid;gap:10px;"><button type="button" id="fb-pick-profile-photo" class="btn btn-primary" style="width:100%;">📷 <span></span></button><button type="button" id="fb-pick-cover-photo" class="btn btn-secondary" style="width:100%;">🖼️ <span></span></button><button type="button" id="fb-pick-photo-cancel" class="btn btn-secondary" style="width:100%;"></button></div><input type="file" id="fb-quick-profile-photo-input" accept="image/png,image/jpeg" style="position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0;"><input type="file" id="fb-quick-cover-photo-input" accept="image/png,image/jpeg" style="position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0;"></section>';
+                document.body.appendChild(overlay);
+                overlay.addEventListener('click',event=>{if(event.target===overlay)window.closeProfilePhotoEditor();});
+                overlay.querySelector('#fb-pick-photo-cancel').addEventListener('click',()=>window.closeProfilePhotoEditor());
+                overlay.querySelector('#fb-pick-profile-photo').addEventListener('click',()=>overlay.querySelector('#fb-quick-profile-photo-input').click());
+                overlay.querySelector('#fb-pick-cover-photo').addEventListener('click',()=>overlay.querySelector('#fb-quick-cover-photo-input').click());
+                const profileInput=overlay.querySelector('#fb-quick-profile-photo-input');
+                const coverInput=overlay.querySelector('#fb-quick-cover-photo-input');
+                profileInput.addEventListener('change',()=>{
+                    if(!profileInput.files?.length)return;
+                    window.closeProfilePhotoEditor();
+                    if(typeof window.handleMyProfilePhotoUpload==='function')window.handleMyProfilePhotoUpload(profileInput);
+                    profileInput.value='';
+                });
+                coverInput.addEventListener('change',()=>{
+                    if(!coverInput.files?.length)return;
+                    window.closeProfilePhotoEditor();
+                    if(typeof window.handleMyProfileCoverUpload==='function')window.handleMyProfileCoverUpload(coverInput);
+                    coverInput.value='';
+                });
+                return overlay;
+            }
+            window.openProfilePhotoEditor=function(){
+                const overlay=ensureMediaPicker(),t=pickerText();
+                overlay.querySelector('#fb-profile-media-picker-title').textContent=t.title;
+                overlay.querySelector('#fb-profile-media-picker-hint').textContent=t.hint;
+                overlay.querySelector('#fb-pick-profile-photo span').textContent=t.profile;
+                overlay.querySelector('#fb-pick-cover-photo span').textContent=t.cover;
+                overlay.querySelector('#fb-pick-photo-cancel').textContent=t.cancel;
+                overlay.style.display='flex';
+            };
+            window.closeProfilePhotoEditor=function(){
+                const overlay=document.getElementById('fb-profile-media-picker');
+                if(overlay)overlay.style.display='none';
+            };
+
+            // Refresh the profile gallery as soon as an upload handler saves a new photo.
+            const originalApplyMyProfileMediaUI=window.applyMyProfileMediaUI;
+            if(typeof originalApplyMyProfileMediaUI==='function'){
+                window.applyMyProfileMediaUI=function(...args){
+                    const result=originalApplyMyProfileMediaUI.apply(this,args);
+                    const modal=document.getElementById('user-profile-modal');
+                    if(modal?.style.display==='flex' && !currentProfileFriendName && typeof window.renderProfilePhotos==='function')window.renderProfilePhotos(null);
+                    return result;
+                };
+            }
+
+            // Decorate avatars in the Friends list, suggested cards, search results and profile networks.
+            const originalRenderFriends=window.renderFriends;
+            if(typeof originalRenderFriends==='function'){
+                window.renderFriends=function(...args){
+                    const result=originalRenderFriends.apply(this,args);
+                    const host=document.getElementById('friends-list-container');
+                    host?.querySelectorAll('.friend-modern-card').forEach(card=>{
+                        const name=card.querySelector('.friend-modern-name')?.textContent?.replace(/\s*·.*$/,'').replace(/\s*\(.*\)$/,'').trim();
+                        const friend=friendsList.find(item=>keyOf(item.name)===keyOf(name));
+                        const avatar=card.querySelector('.friend-modern-avatar');
+                        if(friend&&avatar)window.fbApplyCatalogAvatar(avatar,friend.name,friend.profilePhoto||'');
+                    });
+                    return result;
+                };
+            }
+            const originalRenderSuggested=window.renderSuggestedPeopleCards;
+            if(typeof originalRenderSuggested==='function'){
+                window.renderSuggestedPeopleCards=function(host,people,mode){
+                    const result=originalRenderSuggested.apply(this,arguments);
+                    const decorate=()=>host?.querySelectorAll('.suggested-person-card').forEach(card=>{
+                        const name=card.querySelector('.suggested-person-info strong')?.textContent?.trim();
+                        const avatar=card.querySelector('.suggested-person-avatar');
+                        if(name&&avatar)window.fbApplyCatalogAvatar(avatar,name);
+                    });
+                    decorate();
+                    if(host && typeof MutationObserver!=='undefined'){
+                        const old=host.__fbAvatarObserver;if(old)old.disconnect();
+                        const observer=new MutationObserver(decorate);observer.observe(host,{childList:true,subtree:true});host.__fbAvatarObserver=observer;
+                    }
+                    return result;
+                };
+            }
+            const originalSearchPeople=window.searchFakebookPeople;
+            if(typeof originalSearchPeople==='function'){
+                window.searchFakebookPeople=function(...args){
+                    const result=originalSearchPeople.apply(this,args);
+                    document.querySelectorAll('#navbar-search-results .navbar-search-result').forEach(button=>{
+                        const name=button.querySelector('strong')?.textContent?.trim();
+                        const label=button.querySelector('small')?.textContent||'';
+                        const friend=friendsList.find(item=>keyOf(item.name)===keyOf(name));
+                        const avatar=button.querySelector('.navbar-search-avatar');
+                        if(name&&avatar)window.fbApplyCatalogAvatar(avatar,name,friend?.profilePhoto||'');
+                    });
+                    return result;
+                };
+            }
+
+            // Profile and cover photos open in the existing full-screen photo viewer.
+            const avatar=document.getElementById('profile-avatar-large');
+            if(avatar){avatar.style.cursor='zoom-in';avatar.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();window.fbOpenCurrentProfileMedia('profile');}});}
+            const cover=document.getElementById('profile-cover-image');
+            if(cover){cover.style.cursor='zoom-in';cover.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();window.fbOpenCurrentProfileMedia('cover');}});}
+
+            // Catalogue portrait is an optional enhancement: only show it after the PNG loads.
+            const originalOpenFriendProfile=window.openSelectedFriendProfile;
+            if(typeof originalOpenFriendProfile==='function'){
+                window.openSelectedFriendProfile=function(name,...args){
+                    const result=originalOpenFriendProfile.call(this,name,...args);
+                    const friend=friendsList.find(item=>keyOf(item.name)===keyOf(name));
+                    const temporary=window.__fbTemporarySuggestedProfile && keyOf(window.__fbTemporarySuggestedProfile.name)===keyOf(name) ? window.__fbTemporarySuggestedProfile : null;
+                    const person=friend||temporary||catalog.find(item=>keyOf(item.name)===keyOf(name));
+                    const avatarNode=document.getElementById('profile-avatar-large');
+                    if(person&&avatarNode)window.fbApplyCatalogAvatar(avatarNode,person.name,person.profilePhoto||'');
+                    const coverNode=document.getElementById('profile-cover-image');
+                    if(coverNode){
+                        const coverUrl=person?.profileCoverPhoto||'';
+                        coverNode.style.cursor=coverUrl?'zoom-in':'';
+                    }
+                    return result;
+                };
+            }
+
+            // Show a catalogue portrait in the profile gallery too, but only after the file exists.
+            const originalRenderProfilePhotos=window.renderProfilePhotos;
+            if(typeof originalRenderProfilePhotos==='function'){
+                window.renderProfilePhotos=function(friend){
+                    const result=originalRenderProfilePhotos.apply(this,arguments);
+                    const name=String(friend?.name||currentProfileFriendName||'').trim();
+                    if(!name)return result;
+                    const explicit=friend?.profilePhoto||'';
+                    if(explicit || !catalog.some(person=>keyOf(person.name)===keyOf(name)))return result;
+                    const url=fbCatalogPhotoUrl(name);
+                    if(!url)return result;
+                    const expectedName=name;
+                    const probe=new Image();
+                    probe.onload=()=>{
+                        const currentName=String(currentProfileFriendName||document.getElementById('profile-display-name')?.textContent||'').trim();
+                        if(keyOf(currentName)!==keyOf(expectedName))return;
+                        const host=document.getElementById('profile-photos-content');
+                        if(!host)return;
+                        const items=window.__fbPhotoViewerItems||[];
+                        if(items.some(item=>item.url===url))return;
+                        const label=(UI_TEXTS[appLanguage]||UI_TEXTS.sk).photoViewerProfilePhoto||'Profile photo';
+                        items.push({url,label,post:null,si:null,pi:null,profileKind:'profile'});
+                        window.__fbPhotoViewerItems=items;
+                        let grid=host.querySelector('.profile-photos-grid');
+                        if(!grid){
+                            host.querySelector('.profile-about-empty')?.remove();
+                            grid=document.createElement('div');grid.className='profile-photos-grid';
+                            host.querySelector('.profile-about-card')?.appendChild(grid);
+                        }
+                        const tile=document.createElement('button');tile.type='button';tile.className='profile-photo-tile';tile.style.cssText='display:block;width:100%;padding:0;border:0;text-align:inherit;background:var(--profile-inset,var(--bg-input));font:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;';
+                        tile.setAttribute('aria-label',label);
+                        const image=document.createElement('img');image.src=url;image.alt=label;image.loading='lazy';image.decoding='async';tile.appendChild(image);
+                        tile.addEventListener('click',()=>{const all=window.__fbPhotoViewerItems||[];window.__fbPhotoViewerIndex=all.findIndex(item=>item.url===url);if(window.__fbPhotoViewerIndex>=0)window.fbRenderPhotoViewer();});
+                        grid.appendChild(tile);
+                        const count=host.querySelector('.profile-photos-heading span');if(count)count.textContent=String(items.length);
+                    };
+                    probe.onerror=()=>{};
+                    probe.src=url;
+                    return result;
+                };
+            }
+
+            // After the network is rendered, upgrade each tile with a photo if that catalogue PNG exists.
+            const originalRenderProfileFriends=window.renderProfileFriends;
+            if(typeof originalRenderProfileFriends==='function'){
+                window.renderProfileFriends=function(friend,...args){
+                    const result=originalRenderProfileFriends.call(this,friend,...args);
+                    const host=document.getElementById('my-profile-friends-preview');
+                    host?.querySelectorAll('.profile-friend-card').forEach(card=>{
+                        const name=card.querySelector('.profile-friend-name')?.textContent?.replace(/\s*\(ty\)$/,'').trim();
+                        const actual=friendsList.find(item=>keyOf(item.name)===keyOf(name));
+                        const avatarNode=card.querySelector('.profile-friend-photo');
+                        if(name&&avatarNode)window.fbApplyCatalogAvatar(avatarNode,name,actual?.profilePhoto||'');
+                    });
+                    return result;
+                };
+            }
+        })();
+
+        /* 4.17: use catalogue portraits on post authors and commenter avatars too. */
+        (function(){
+            function decoratePeopleAvatars(root){
+                if(!root || !window.fbApplyCatalogAvatar)return;
+                root.querySelectorAll('.post-card').forEach(card=>{
+                    const name=card.querySelector('.author-name')?.textContent?.trim();
+                    if(!name)return;
+                    const friend=friendsList.find(item=>String(item.name).toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));
+                    const inCatalog=SUGGESTED_PEOPLE_CATALOG.some(item=>String(item.name).toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));
+                    const avatar=card.querySelector('.post-header .avatar');
+                    if(avatar&&(friend?.profilePhoto||inCatalog))window.fbApplyCatalogAvatar(avatar,name,friend?.profilePhoto||'');
+                });
+                root.querySelectorAll('.comment-avatar[onclick]').forEach(avatar=>{
+                    const handler=avatar.getAttribute('onclick')||'';
+                    const match=handler.match(/handleCommenterClick\('((?:\\.|[^'])*)'/);
+                    if(!match)return;
+                    const name=match[1].replace(/\\'/g,"'");
+                    const friend=friendsList.find(item=>String(item.name).toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));
+                    const inCatalog=SUGGESTED_PEOPLE_CATALOG.some(item=>String(item.name).toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));
+                    if(friend?.profilePhoto||inCatalog)window.fbApplyCatalogAvatar(avatar,name,friend?.profilePhoto||'');
+                });
+            }
+            ['renderGrid','renderProfilePosts'].forEach(function(method){
+                const original=window[method];
+                if(typeof original!=='function')return;
+                window[method]=function(...args){
+                    const result=original.apply(this,args);
+                    const root=method==='renderGrid'?document.getElementById('feed-container'):args[1];
+                    decoratePeopleAvatars(root);
+                    return result;
+                };
+            });
+            const originalOpenPost=window.openPost;
+            if(typeof originalOpenPost==='function')window.openPost=function(...args){
+                const result=originalOpenPost.apply(this,args);
+                decoratePeopleAvatars(document.getElementById('view-article'));
+                return result;
+            };
         })();
 
         document.addEventListener('click', function(event) {
