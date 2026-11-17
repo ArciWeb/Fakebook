@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fakebook v. 4.14</title>
+    <title>Fakebook v. 4.16</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1877f2">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -647,7 +647,30 @@
         .profile-photo-tile{position:relative;aspect-ratio:1/1;overflow:hidden;border-radius:10px;background:var(--profile-inset,var(--bg-input));cursor:pointer;}
         .profile-photo-tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s;}
         .profile-photo-tile:hover img{transform:scale(1.04);}
-        .profile-photo-tile span{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;color:#fff;font-size:.75rem;font-weight:700;background:linear-gradient(transparent,rgba(0,0,0,.68));}
+        .profile-photo-tile span{display:none!important;}
+        /* Photo gallery polish: clean thumbnails and a mobile-first, edge-to-edge viewer. */
+        #fb-photo-viewer{background:#050505!important;}
+        #fb-photo-viewer-body{width:100%;min-height:100%;display:flex;flex-direction:column;align-items:stretch;padding:0 0 max(18px,env(safe-area-inset-bottom));box-sizing:border-box;}
+        .fb-photo-viewer-stage{position:relative;display:flex;align-items:center;justify-content:center;width:100vw;min-height:220px;margin:0;background:#000;overflow:hidden;}
+        .fb-photo-viewer-image{display:block;width:100%;height:auto;max-width:100%;max-height:82vh;max-height:82svh;object-fit:contain;border-radius:0;user-select:none;-webkit-user-drag:none;}
+        .fb-photo-viewer-count{position:absolute;z-index:3;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:5px 10px;border-radius:20px;background:rgba(0,0,0,.48);color:#fff;text-align:center;font-size:.82rem;pointer-events:none;}
+        .fb-photo-viewer-post{width:100%;max-width:none;box-sizing:border-box;margin:0;padding:16px 18px;background:#202124;color:#fff;text-align:left;border-top:1px solid rgba(255,255,255,.1);overflow-wrap:anywhere;}
+        .fb-photo-viewer-post-title{display:block;border:0;background:none;color:#fff;padding:0;margin:0 0 10px;text-align:left;font-size:1.08rem;font-weight:800;cursor:pointer;}
+        .fb-photo-viewer-post-text{white-space:pre-wrap;line-height:1.55;color:#eee;}
+        .fb-photo-viewer-meta{margin-top:13px;color:#ccc;font-size:.88rem;}
+        #fb-photo-close,#fb-photo-prev,#fb-photo-next{position:absolute;z-index:10;display:grid;place-items:center;border:0;border-radius:50%;background:rgba(35,35,35,.58);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);color:#fff;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.28);padding:0;text-align:center;}
+        #fb-photo-close{top:max(10px,env(safe-area-inset-top));right:12px;width:42px;height:42px;font-size:28px;line-height:1;}
+        #fb-photo-prev,#fb-photo-next{top:50%;transform:translateY(-50%);width:44px;height:44px;font-size:30px;line-height:44px;}
+        #fb-photo-prev{left:9px;}
+        #fb-photo-next{right:9px;}
+        #fb-photo-close:active{transform:scale(.94);}
+        #fb-photo-prev:active,#fb-photo-next:active{transform:translateY(-50%) scale(.94);}
+        @media(min-width:760px){
+            #fb-photo-viewer-body{align-items:center;}
+            .fb-photo-viewer-stage{width:min(100vw,1280px);min-height:220px;}
+            .fb-photo-viewer-post{width:min(100%,1280px);border-radius:0 0 12px 12px;padding:18px 22px;}
+            #fb-photo-prev,#fb-photo-next{top:50%;}
+        }
         .navbar{position:sticky;top:0;z-index:1000;box-shadow:0 2px 12px rgba(0,0,0,.12);backdrop-filter:none!important;background:var(--bg-card)!important;border-bottom:1px solid var(--border-color);}
         .nav-btn{transition:transform .15s,filter .15s;} .nav-btn:active{transform:scale(.94);}
         .post-card,.create-post-card{border:1px solid var(--border-color)!important;border-radius:14px!important;box-shadow:0 1px 3px rgba(0,0,0,.08)!important;}
@@ -720,7 +743,7 @@
 
     <div id="pwa-install-banner" style="display: none; background-color: #1877f2; color: white; padding: 12px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 0.95rem; font-weight: 600; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.1); z-index: 10001; position: relative;">
         <div style="display: flex; align-items: center; gap: 8px;">
-            <span id="pwa-install-text">📱 Chcete si jebnúť aplikáciu Fakebook na plochu?</span>
+            <span id="pwa-install-text">📱 Chcete si pridať aplikáciu Fakebook na plochu?</span>
         </div>
         <div style="display: flex; gap: 8px;">
             <button id="btn-pwa-install-yes" class="btn" style="background-color: white; color: #1877f2; padding: 6px 16px; font-size: 0.85rem; border-radius: 6px; cursor: pointer; border: none; font-weight: bold;">Áno</button>
@@ -1735,7 +1758,7 @@ async function geminiFetch(request) {
                 chatHeaderFriend: "Priateľ", chatClearConv: "Vymazať konverzáciu", chatForgetThemes: "Zabudnúť staré témy (Čistý štít)", chatInputPlace: "Napíšte správu...",
                 chatBlockedBanner: "Tento používateľ je zablokovaný. Ak ho chcete odblokovať, prejdite na jeho nastavenia.", chatIgnoredBanner: "Priateľ vám poslal už 5 správ bez vašej odpovede. Nové správy nebude posielať, kým neodpíšete.",
                 infoGuideTitle: "Návod na použitie", infoGuideDesc: "<strong>Kľúč Gemini API:</strong> Pre správne fungovanie aplikácie Fakebook budete potrebovať vlastný API Key zo stránky Google AI Studio, ktorý vložíte v nastaveniach (🔑).<br><br><strong>Môj Profil:</strong> Nastavte si svoje vlastné MENO, VEK a POHLAVIE pre personalizovaný zážitok.<br><br><strong>Systém Priateľov (👥):</strong> Pridajte si priateľov zadaním ich mena, pohlavia a veku. Systém im automaticky vygeneruje unikátne VLASTNOSTI, OSOBNOSŤ, GRAMATIKU a SPRÁVANIE, podľa ktorých budú komunikovať. Všetky tieto atribúty môžete kedykoľvek UPRAVIŤ, zmeniť šancu na odpoveď či frekvenciu správ. Priateľom môžete priamo na plochu vygenerovať osobný STATUS, nechať ich ZDIEĽAŤ ľubovoľný článok, vytvoriť o nich bulvárny ČLÁNOK alebo si s nimi PÍSAŤ.<br><br><strong>Messenger (💬) & Autonómne správy:</strong> Priatelia vám môžu napísať aj sami od seba. Pri prechádzaní plochy a otváraní Messengera existuje dynamická šanca, že vám PRÍDE SPRÁVA. Ak nechcete čakať, <u>podržte tlačidlo Messengera na 3 sekundy</u> a správa dorazí okamžite. Priatelia si konverzácie PAMÄTAJÚ a plynule v nich pokračujú.<br><br><strong>Generovanie Článkov:</strong> Kliknite na vrchné pole pre tvorbu statusov. BUĎ napíšte vlastnú tému, ALEBO pole nechajte prázdne a systém vytvorí náhodný virálny príspevok. Môžete nastaviť časový posun, vybrať tému, určiť počet verzií a v review okne flexibilne UPRAVIŤ FOTKU (zmenou pomeru strán a promptu) či NÁZOV STRÁNKY.<br><br><strong>Vojny v komentároch & Algoritmus interakcií:</strong> Každý článok generuje množstvo živých KOMENTÁROV. Na príspevky môžete odpovedať, čím vyvoláte reálnu diskusiu. Existuje šanca, že vám od aktívneho komentujúceho príde ŽIADOSŤ O PRIATEĽSTVO. Tlačidlom <em>🤖 AI Troll Reakcia</em> vyvoláte okamžitú provokatívnu odpoveď na konkrétny komentár, alebo môžete spustiť masívnu <em>VOJNU KOMENTÁROV</em>. Články môžete zdieľať na svoj profil, mazať či generovať ich alternatívy.<br><br><strong>Nastavenia Obľúbených tém:</strong> V profile a nastaveniach priateľa pribudol explicitný popis pre kategóriu 'Obľúbené témy', vďaka čomu môžete lepšie korigovať algoritmus záujmov entít.<br><br><strong>💡 Núdzový Reset:</strong> V prípade akýchkoľvek problémov s prekrývaním okien <u>podržte 5 sekúnd hlavné logo FAKEBOOK</u> v ľavom hornom rohu pre tvrdý reset zobrazenia a tém.",
-                infoVerTitle: "Aktualizácia 4.13: nová sekcia Priatelia a vyhľadávanie", infoVerList: "<li><strong>Priatelia</strong>: nová prehľadná sekcia so žiadosťami, odporúčaniami, kartami priateľov a rozbaľovacím formulárom na pridanie.</li><li><strong>Akcie priateľov</strong>: tri hlavné tlačidlá – nastavenia, správa a vytváranie statusov/článkov/zdieľaní; odstránenie priateľa je v nastaveniach.</li><li><strong>Vyhľadávanie</strong>: dopĺňa mená podľa ľubovoľnej časti mena medzi priateľmi aj odporúčanými osobnosťami.</li><li><strong>Sociálna sieť osobností</strong>: 334 unikátnych postáv a známych osobností s recipročnou sieťou 20–29 kontaktov, uprednostňujúcou spoločné svety a tematické skupiny.</li><li><strong>Aktivita</strong>: pri automatických komentároch sa náhodne zapájajú aj tvoji priatelia a odporúčané osobnosti.</li><li><strong>Profil</strong>: späť navigácia, samostatné pridávanie fotiek a opravený zoznam vlastných príspevkov vrátane zdieľaní.</li>",
+                infoVerTitle: "Aktualizácia 4.16: fotografie vo feede, profily a jazykové úpravy", infoVerList: "<li><strong>Fotogaléria:</strong> fotografie v profiloch vychádzajú z reálnych aktivít – zdieľaní, komentárov a označení Páči sa mi. Po odstránení poslednej príslušnej aktivity sa odstráni aj fotografia.</li><li><strong>Prehliadač fotografií:</strong> celoobrazovkové mobilné zobrazenie, posúvanie šípkami a potiahnutím prsta, prepojenie na pôvodný príspevok a jeho komentáre.</li><li><strong>Fotografie vo feede:</strong> kliknutie na obrázok otvorí rovnaký prehliadač ako v profile; tlačidlá komentovania a zobrazenia komentárov naďalej otvárajú klasický príspevok.</li><li><strong>Priatelia a profily:</strong> navigácia medzi profilmi, pridávanie priateľov priamo zo zoznamov a vzájomné prepojenia. Noví ručne vytvorení priatelia začínajú iba s tebou ako priateľom.</li><li><strong>Vytváranie príspevkov:</strong> zjednodušený režim má synchronizovaný prepínač v hlavnom nastavení aj v pôvodnom okne vytvárania.</li><li><strong>Obnovenie a aktivita:</strong> spoľahlivejšie potiahnutie na obnovenie a menej náhodných zdieľaní článkov priateľmi.</li><li><strong>Jazyky:</strong> doplnené preklady ovládacích prvkov, záloh JSON, asistenta, fotogalérie a profilov; predvolené opisy katalógových osôb sa prekladajú podľa jazyka a ukladajú do cache. Ručne upravené opisy zostávajú nezmenené.</li><li><strong>Predchádzajúce verzie 4.14–4.15:</strong> sekcia Priatelia so žiadosťami a návrhmi, vyhľadávanie ľudí a otváranie ich profilov; profily predvolených osôb s vlastnými zoznamami priateľov a sociálnou sieťou katalógu; pridávanie a správa priateľov, opravy ukladania a navigácie, fotogaléria podľa aktivít a mobilný prehliadač fotografií.</li>",
                 msgTitleForce: "Vynucujem správu od:", msgAlertForce: "Prišla nová správa od užívateľa", keyInputAlert: "Prosím, vložte najprv API kľúč.", activeFriendsAlert: "Nemáte žiadnych aktívnych priateľov.",
                 statusViewProfile: "Zobrazenie z profilu", statusFullFeedOnly: "Zobrazenie detailu článku je aktívne len z hlavnej plochy.", profileNoPosts: "Zatiaľ tu nie sú žiadne príspevky.", profileActivityOf: "Príspevky, statusy a aktivita používateľa", profileCommentedOn: "komentoval príspevok stránky", profileSharedArticle: "zdieľal príspevok", profileStatusLabel: "Status", profileLikedArticle: "Páči sa mi príspevok", profileActivityTime: "Aktivita", profileOpenFullActivity: "Otvoriť celý príspevok a komentáre", profileDescriptionLabel: "Popis osoby", profileDescriptionPlace: "Krátky popis osoby...", profilePhotoLabel: "Profilová fotka", profilePhotoChoose: "Vybrať PNG/JPG", profilePhotoRemove: "Odstrániť fotku",
                 targetStatusPlaceholder: "Vytvárate osobný status pre: {name}. Zadajte tému...", statusLengthTitle: "Dĺžka statusu priateľa:", statusLenShort: "Krátky (1-3 vety)", statusLenMid: "Stredný (3-8 viet)", statusLenLong: "Dlhý (8-15 viet)",
@@ -1805,7 +1828,7 @@ async function geminiFetch(request) {
                 chatBlockedBanner: "This user is blocked. To unblock, navigate to their settings.", chatIgnoredBanner: "Friend has sent 5 messages without a reply. No more messages will arrive until you respond.",
                 infoGuideTitle: "User Guide", infoGuideDesc: "<strong>Gemini API Key:</strong> To ensure proper functionality of the Fakebook application, you will need your own API Key from the Google AI Studio platform, inserted via Settings (🔑).<br><br><strong>My Profile:</strong> Set up your own NAME, AGE, and GENDER for a fully personalized simulation experience.<br><br><strong>Friends System (👥):</strong> Add custom profiles by entering their name, gender, and age. The engine automatically generates unique TRAITS, PERSONALITY, GRAMMAR, and BEHAVIOR matrices for them. You can CUSTOMIZE all these attributes at any time, altering reply odds or text frequency. In the friends layout, you can prompt them to post a personal STATUS, SHARE any existing feed item, generate a tabloid ARTICLE about them, or CHAT with them directly.<br><br><strong>Messenger (💬) & Autonomous Messaging:</strong> Friends can message you unexpectedly. While browsing the feed or opening Messenger, there is a dynamic chance you'll RECEIVE A MESSAGE. If you don't want to wait, <u>hold the Messenger icon for 3 seconds</u> to force an immediate incoming text. Friends POSSESS PERSISTENT MEMORY and will seamlessly continue past conversations.<br><br><strong>Content Generation:</strong> Click on the top creation card. EITHER type a specific topic prompt OR leave it empty for a completely random viral news scoop. You can shift timelines, select topics, choose generation counts, and dynamically ADJUST THE IMAGE (canvas ratio & generation prompt) or EDIT THE PAGE NAME in the review window before publishing.<br><br><strong>Comment Wars & Interaction Logic:</strong> Every article spawns an active stream of nested COMMENTS. Replying to users can instigate a deeper live debate, with a dynamic chance that a prominent commenter will send you a FRIEND REQUEST to continue over Messenger. Use the <em>🤖 AI Troll Reaction</em> button to force a provocative counter-argument on any specific comment, or trigger a full-scale <em>COMMENT WAR</em>. Posts can be shared to your profile, wiped, or regenerated with alternative angles.<br><br><strong>Advanced Customization:</strong> Customize your profile to prioritize specific topics during random generation. Use the settings panel to change background themes, font style/color/size, toggle system language, or fully manage 4 independent SAVE SLOTS.<br><br><strong>⚠️ Event History Memory:</strong> Enabling this toggle lets the AI analyze previous feed events and reference past story arcs inside newly generated content. This feature is experimental (Beta); for maximum stability, we recommend keeping it disabled.<br><br><strong>💡 Emergency Reset:</strong> If any UI overlay locking errors occur, <u>press and hold the main FAKEBOOK logo for 5 seconds</u> in the top-left corner to trigger a hard reset of views and layout themes.",
 
-                infoVerTitle: "Update 4.13: redesigned Friends hub, search and social network", infoVerList: "<li><strong>Friends</strong>: a redesigned hub for requests, suggestions, friend cards and a collapsible add-friend form.</li><li><strong>Friend actions</strong>: three main buttons for settings, messaging and creating statuses/articles/shares; deleting a friend is inside settings.</li><li><strong>Search</strong>: matches any part of a name across friends and suggested personalities.</li><li><strong>Personality network</strong>: 334 unique characters and public figures with reciprocal networks of 20–29 contacts, prioritising shared fictional worlds and topics.</li><li><strong>Activity</strong>: friends and suggested personalities can also appear randomly in generated comments.</li><li><strong>Profile</strong>: back navigation, a separate add-photos action and a corrected activity list including shared posts.</li>",
+                infoVerTitle: "Update 4.16: feed photos, profiles and language improvements", infoVerList: "<li><strong>Photo gallery:</strong> profile photos are derived from real activity – shares, comments and Likes. When the last related profile activity is removed, its photo disappears too.</li><li><strong>Photo viewer:</strong> full-screen mobile layout, arrow and swipe navigation, and a direct link to the original post and its comments.</li><li><strong>Feed photos:</strong> tapping an image opens the same viewer used by profiles; Comment and View comments still open the regular post.</li><li><strong>Friends and profiles:</strong> profile-to-profile navigation, adding friends directly from friend lists, and reciprocal connections. Newly created manual friends start with only you as their friend.</li><li><strong>Post creation:</strong> the simplified mode switch is synchronised between the main settings and the original post-creation window.</li><li><strong>Refresh and activity:</strong> more reliable pull-to-refresh and fewer random article shares by friends.</li><li><strong>Languages:</strong> added translations for controls, JSON backups, the assistant, photo gallery and profiles. Default catalogue descriptions are translated to the selected language and cached. Manually edited descriptions are preserved.</li><li><strong>Previous 4.14–4.15 improvements:</strong> a Friends hub with requests and suggestions, people search and profile viewing; suggested-person profiles with friend lists and a catalogue social graph; adding and managing friends, storage and navigation fixes, activity-based photo galleries and the mobile photo viewer.</li>",
                 msgTitleForce: "Forcing message from:", msgAlertForce: "New message received from", keyInputAlert: "Please enter your API key first.", activeFriendsAlert: "You have no active friends.",
                 targetStatusPlaceholder: "Creating personal status for: {name}. Set topic...", statusLengthTitle: "Friend status length:", statusLenShort: "Short (1-3 sentences)", statusLenMid: "Medium (3-8 sentences)", statusLenLong: "Long (8-15 sentences)",
                 slotTitle: "Saved Slots", slotBtnSave: "Save", slotBtnLoad: "Load", textStatusNoMsgs: "No messages yet", textStatusYou: "You: ", textStatusChatWithBlocked: "Blocked",
@@ -1866,7 +1889,7 @@ async function geminiFetch(request) {
                 optFcolorBlack: "Crna", optFcolorWhite: "Bela", optFcolorYellow: "Žuta", optFcolorRed: "Crvena", optFcolorBlue: "Plava", optFcolorSilver: "Srebrna", optFcolorGold: "Zlatna",
                 optFsizeSmall: "Malo", optFsizeMedium: "Srednje (Podrazumevano)", optFsizeLarge: "Veliko", optFsizeXlarge: "Ekstra veliko", optFsizeSystem: "Sistemski (Moderno)", optFfamSys: "Sistemski (Moderno)",
                 optCount1: "1 objava", optCount2: "2 objave", optCount3: "3 objave", changeNamePlace: "Promenite svoje korisničko ime...", optMygenderNone: "-- Izaberite pol --",
-                myAgePlace: "Godine", customTopicPlace: "Add custom...", mySharedPostsLabel: "Moje podeljene objave", myProfileTitle: "Moj Profil",
+                myAgePlace: "Godine", customTopicPlace: "Dodaj prilagođenu temu...", mySharedPostsLabel: "Moje podeljene objave", myProfileTitle: "Moj Profil",
                 friendActionSendMsg: "Pošalji poruku", friendActionProfile: "Profil", friendActionAddStatus: "Dodaj status", friendActionShareArt: "Podeli članak", friendActionCreateArt: "Kreiraj članak", friendActionDelete: "Obriši",
                 chatLogNone: "Nema logova.", textViewArticle: "Prikaži članak", textPinProfile: "Podeli na profil", textCommentWar: "💬 Pokreni rat u komentarima", textAltArticle: "📰 Generiši drugi članak", textRegenReplace: "Izgeneriši zamenu", textWipePost: "Obriši članak",
                 btnLikeLabel: "Sviđa mi se", btnCommentLabel: "Komentariši", btnShareLabel: "Podeli", textWriteCommentPlace: "Napišite komentar...", btnSendLabel: "Pošalji", btnReplyLabel: "Odgovori", btnDeleteLabel: "Obriši", textReplyingTo: "Odgovara se korisniku",
@@ -1874,7 +1897,7 @@ async function geminiFetch(request) {
                 chatBlockedBanner: "Ovaj korisnik je blokiran. Ako želite da ga deblokirate, idite na njegova podešavanja.", chatIgnoredBanner: "Prijatelj vam je poslao već 5 poruka bez vašeg odgovora. Poruke neće stizati dok ne odgovorite.",
                 infoGuideTitle: "Uputstvo za upotrebu", infoGuideDesc: "<strong>Ključ Gemini API:</strong> Za ispravno funkcionisanje aplikacije Fakebook biće vam potreban sopstveni API Key sa sajta Google AI Studio, koji unosite u podešavanjima (🔑).<br><br><strong>Moj Profil:</strong> Podesite svoje IME, GODINE i POL za personalizovano iskustvo.<br><br><strong>Sistem Prijatelja (👥):</strong> Dodajte prijatelje unosom imena, pola i godina. Sistem im automatski generiše unikatne OSOBINE, LIČNOST, GRAMATIKU i PONAŠANJE prema kojima će komunicirati. Sve ove atribute možete bilo kada IZMENITI, promeniti šansu za odgovor ili frekvenciju poruka. Prijateljima možete direktno na zid generisati lični STATUS, pustiti ih da PODELE bilo koji članak, kreirati o njima žuti ČLANAK ili se sa njima DOPISIVATI.<br><br><strong>Mesindžer (💬) & Autonomne poruke:</strong> Prijatelji vam mogu pisati i sami od sebe. Dok listate zid i otvarate Mesindžer, postoji dinamička šansa da vam STIGNE PORUKA. Ako ne želite da čekate, <u>držite dugme Mesindžera 3 sekunde</u> i poruka stiže odmah. Prijatelji PAMTE konverzacije i tečno nastavljaju u njima.<br><br><strong>Generisanje Članaka:</strong> Kliknite na gornje polje za kreiranje statusa. ILI napišite sopstvenu temu, ILI ostavite polje prazno i sistem će kreirati nasumičnu viralnu objavu. Možete podesiti vremenski pomak, izabrati temu, odrediti broj verzija i u review prozoru fleksibilno IZMENITI SLIKU (promenom razmere i prompta) ili NAZIV STRANICE.<br><br><strong>Ratovi u komentarima & Algoritam interakcija:</strong> Svaki članak generiše mnoštvo živih KOMENTARA. Na objave možete odgovarati, čime izazivate realnu diskusiju. Postoji šansa da vam od aktivnog komentatora stigne ZAHTEV ZA PRIJATELJSTVO. Dugmetom <em>🤖 AI Troll Reakcija</em> izazvaćete provokativan odgovor na konkretan komentar, ili možete pokrenuti masovni <em>RAT KOMENTARA</em>. Članke možete deliti na svoj profil, brisati ili generisati njihove alternative.<br><br><strong>Napredna Podešavanja:</strong> U profilu možete specifikovati omiljene teme za prioritetno generisanje sadržaja. U podešavanjima možete menjati teme pozadine, boju i veličinu fonta, menjati jezik, ili kompletno upravljati sa 4 nezavisna SLOT-A ZA ČUVANJE (Save/Load).<br><br><strong>⚠️ Memorija istorije događaja:</strong> Ako omogućite ovu funkciju, AI će pamtiti prošle objave i pozivati se na njih u novim tekstovima. Funkcija je u test verziji (Beta), za stabilnost preporučujemo da ostane isključena.<br><br><strong>💡 Hitni Reset:</strong> U slučaju bilo kakvih problema sa preklapanjem prozora, <u>držite 5 sekundi glavni logo FAKEBOOK</u> u gornjem levom uglu za tvrdi reset prikaza i tema.",
 
-                infoVerTitle: "Ažuriranje 4.13: nova sekcija Prijatelji i pretraga", infoVerList: "<li><strong>Prijatelji</strong>: nova pregledna sekcija sa zahtevima, predlozima, karticama prijatelja i sklopivim obrascem za dodavanje.</li><li><strong>Akcije prijatelja</strong>: tri glavna dugmeta – podešavanja, poruka i kreiranje statusa/članaka/deljenja; brisanje prijatelja je u podešavanjima.</li><li><strong>Pretraga</strong>: pronalazi bilo koji deo imena među prijateljima i predloženim ličnostima.</li><li><strong>Mreža ličnosti</strong>: 334 jedinstvenih likova i poznatih osoba sa uzajamnom mrežom od 20–29 kontakata, uz prednost zajedničkim svetovima i temama.</li><li><strong>Aktivnost</strong>: prijatelji i predložene ličnosti mogu se nasumično pojavljivati u generisanim komentarima.</li><li><strong>Profil</strong>: povratna navigacija, zasebna opcija za dodavanje fotografija i ispravljena lista aktivnosti koja uključuje deljenja.</li>",
+                infoVerTitle: "Ažuriranje 4.16: fotografije u feedu, profili i jezička poboljšanja", infoVerList: "<li><strong>Galerija fotografija:</strong> fotografije na profilima zasnivaju se na stvarnoj aktivnosti – deljenjima, komentarima i lajkovima. Kada se ukloni poslednja povezana aktivnost sa profila, uklanja se i fotografija.</li><li><strong>Pregledač fotografija:</strong> prikaz preko celog ekrana na mobilnom telefonu, navigacija strelicama i prevlačenjem, kao i veza ka originalnoj objavi i komentarima.</li><li><strong>Fotografije u feedu:</strong> dodir fotografije otvara isti pregledač kao na profilu; dugmad za komentarisanje i prikaz komentara i dalje otvaraju klasičnu objavu.</li><li><strong>Prijatelji i profili:</strong> navigacija između profila, dodavanje prijatelja direktno iz spiskova prijatelja i uzajamne veze. Novokreirani prijatelji ručno počinju samo sa tobom kao prijateljem.</li><li><strong>Kreiranje objava:</strong> prekidač pojednostavljenog režima sinhronizovan je između glavnih podešavanja i originalnog prozora za kreiranje objava.</li><li><strong>Osvežavanje i aktivnost:</strong> pouzdanije osvežavanje prevlačenjem i manje nasumičnih deljenja članaka od strane prijatelja.</li><li><strong>Jezici:</strong> dopunjeni prevodi kontrola, JSON rezervnih kopija, asistenta, galerije fotografija i profila. Podrazumevani opisi osoba iz kataloga prevode se prema izabranom jeziku i čuvaju u kešu. Ručno izmenjeni opisi ostaju sačuvani.</li><li><strong>Prethodne verzije 4.14–4.15:</strong> odeljak Prijatelji sa zahtevima i predlozima, pretraga ljudi i otvaranje njihovih profila; profili predloženih osoba sa listama prijatelja i društvenom mrežom kataloga; dodavanje i upravljanje prijateljima, ispravke čuvanja i navigacije, galerije fotografija zasnovane na aktivnostima i mobilni pregledač fotografija.</li>",
                 msgTitleForce: "Prisiljavam poruku od:", msgAlertForce: "Stigla je nova poruka od korisnika", keyInputAlert: "Molimo vas da prvo unesete API ključ.", activeFriendsAlert: "Nemate nijednog aktivnog prijatelja.",
                 targetStatusPlaceholder: "Kreirate lični status za: {name}. Unesite temu...", statusLengthTitle: "Dužina statusa prijatelja:", statusLenShort: "Kratak (1-3 rečenice)", statusLenMid: "Srednji (3-8 rečenica)", statusLenLong: "Dugačak (8-15 rečenica)",
                 slotTitle: "Sačuvani profili (Slotovi)", slotBtnSave: "Sačuvaj", slotBtnLoad: "Učitaj", textStatusNoMsgs: "Još uvek nema poruka", textStatusYou: "Ti: ", textStatusChatWithBlocked: "Blokiran",
@@ -1895,6 +1918,210 @@ async function geminiFetch(request) {
             }
         };
 
+        // Localized strings used by controls created dynamically after the initial page render.
+        Object.assign(UI_TEXTS.sk, {
+            pwaInstallYes: 'Áno', pwaInstallNo: 'Nie',
+            slotBtnDelete: '🗑️ Vymazať', slotBtnDownload: '⬇️ Stiahnuť', slotBtnImport: '📥 Vložiť JSON', slotNameAria: 'Názov slotu {slot}',
+            slotImportConfirm: 'Vložiť zálohu do slotu {slot}? Obsah tohto slotu sa prepíše.', slotInvalidJson: 'Toto nie je platný Fakebook JSON súbor.', slotImportSuccess: 'JSON bol úspešne vložený do slotu {slot}.', slotImportFailed: 'Import sa nepodaril',
+            slotSaveConfirm: 'Uložiť kompletný stav Fakebooku do slotu {slot}?', slotSaveSuccess: 'Slot {slot} bol uložený.', slotSaveSize: 'Veľkosť zálohy: {size} MB.', slotSaveFailed: 'Uloženie zlyhalo',
+            slotLoadConfirm: 'Načítať kompletný stav zo slotu {slot}? Aktuálne údaje Fakebooku budú nahradené.', slotEmpty: 'Slot {slot} je prázdny.', slotLoadFailed: 'Načítanie zlyhalo',
+            slotDeleteConfirm: 'Naozaj vymazať uložený stav v slote {slot}?', slotDeleteSuccess: 'Slot {slot} bol vymazaný.', slotDeleteFailed: 'Vymazanie zlyhalo', slotDownloadFailed: 'Stiahnutie zlyhalo', slotImportPickerMissing: 'Importný prvok sa nenašiel.',
+            simpleComposerTitle: 'Zjednodušené vytváranie príspevkov', simpleComposerDetailedHint: 'Aktívne predvolene. Vypnutím sa vráti pôvodný podrobný editor.', simpleComposerSettingsHint: 'Zapnuté: rýchle vytvorenie statusu. Vypnuté: pôvodný podrobný editor.',
+            simpleComposerModalTitle: 'Čo chceš zverejniť?', simpleComposerModalDescription: 'Napíš tému alebo nechaj pole prázdne a Fakebook vymyslí niečo náhodné.', simpleComposerTopicPlaceholder: 'O čom má byť status? (nepovinné)', simpleComposerModeLabel: 'Zjednodušený režim vytvárania statusov', simpleComposerCancel: 'Zrušiť', simpleComposerConfirm: 'Potvrdiť',
+            suggestedViewProfile: 'Zobraziť profil', suggestedOpenProfile: 'Otvoriť profil', suggestedAddFriend: '＋ Pridať priateľa', suggestedAlreadyFriend: 'Tento človek už je medzi priateľmi.', suggestedNotInCatalog: 'Táto osoba zatiaľ nie je v katalógu.', photoViewerOpenPhoto: 'Otvoriť fotografiu',
+            suggestedPrivateTitle: 'Tento profil je zatiaľ súkromný', suggestedPrivateDescription: 'Nie je tu zatiaľ žiadny verejný príspevok ani komentár.', suggestedPrivateUnlock: 'Profil sa odomkne, keď sa objaví aspoň jeden príspevok alebo komentár.', suggestedActivityTitle: 'Aktivita používateľa', friendSettingsBtn: '⚙️ Nastavenia', friendMessageBtn: '💬 Správa', friendCreateBtn: '＋ Vytvoriť', friendAddStatusBtn: '✍️ Pridať status', friendCreateArticleBtn: '📝 Vytvoriť článok', friendShareArticleBtn: '↗️ Zdieľať článok', commonFriendsEmpty: 'Zatiaľ nemáš ďalších priateľov.',
+            friendSharedThisPost: 'zdieľa tento príspevok', photoViewerClose: 'Zavrieť', photoViewerPrevious: 'Predchádzajúca fotografia', photoViewerNext: 'Ďalšia fotografia', photoViewerProfilePhoto: 'Profilová fotografia', photoViewerCoverPhoto: 'Titulná fotografia', photoViewerNoPostText: 'K tomuto príspevku nie je uložený text.', photoViewerComments: 'komentárov', photoViewerOpenPost: 'Otvoriť celý príspevok a komentáre', photoViewerPhoto: 'Fotografia'
+        });
+        Object.assign(UI_TEXTS.en, {
+            pwaInstallYes: 'Yes', pwaInstallNo: 'No',
+            slotBtnDelete: '🗑️ Delete', slotBtnDownload: '⬇️ Download', slotBtnImport: '📥 Import JSON', slotNameAria: 'Slot name {slot}',
+            slotImportConfirm: 'Import this backup into slot {slot}? The current contents of this slot will be replaced.', slotInvalidJson: 'This is not a valid Fakebook JSON file.', slotImportSuccess: 'JSON was successfully imported into slot {slot}.', slotImportFailed: 'Import failed',
+            slotSaveConfirm: 'Save the complete Fakebook state to slot {slot}?', slotSaveSuccess: 'Slot {slot} was saved.', slotSaveSize: 'Backup size: {size} MB.', slotSaveFailed: 'Saving failed',
+            slotLoadConfirm: 'Load the complete state from slot {slot}? Your current Fakebook data will be replaced.', slotEmpty: 'Slot {slot} is empty.', slotLoadFailed: 'Loading failed',
+            slotDeleteConfirm: 'Are you sure you want to delete the saved state in slot {slot}?', slotDeleteSuccess: 'Slot {slot} was deleted.', slotDeleteFailed: 'Deletion failed', slotDownloadFailed: 'Download failed', slotImportPickerMissing: 'The import control could not be found.',
+            simpleComposerTitle: 'Simplified post creation', simpleComposerDetailedHint: 'Enabled by default. Turn it off to return to the original detailed editor.', simpleComposerSettingsHint: 'On: quickly create a status. Off: use the original detailed editor.',
+            simpleComposerModalTitle: 'What would you like to post?', simpleComposerModalDescription: 'Enter a topic or leave the field empty and Fakebook will come up with something random.', simpleComposerTopicPlaceholder: 'What should the status be about? (optional)', simpleComposerModeLabel: 'Simplified status creation mode', simpleComposerCancel: 'Cancel', simpleComposerConfirm: 'Confirm',
+            suggestedViewProfile: 'View profile', suggestedOpenProfile: 'Open profile', suggestedAddFriend: '＋ Add friend', suggestedAlreadyFriend: 'This person is already your friend.', suggestedNotInCatalog: 'This person is not in the catalogue yet.', photoViewerOpenPhoto: 'Open photo',
+            suggestedPrivateTitle: 'This profile is private for now', suggestedPrivateDescription: 'There are no public posts or comments here yet.', suggestedPrivateUnlock: 'This profile will become visible when at least one post or comment appears.', suggestedActivityTitle: 'User activity', friendSettingsBtn: '⚙️ Settings', friendMessageBtn: '💬 Message', friendCreateBtn: '＋ Create', friendAddStatusBtn: '✍️ Add status', friendCreateArticleBtn: '📝 Create article', friendShareArticleBtn: '↗️ Share article', commonFriendsEmpty: 'You do not have any other friends yet.',
+            friendSharedThisPost: 'shared this post', photoViewerClose: 'Close', photoViewerPrevious: 'Previous photo', photoViewerNext: 'Next photo', photoViewerProfilePhoto: 'Profile photo', photoViewerCoverPhoto: 'Cover photo', photoViewerNoPostText: 'No text is saved for this post.', photoViewerComments: 'comments', photoViewerOpenPost: 'Open full post and comments', photoViewerPhoto: 'Photo'
+        });
+        Object.assign(UI_TEXTS.sr, {
+            pwaInstallYes: 'Da', pwaInstallNo: 'Ne',
+            slotBtnDelete: '🗑️ Obriši', slotBtnDownload: '⬇️ Preuzmi', slotBtnImport: '📥 Ubaci JSON', slotNameAria: 'Naziv slota {slot}',
+            slotImportConfirm: 'Ubaci rezervnu kopiju u slot {slot}? Postojeći sadržaj tog slota biće zamenjen.', slotInvalidJson: 'Ovo nije ispravna Fakebook JSON datoteka.', slotImportSuccess: 'JSON je uspešno ubačen u slot {slot}.', slotImportFailed: 'Uvoz nije uspeo',
+            slotSaveConfirm: 'Sačuvati celokupno stanje Fakebooka u slot {slot}?', slotSaveSuccess: 'Slot {slot} je sačuvan.', slotSaveSize: 'Veličina rezervne kopije: {size} MB.', slotSaveFailed: 'Čuvanje nije uspelo',
+            slotLoadConfirm: 'Učitati celokupno stanje iz slota {slot}? Trenutni podaci Fakebooka biće zamenjeni.', slotEmpty: 'Slot {slot} je prazan.', slotLoadFailed: 'Učitavanje nije uspelo',
+            slotDeleteConfirm: 'Da li sigurno želiš da obrišeš sačuvano stanje u slotu {slot}?', slotDeleteSuccess: 'Slot {slot} je obrisan.', slotDeleteFailed: 'Brisanje nije uspelo', slotDownloadFailed: 'Preuzimanje nije uspelo', slotImportPickerMissing: 'Kontrola za uvoz nije pronađena.',
+            simpleComposerTitle: 'Pojednostavljeno kreiranje objava', simpleComposerDetailedHint: 'Uključeno je podrazumevano. Isključivanjem se vraća originalni detaljni editor.', simpleComposerSettingsHint: 'Uključeno: brzo kreiranje statusa. Isključeno: originalni detaljni editor.',
+            simpleComposerModalTitle: 'Šta želiš da objaviš?', simpleComposerModalDescription: 'Unesi temu ili ostavi polje prazno pa će Fakebook smisliti nešto nasumično.', simpleComposerTopicPlaceholder: 'O čemu treba da bude status? (opciono)', simpleComposerModeLabel: 'Pojednostavljeni režim kreiranja statusa', simpleComposerCancel: 'Otkaži', simpleComposerConfirm: 'Potvrdi',
+            suggestedViewProfile: 'Prikaži profil', suggestedOpenProfile: 'Otvori profil', suggestedAddFriend: '＋ Dodaj prijatelja', suggestedAlreadyFriend: 'Ova osoba je već među prijateljima.', suggestedNotInCatalog: 'Ova osoba još nije u katalogu.', photoViewerOpenPhoto: 'Otvori fotografiju',
+            suggestedPrivateTitle: 'Ovaj profil je za sada privatan', suggestedPrivateDescription: 'Ovde još nema javnih objava ili komentara.', suggestedPrivateUnlock: 'Profil će postati vidljiv kada se pojavi bar jedna objava ili komentar.', suggestedActivityTitle: 'Aktivnost korisnika', friendSettingsBtn: '⚙️ Podešavanja', friendMessageBtn: '💬 Poruka', friendCreateBtn: '＋ Kreiraj', friendAddStatusBtn: '✍️ Dodaj status', friendCreateArticleBtn: '📝 Kreiraj članak', friendShareArticleBtn: '↗️ Podeli objavu', commonFriendsEmpty: 'Još nemaš drugih prijatelja.',
+            friendSharedThisPost: 'je podelio/la ovu objavu', photoViewerClose: 'Zatvori', photoViewerPrevious: 'Prethodna fotografija', photoViewerNext: 'Sledeća fotografija', photoViewerProfilePhoto: 'Profilna fotografija', photoViewerCoverPhoto: 'Naslovna fotografija', photoViewerNoPostText: 'Za ovu objavu nije sačuvan tekst.', photoViewerComments: 'komentara', photoViewerOpenPost: 'Otvori celu objavu i komentare', photoViewerPhoto: 'Fotografija'
+        });
+
+        Object.assign(UI_TEXTS.sk, {
+            suggestedDuplicate: 'Tento človek už je medzi priateľmi.',
+            suggestedPrivateAdd: '＋ Pridať priateľa',
+            friendSettingsDetailsBtn: '⚙ Upraviť osobnosť a informácie',
+            profileNetworkAddHeading: 'Pridať mojich priateľov',
+            profileNetworkAddDescription: 'Vyber priateľov, ktorých chceš prepojiť s profilom {name}.',
+            profileNetworkSelfStatus: 'Ty si priateľom tohto profilu', profileNetworkExistingFriend: 'Tvoj priateľ',
+            profileNetworkAddToMyFriends: '＋ Pridať medzi mojich priateľov', profileNetworkAddPersonFailed: 'Tohto človeka sa nepodarilo pridať.',
+            profileNetworkAllConnected: 'Všetci tvoji priatelia sú už prepojení s týmto profilom.', profileNetworkNoFriendsToAdd: 'Zatiaľ nemáš ďalších priateľov, ktorých by si mohol pridať.',
+            profileNetworkNotFriendYet: 'Zatiaľ nie je priateľom tohto profilu', profileNetworkAddToFriend: '＋ Pridať ku {name}',
+            profileNetworkLinkFailed: 'Priateľa sa nepodarilo prepojiť.'
+        });
+        Object.assign(UI_TEXTS.en, {
+            suggestedDuplicate: 'This person is already your friend.',
+            suggestedPrivateAdd: '＋ Add friend',
+            friendSettingsDetailsBtn: '⚙ Edit personality and details',
+            profileNetworkAddHeading: 'Add my friends',
+            profileNetworkAddDescription: 'Choose friends you want to connect with {name}.',
+            profileNetworkSelfStatus: 'You are friends with this profile', profileNetworkExistingFriend: 'Your friend',
+            profileNetworkAddToMyFriends: '＋ Add to my friends', profileNetworkAddPersonFailed: 'This person could not be added.',
+            profileNetworkAllConnected: 'All your friends are already connected to this profile.', profileNetworkNoFriendsToAdd: 'You do not have any other friends to add yet.',
+            profileNetworkNotFriendYet: 'Not a friend of this profile yet', profileNetworkAddToFriend: '＋ Add to {name}',
+            profileNetworkLinkFailed: 'The friend connection could not be created.'
+        });
+        Object.assign(UI_TEXTS.sr, {
+            suggestedDuplicate: 'Ova osoba je već među prijateljima.',
+            suggestedPrivateAdd: '＋ Dodaj prijatelja',
+            friendSettingsDetailsBtn: '⚙ Uredi ličnost i podatke',
+            profileNetworkAddHeading: 'Dodaj moje prijatelje',
+            profileNetworkAddDescription: 'Izaberi prijatelje koje želiš da povežeš sa profilom {name}.',
+            profileNetworkSelfStatus: 'Ti si prijatelj ovog profila', profileNetworkExistingFriend: 'Tvoj prijatelj',
+            profileNetworkAddToMyFriends: '＋ Dodaj među moje prijatelje', profileNetworkAddPersonFailed: 'Ovu osobu nije moguće dodati.',
+            profileNetworkAllConnected: 'Svi tvoji prijatelji su već povezani sa ovim profilom.', profileNetworkNoFriendsToAdd: 'Još nemaš drugih prijatelja koje možeš da dodaš.',
+            profileNetworkNotFriendYet: 'Još nije prijatelj ovog profila', profileNetworkAddToFriend: '＋ Dodaj kod {name}',
+            profileNetworkLinkFailed: 'Povezivanje prijatelja nije uspelo.'
+        });
+
+        function fbFormatLocaleText(template, values = {}) {
+            return String(template || '').replace(/\{(\w+)\}/g, (_, key) => values[key] ?? '');
+        }
+        const FB_CATALOG_TRANSLATION_KEY = 'fb_catalog_description_translations';
+        function fbGetCatalogTranslationCache() {
+            try { const parsed = JSON.parse(localStorage.getItem(FB_CATALOG_TRANSLATION_KEY) || '{}'); return parsed && typeof parsed === 'object' ? parsed : {}; }
+            catch (_) { return {}; }
+        }
+        function fbGetCatalogDescription(person, language = appLanguage) {
+            if (!person) return '';
+            if (language === 'sk') return String(person.description || '');
+            const cache = fbGetCatalogTranslationCache();
+            return String(cache?.[language]?.[person.name] || person.description || '');
+        }
+        let fbCatalogTranslationQueue = Promise.resolve();
+        async function fbEnsureCatalogDescriptions(people, language = appLanguage) {
+            if (!['en', 'sr'].includes(language) || !getSavedApiKey()) return;
+            const unique = [];
+            (Array.isArray(people) ? people : []).forEach(person => {
+                if (person?.name && person?.description && !unique.some(x => x.name === person.name)) unique.push(person);
+            });
+            let cache = fbGetCatalogTranslationCache();
+            const missing = unique.filter(person => !cache?.[language]?.[person.name]);
+            if (!missing.length) return;
+            const task = async () => {
+                for (let offset = 0; offset < missing.length; offset += 10) {
+                    const batch = missing.slice(offset, offset + 10);
+                    const prompt = JSON.stringify(batch.map(person => ({name: person.name, description: person.description})));
+                    try {
+                        const response = await geminiFetch({
+                            model: MODEL_NAME,
+                            messages: [
+                                {role: 'system', content: language === 'en'
+                                    ? 'Translate every description into natural English. Keep each person name exactly unchanged. Preserve meaning, humour, tone and length. Do not add facts, explanations or markdown. Return only valid JSON in this exact shape: {"translations":[{"name":"exact original name","description":"translated description"}]}.'
+                                    : 'Prevedi svaki opis na prirodan srpski jezik, latinicom. Ime svake osobe ostavi potpuno nepromenjeno. Sačuvaj značenje, humor, ton i približnu dužinu. Ne dodaj činjenice, objašnjenja ni markdown. Vrati samo ispravan JSON u ovom obliku: {"translations":[{"name":"tačno originalno ime","description":"preveden opis"}]}.'},
+                                {role: 'user', content: prompt}
+                            ], response_format: {type: 'json_object'}, temperature: 0.15, max_output_tokens: 4096
+                        });
+                        const raw = (await response.json())?.choices?.[0]?.message?.content || '{}';
+                        let parsed; try { parsed = JSON.parse(raw.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '')); } catch (_) { parsed = {}; }
+                        const translations = Array.isArray(parsed) ? parsed : (parsed.translations || parsed.items || []);
+                        cache = fbGetCatalogTranslationCache();
+                        if (!cache[language]) cache[language] = {};
+                        translations.forEach(item => {
+                            const original = batch.find(person => person.name === item?.name);
+                            const translated = String(item?.description || '').trim();
+                            if (original && translated) cache[language][original.name] = translated.slice(0, 700);
+                        });
+                        localStorage.setItem(FB_CATALOG_TRANSLATION_KEY, JSON.stringify(cache));
+                    } catch (error) {
+                        console.warn('Fakebook catalogue description translation:', error?.message || error);
+                        break;
+                    }
+                }
+            };
+            const queued = fbCatalogTranslationQueue.then(task, task);
+            fbCatalogTranslationQueue = queued.catch(() => {});
+            await queued;
+        }
+        function fbMarkDefaultCatalogFriendDescriptions() {
+            if (!Array.isArray(friendsList) || !Array.isArray(SUGGESTED_PEOPLE_CATALOG)) return;
+            let changed = false;
+            friendsList.forEach(friend => {
+                const person = SUGGESTED_PEOPLE_CATALOG.find(item => String(item.name).toLocaleLowerCase('sk') === String(friend.name).toLocaleLowerCase('sk'));
+                if (!person) return;
+                if (typeof friend.profileDescriptionIsDefault !== 'boolean') {
+                    friend.profileDescriptionIsDefault = !friend.profileDescription || friend.profileDescription === person.description;
+                    if (friend.profileDescriptionIsDefault) friend.profileDescription = fbGetCatalogDescription(person, appLanguage);
+                    changed = true;
+                }
+            });
+            if (changed) saveFriendsData();
+        }
+        async function fbRefreshDefaultCatalogFriendDescriptions() {
+            if (!Array.isArray(friendsList) || !Array.isArray(SUGGESTED_PEOPLE_CATALOG)) return;
+            fbMarkDefaultCatalogFriendDescriptions();
+            const defaults = friendsList.filter(friend => friend.profileDescriptionIsDefault === true).map(friend => SUGGESTED_PEOPLE_CATALOG.find(person => String(person.name).toLocaleLowerCase('sk') === String(friend.name).toLocaleLowerCase('sk'))).filter(Boolean);
+            const temporary = window.__fbTemporarySuggestedProfile;
+            if (temporary && temporary.name === currentProfileFriendName) {
+                const person = SUGGESTED_PEOPLE_CATALOG.find(item => item.name === temporary.name);
+                if (person && !defaults.some(item => item.name === person.name)) defaults.push(person);
+            }
+            if (appLanguage !== 'sk') await fbEnsureCatalogDescriptions(defaults, appLanguage);
+            let changed = false;
+            friendsList.forEach(friend => {
+                if (friend.profileDescriptionIsDefault !== true) return;
+                const person = SUGGESTED_PEOPLE_CATALOG.find(item => String(item.name).toLocaleLowerCase('sk') === String(friend.name).toLocaleLowerCase('sk'));
+                if (!person) return;
+                const localized = fbGetCatalogDescription(person, appLanguage);
+                if (friend.profileDescription !== localized) { friend.profileDescription = localized; changed = true; }
+                friend.profileDescriptionLanguage = appLanguage;
+            });
+            if (changed) saveFriendsData();
+            if (currentProfileFriendName) {
+                const opened = friendsList.find(friend => friend.name === currentProfileFriendName);
+                if (opened && opened.profileDescriptionIsDefault) renderProfileAbout(opened);
+                else {
+                    const temporary = window.__fbTemporarySuggestedProfile;
+                    if (temporary && temporary.name === currentProfileFriendName && temporary.profileDescriptionIsDefault) {
+                        const person = SUGGESTED_PEOPLE_CATALOG.find(item => item.name === temporary.name);
+                        if (person) { temporary.profileDescription = fbGetCatalogDescription(person, appLanguage); renderProfileAbout(temporary); }
+                    }
+                }
+            }
+        }
+        function fbApplyExtraLocale() {
+            const pack = UI_TEXTS[appLanguage] || UI_TEXTS.sk;
+            const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+            setText('btn-pwa-install-yes', pack.pwaInstallYes); setText('btn-pwa-install-no', pack.pwaInstallNo);
+            const detailed = document.querySelector('#fb-simple-composer-setting span');
+            if (detailed) { const strong = detailed.querySelector('strong'); const small = detailed.querySelector('small'); if (strong) strong.textContent = pack.simpleComposerTitle; if (small) small.textContent = pack.simpleComposerDetailedHint; }
+            const settings = document.querySelector('#fb-simple-composer-setting-main span');
+            if (settings) { const strong = settings.querySelector('strong'); const small = settings.querySelector('small'); if (strong) strong.textContent = pack.simpleComposerTitle; if (small) small.textContent = pack.simpleComposerSettingsHint; }
+            setText('fb-simple-composer-modal-title', pack.simpleComposerModalTitle); setText('fb-simple-composer-modal-description', pack.simpleComposerModalDescription); setText('fb-simple-composer-mode-label', pack.simpleComposerModeLabel); setText('fb-simple-composer-cancel', pack.simpleComposerCancel); setText('fb-simple-composer-confirm', pack.simpleComposerConfirm);
+            const topic = document.getElementById('fb-simple-composer-topic'); if (topic) topic.placeholder = pack.simpleComposerTopicPlaceholder;
+            const htmlEl = document.documentElement; if (htmlEl) htmlEl.lang = appLanguage;
+            if (document.getElementById('api-modal')?.style.display === 'flex' && document.getElementById('slots-container')) renderSlots();
+            const profileModal = document.getElementById('user-profile-modal');
+            if (profileModal?.style.display === 'flex' && typeof window.renderProfileFriends === 'function') {
+                const activeName = currentProfileFriendName;
+                const normalizeProfileName = value => String(value || '').trim().toLocaleLowerCase('sk');
+                const activeFriend = activeName ? (friendsList.find(item => normalizeProfileName(item.name) === normalizeProfileName(activeName)) || (window.__fbTemporarySuggestedProfile?.name === activeName ? window.__fbTemporarySuggestedProfile : null)) : null;
+                window.renderProfileFriends(activeFriend);
+                if (typeof window.fbRefreshOpenProfilePhotos === 'function') window.fbRefreshOpenProfilePhotos();
+            }
+        }
         const logoBtn = document.getElementById('navbar-logo-btn');
         if(logoBtn) {
             logoBtn.addEventListener('mousedown', startResetTimer);
@@ -2499,6 +2726,8 @@ function applyThemeAndFont() {
             }
 
             updateCreateTopicSelector();
+            fbApplyExtraLocale();
+            fbRefreshDefaultCatalogFriendDescriptions();
             renderFriends();
             renderGrid();
         }
@@ -2932,7 +3161,7 @@ Pán Prsteňov|male|100|Legendárny fantasy svet v jednej osobe, ktorá každú 
         }
         function addSuggestedPerson(name){
             const person=SUGGESTED_PEOPLE_CATALOG.find(p=>p.name.toLowerCase()===String(name||'').toLowerCase());if(!person)return;
-            if(friendsList.some(f=>String(f.name||'').toLowerCase()===person.name.toLowerCase())){alert('Tento človek už je medzi priateľmi.');return;}
+            if(friendsList.some(f=>String(f.name||'').toLowerCase()===person.name.toLowerCase())){alert(UI_TEXTS[appLanguage].suggestedDuplicate);return;}
             const f={name:person.name,gender:person.gender,age:person.age,msgChances:{0:95,1:2.5,2:1.25,3:1.25},unansweredFollowupChance:.1,replyChances:{0:5,1:70,2:20,3:5,4:5},ghostChance:5,emojiStyle:'normal',personalities:['friendly'],grammar:generateRandomGrammar(),messageCountBehavior:generateRandomMsgCount(),romance:generateRandomRomance(),relationships:['comments'],favoriteTopics:[],customTopics:[],profileDescription:person.description,profilePhoto:'',profileCoverPhoto:'',friendList:[],commonFriends:[],commentChance:25,webMemory:[],webActive:false,isBlocked:false,ignoredCount:0,unreadCount:0,dateAdded:Date.now(),contactLevel:'Poznáme sa',isCatalogCharacter:true};
             friendsList.push(f);seedFriendNetwork(f);saveFriendsData();renderFriends();updateUnreadUI();renderAssistant();shuffleSuggestedPeople();renderFriendsHubSuggestions();
             const modal=document.getElementById('suggested-people-modal');if(modal&&modal.style.display==='flex')renderSuggestedPeopleModal();
@@ -3085,8 +3314,10 @@ Pán Prsteňov|male|100|Legendárny fantasy svet v jednej osobe, ktorá každú 
                 history.replaceState({ modalOpen: false }, '');
             }
 
+            fbMarkDefaultCatalogFriendDescriptions();
             ensureFriendNetwork();
             enrichCatalogFriendNetworks();
+            setTimeout(() => { fbRefreshDefaultCatalogFriendDescriptions(); }, 500);
             shuffleSuggestedPeople();
             updateUserAvatarsUI();
             updateUnreadUI();
@@ -3869,7 +4100,7 @@ ${context}`;
         function renderCommonFriends(friend){
             const c=document.getElementById('fs-common-friends-container'); if(!c) return;
             const selected=new Set(friend.commonFriends||[]);
-            c.innerHTML=friendsList.filter(f=>f.name.toLowerCase()!==friend.name.toLowerCase()).map(f=>`<label class="common-friend-row"><input class="fs-common-checkbox" type="checkbox" value="${escapeHtmlAttr(f.name)}" ${selected.has(f.name)?'checked':''}> <span>${escapeHtml(f.name)}</span></label>`).join('') || '<div style="color:var(--text-muted);font-size:.85rem;">Zatiaľ nemáš ďalších priateľov.</div>';
+            c.innerHTML=friendsList.filter(f=>f.name.toLowerCase()!==friend.name.toLowerCase()).map(f=>`<label class="common-friend-row"><input class="fs-common-checkbox" type="checkbox" value="${escapeHtmlAttr(f.name)}" ${selected.has(f.name)?'checked':''}> <span>${escapeHtml(f.name)}</span></label>`).join('') || `<div style="color:var(--text-muted);font-size:.85rem;">${UI_TEXTS[appLanguage].commonFriendsEmpty}</div>`;
         }
 
         function saveFriendSettings() {
@@ -3883,7 +4114,10 @@ ${context}`;
             }
 
             friend.contactLevel = document.getElementById('fs-contact-level').value;
-            friend.profileDescription = (document.getElementById('fs-person-description').value || '').trim().slice(0, 500);
+            const previousProfileDescription = String(friend.profileDescription || '');
+            const nextProfileDescription = (document.getElementById('fs-person-description').value || '').trim().slice(0, 500);
+            if (nextProfileDescription !== previousProfileDescription) { friend.profileDescriptionIsDefault = false; friend.profileDescriptionLanguage = appLanguage; }
+            friend.profileDescription = nextProfileDescription;
             friend.commentChance = Math.max(0, Math.min(100, parseFloat(document.getElementById('fs-comment-chance').value) || 0));
             friend.profileCoverPhoto = friend.profileCoverPhoto || '';
             const commonBoxes = document.querySelectorAll('.fs-common-checkbox');
@@ -3956,7 +4190,7 @@ ${context}`;
                 if(friend.personalities?.length>1)persLabel+='…';
                 const avatar=friend.profilePhoto?`<img class="friend-modern-avatar" src="${friend.profilePhoto}" alt="">`:`<div class="friend-modern-avatar" style="background:${generateColor(friend.name)}">${escapeHtml(friend.name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase())}</div>`;
                 const blocked=friend.isBlocked?`<span style="color:#f02849;font-size:.72rem;font-weight:800;"> · ${UI_TEXTS[appLanguage].blockedStatusText}</span>`:'';
-                container.insertAdjacentHTML('beforeend',`<article class="friend-modern-card" style="${friend.isBlocked?'opacity:.72;':''}"><div class="friend-modern-top">${avatar}<div style="min-width:0;flex:1;"><div class="friend-modern-name" onclick="openSelectedFriendProfile(decodeURIComponent('${encodeURIComponent(friend.name)}'))">${escapeHtml(friend.name)}${blocked}</div><div class="friend-modern-meta">${[gender,age,persLabel].filter(Boolean).map(escapeHtml).join(' · ')}</div></div></div><div class="friend-modern-actions"><button onclick="openFriendSettingsModal(${idx})">⚙️ Nastavenia</button><button onclick="openChatFromFriendsList(decodeURIComponent('${encodeURIComponent(friend.name)}'))">💬 Správa</button><button class="primary" onclick="toggleFriendCreateMenu(${idx})">＋ Vytvoriť</button></div><div class="friend-create-menu" id="friend-create-menu-${idx}"><button onclick="triggerAddStatusPrompt(decodeURIComponent('${encodeURIComponent(friend.name)}'),'${friend.gender}','${String(friend.age||'').replace(/'/g, "\'")}')">✍️ Pridať status</button><button onclick="triggerCreateFriendArticle(decodeURIComponent('${encodeURIComponent(friend.name)}'),'${friend.gender}','${String(friend.age||'').replace(/'/g, "\'")}')">📝 Vytvoriť článok</button><button onclick="triggerShareFriendArticle(decodeURIComponent('${encodeURIComponent(friend.name)}'))">↗️ Zdieľať článok</button></div></article>`);
+                container.insertAdjacentHTML('beforeend',`<article class="friend-modern-card" style="${friend.isBlocked?'opacity:.72;':''}"><div class="friend-modern-top">${avatar}<div style="min-width:0;flex:1;"><div class="friend-modern-name" onclick="openSelectedFriendProfile(decodeURIComponent('${encodeURIComponent(friend.name)}'))">${escapeHtml(friend.name)}${blocked}</div><div class="friend-modern-meta">${[gender,age,persLabel].filter(Boolean).map(escapeHtml).join(' · ')}</div></div></div><div class="friend-modern-actions"><button onclick="openFriendSettingsModal(${idx})">${UI_TEXTS[appLanguage].friendSettingsBtn}</button><button onclick="openChatFromFriendsList(decodeURIComponent('${encodeURIComponent(friend.name)}'))">${UI_TEXTS[appLanguage].friendMessageBtn}</button><button class="primary" onclick="toggleFriendCreateMenu(${idx})">${UI_TEXTS[appLanguage].friendCreateBtn}</button></div><div class="friend-create-menu" id="friend-create-menu-${idx}"><button onclick="triggerAddStatusPrompt(decodeURIComponent('${encodeURIComponent(friend.name)}'),'${friend.gender}','${String(friend.age||'').replace(/'/g, "\'")}')">${UI_TEXTS[appLanguage].friendAddStatusBtn}</button><button onclick="triggerCreateFriendArticle(decodeURIComponent('${encodeURIComponent(friend.name)}'),'${friend.gender}','${String(friend.age||'').replace(/'/g, "\'")}')">${UI_TEXTS[appLanguage].friendCreateArticleBtn}</button><button onclick="triggerShareFriendArticle(decodeURIComponent('${encodeURIComponent(friend.name)}'))">${UI_TEXTS[appLanguage].friendShareArticleBtn}</button></div></article>`);
             });
         }
         function toggleFriendCreateMenu(idx){const menu=document.getElementById(`friend-create-menu-${idx}`);if(menu)menu.classList.toggle('open');}
@@ -4491,18 +4725,19 @@ ${context}`;
             };
         }
         function renderSlots() {
+            const pack = UI_TEXTS[appLanguage] || UI_TEXTS.sk;
             let html = '';
             for(let i=1; i<=4; i++) {
                 let sName = localStorage.getItem(`fb_slot_${i}_name`) || `Slot ${i}`;
                 html += `
                 <div style="background: var(--bg-input); padding: 10px 12px; margin-bottom: 10px; border-radius: 8px;">
-                    <input type="text" id="slot-name-${i}" value="${String(sName).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}" aria-label="Názov slotu ${i}" style="width:100%; border:1px solid var(--border-color); background:var(--bg-card); font-weight:600; font-size:0.95rem; margin-bottom:8px; color:var(--global-font-color);">
+                    <input type="text" id="slot-name-${i}" value="${String(sName).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}" aria-label="${escapeHtmlAttr(fbFormatLocaleText(pack.slotNameAria, {slot:i}))}" style="width:100%; border:1px solid var(--border-color); background:var(--bg-card); font-weight:600; font-size:0.95rem; margin-bottom:8px; color:var(--global-font-color);">
                     <div style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px;">
-                        <button class="btn btn-primary" onclick="saveToSlot(${i})">💾 Uložiť</button>
-                        <button class="btn btn-secondary" onclick="loadFromSlot(${i})">📂 Načítať</button>
-                        <button class="btn btn-secondary" onclick="deleteSlot(${i})">🗑️ Vymazať</button>
-                        <button class="btn btn-secondary" onclick="downloadSlot(${i})">⬇️ Stiahnuť</button>
-                        <button class="btn btn-secondary" onclick="chooseSlotImport(${i})">📥 Vložiť JSON</button>
+                        <button class="btn btn-primary" onclick="saveToSlot(${i})">💾 ${pack.slotBtnSave}</button>
+                        <button class="btn btn-secondary" onclick="loadFromSlot(${i})">📂 ${pack.slotBtnLoad}</button>
+                        <button class="btn btn-secondary" onclick="deleteSlot(${i})">${pack.slotBtnDelete}</button>
+                        <button class="btn btn-secondary" onclick="downloadSlot(${i})">${pack.slotBtnDownload}</button>
+                        <button class="btn btn-secondary" onclick="chooseSlotImport(${i})">${pack.slotBtnImport}</button>
                     </div>
                 </div>`;
             }
@@ -4520,16 +4755,16 @@ ${context}`;
                     const parsed = JSON.parse(text);
                     const record = parsed && parsed.format === 'FakebookSave' ? parsed : null;
                     if (!record || !record.state || typeof record.state !== 'object' || Array.isArray(record.state)) {
-                        throw new Error('Toto nie je platný Fakebook JSON súbor.');
+                        throw new Error(UI_TEXTS[appLanguage].slotInvalidJson);
                     }
-                    if (!confirm(`Vložiť zálohu do slotu ${slot}? Obsah tohto slotu sa prepíše.`)) return;
+                    if (!confirm(fbFormatLocaleText(UI_TEXTS[appLanguage].slotImportConfirm, {slot}))) return;
                     record.slot = slot;
                     record.savedAt = record.savedAt || new Date().toISOString();
                     await putFakebookSlot({id: slot, ...record});
                     localStorage.setItem(`fb_slot_${slot}_name`, `Slot ${slot}`);
                     renderSlots();
-                    alert(`JSON bol úspešne vložený do slotu ${slot}.`);
-                } catch(e) { alert('Import sa nepodaril: ' + (e.message || e)); }
+                    alert(fbFormatLocaleText(UI_TEXTS[appLanguage].slotImportSuccess, {slot}));
+                } catch(e) { alert(UI_TEXTS[appLanguage].slotImportFailed + ': ' + (e.message || e)); }
             };
         }
         function saveSlotName(i) {
@@ -4537,16 +4772,16 @@ ${context}`;
             if (el) localStorage.setItem(`fb_slot_${i}_name`, el.value.trim() || `Slot ${i}`);
         }
         async function saveToSlot(i) {
-            if(!confirm('Uložiť kompletný stav Fakebooku do slotu ' + i + '?')) return;
+            if(!confirm(fbFormatLocaleText(UI_TEXTS[appLanguage].slotSaveConfirm, {slot:i}))) return;
             try {
                 saveSlotName(i);
                 const record = makeFakebookSaveRecord(i);
                 await putFakebookSlot({id: i, ...record});
-                alert(`Slot ${i} bol uložený. Veľkosť zálohy: ${(new Blob([JSON.stringify(record)]).size / 1024 / 1024).toFixed(2)} MB.`);
-            } catch(e) { alert('Uloženie zlyhalo: ' + (e.message || e) + '\\nSkús uvoľniť miesto v zariadení alebo stiahnuť a vložiť zálohu cez JSON.'); }
+                alert(fbFormatLocaleText(UI_TEXTS[appLanguage].slotSaveSuccess, {slot:i}) + ' ' + fbFormatLocaleText(UI_TEXTS[appLanguage].slotSaveSize, {size:(new Blob([JSON.stringify(record)]).size / 1024 / 1024).toFixed(2)}));
+            } catch(e) { alert(UI_TEXTS[appLanguage].slotSaveFailed + ': ' + (e.message || e) + (appLanguage === 'en' ? '\nTry freeing device storage or using a JSON backup.' : appLanguage === 'sr' ? '\nPokušaj da oslobodiš prostor na uređaju ili koristiš JSON rezervnu kopiju.' : '\nSkús uvoľniť miesto v zariadení alebo použiť JSON zálohu.')); }
         }
         async function loadFromSlot(i) {
-            if(!confirm('Načítať kompletný stav zo slotu ' + i + '? Aktuálne údaje Fakebooku budú nahradené.')) return;
+            if(!confirm(fbFormatLocaleText(UI_TEXTS[appLanguage].slotLoadConfirm, {slot:i}))) return;
             try {
                 let record = await getFakebookSlot(i);
                 // Kompatibilita so staršími slotmi z pôvodnej verzie.
@@ -4561,11 +4796,11 @@ ${context}`;
                         record = {state};
                     }
                 }
-                if (!record || !record.state) { alert('Slot ' + i + ' je prázdny.'); return; }
+                if (!record || !record.state) { alert(fbFormatLocaleText(UI_TEXTS[appLanguage].slotEmpty, {slot:i})); return; }
                 applyFakebookSaveState(record.state);
                 closeApiModal();
                 location.reload();
-            } catch(e) { alert('Načítanie zlyhalo: ' + (e.message || e)); }
+            } catch(e) { alert(UI_TEXTS[appLanguage].slotLoadFailed + ': ' + (e.message || e)); }
         }
         function applyFakebookSaveState(state) {
             // Nahradíme iba aplikačné kľúče Fakebooku; API kľúč a uložené sloty ostanú zachované.
@@ -4583,12 +4818,12 @@ ${context}`;
             });
         }
         async function deleteSlot(i) {
-            if (!confirm(`Naozaj vymazať uložený stav v slote ${i}?`)) return;
+            if (!confirm(fbFormatLocaleText(UI_TEXTS[appLanguage].slotDeleteConfirm, {slot:i}))) return;
             try {
                 await deleteFakebookSlot(i);
                 ['feed','shared','time'].forEach(k => localStorage.removeItem(`fb_slot_${i}_${k}`));
-                alert(`Slot ${i} bol vymazaný.`);
-            } catch(e) { alert('Vymazanie zlyhalo: ' + (e.message || e)); }
+                alert(fbFormatLocaleText(UI_TEXTS[appLanguage].slotDeleteSuccess, {slot:i}));
+            } catch(e) { alert(UI_TEXTS[appLanguage].slotDeleteFailed + ': ' + (e.message || e)); }
         }
         async function downloadSlot(i) {
             try {
@@ -4604,7 +4839,7 @@ ${context}`;
                         record = {format:'FakebookSave',version:1,slot:i,savedAt:new Date().toISOString(),state};
                     }
                 }
-                if (!record) { alert(`Slot ${i} je prázdny.`); return; }
+                if (!record) { alert(fbFormatLocaleText(UI_TEXTS[appLanguage].slotEmpty, {slot:i})); return; }
                 const json = JSON.stringify({format:'FakebookSave',version:1,slot:i,savedAt:record.savedAt || new Date().toISOString(),state:record.state}, null, 2);
                 const blob = new Blob([json], {type:'application/json;charset=utf-8'});
                 const url = URL.createObjectURL(blob);
@@ -4613,11 +4848,11 @@ ${context}`;
                 a.href = url; a.download = `Fakebook slot${i} ${date}.json`;
                 document.body.appendChild(a); a.click(); a.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 30000);
-            } catch(e) { alert('Stiahnutie zlyhalo: ' + (e.message || e)); }
+            } catch(e) { alert(UI_TEXTS[appLanguage].slotDownloadFailed + ': ' + (e.message || e)); }
         }
         function chooseSlotImport(i) {
             const picker = document.getElementById('fakebook-slot-import');
-            if (!picker) { alert('Importný prvok sa nenašiel.'); return; }
+            if (!picker) { alert(UI_TEXTS[appLanguage].slotImportPickerMissing); return; }
             picker.dataset.slot = String(i);
             picker.click();
         }
@@ -6122,7 +6357,7 @@ async function addManualComment(sIdx, pIdx) {
 
                     let viewMoreCommentsText = `${UI_TEXTS[appLanguage].viewMoreCommentsLabel} (${numComments})`;
 
-                    const shareHeaderHtml = post.isFriendShare && post.sharedByFriend ? `<div style="padding:10px 16px 4px; font-size:.88rem; color:var(--text-muted); font-weight:700;">↗ ${escapeHtml(post.sharedByFriend)} zdieľa tento príspevok</div><div style="padding:0 16px 8px;font-size:.84rem;color:var(--text-muted);font-style:italic;">${escapeHtml(post.sharedOpinion||'')}</div>` : '';
+                    const shareHeaderHtml = post.isFriendShare && post.sharedByFriend ? `<div style="padding:10px 16px 4px; font-size:.88rem; color:var(--text-muted); font-weight:700;">↗ ${escapeHtml(post.sharedByFriend)} ${UI_TEXTS[appLanguage].friendSharedThisPost}</div><div style="padding:0 16px 8px;font-size:.84rem;color:var(--text-muted);font-style:italic;">${escapeHtml(post.sharedOpinion||'')}</div>` : '';
                     card.innerHTML = `
                         ${shareHeaderHtml}
                         <div class="post-header">
@@ -6150,7 +6385,7 @@ async function addManualComment(sIdx, pIdx) {
                             <h3>${post.title || ''}</h3>
                             <div class="post-text">${visibleText}${marginHtml}</div>
                         </div>
-                        ${post.image_url ? `<img src="${post.image_url}" class="post-image" alt="Image">` : ''}
+                        ${post.image_url ? `<img src="${post.image_url}" class="post-image" data-fb-feed-photo="1" data-fb-si="${sIdx}" data-fb-pi="${pIdx}" alt="${escapeHtmlAttr(UI_TEXTS[appLanguage].photoViewerPhoto)}" role="button" tabindex="0" style="cursor:zoom-in">` : ''}
                         <div class="post-stats">
                             <span>👍 <span id="like-count-${sIdx}-${pIdx}">${post.likes}</span></span>
                             <span>${numComments} ${UI_TEXTS[appLanguage].textCommentsHeader.toLowerCase()}</span>
@@ -6196,7 +6431,7 @@ async function addManualComment(sIdx, pIdx) {
             area.className = 'post-card'; area.style.marginBottom = '0';
             let paragraphsHtml = Array.isArray(post.content) ? post.content.map(p => `<p class="post-text">${p}</p>`).join('') : `<p class="post-text">${post.content || ''}</p>`;
 
-            const shareHeaderHtml = post.isFriendShare && post.sharedByFriend ? `<div style="padding:10px 16px 4px; font-size:.9rem; color:var(--text-muted); font-weight:700;">↗ ${escapeHtml(post.sharedByFriend)} zdieľa tento príspevok</div><div style="padding:0 16px 8px;font-size:.86rem;color:var(--text-muted);font-style:italic;">${escapeHtml(post.sharedOpinion||'')}</div>` : '';
+            const shareHeaderHtml = post.isFriendShare && post.sharedByFriend ? `<div style="padding:10px 16px 4px; font-size:.9rem; color:var(--text-muted); font-weight:700;">↗ ${escapeHtml(post.sharedByFriend)} ${UI_TEXTS[appLanguage].friendSharedThisPost}</div><div style="padding:0 16px 8px;font-size:.86rem;color:var(--text-muted);font-style:italic;">${escapeHtml(post.sharedOpinion||'')}</div>` : '';
             area.innerHTML = `
                 ${shareHeaderHtml}
                 <div class="post-header">
@@ -6610,7 +6845,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
         }
 
 
-        /* Fakebook 4.15 — photo activity, complete social graph and native pull refresh */
+        /* Fakebook 4.16 — feed photo viewer, profile links and locale completion */
         (function(){
             window.fakebookSimpleComposerEnabled = localStorage.getItem('fb_simple_composer') !== '0';
             window.fakebookSimpleAutoPublish = false;
@@ -6627,7 +6862,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 if(host&&!document.getElementById('fb-simple-composer-setting')){
                     const row=document.createElement('label');row.id='fb-simple-composer-setting';
                     row.style.cssText='display:flex;gap:9px;align-items:center;margin:0 0 12px;padding:10px 12px;border:1px solid var(--border-color);border-radius:9px;background:var(--bg-input);font-size:.9rem;';
-                    row.innerHTML='<input id="fb-simple-composer-toggle-detailed" type="checkbox" style="width:18px;height:18px;margin:0"> <span><strong>Zjednodušené vytváranie príspevkov</strong><br><small style="color:var(--text-muted)">Aktívne predvolene. Vypnutím sa vráti pôvodný podrobný editor.</small></span>';
+                    row.innerHTML='<input id="fb-simple-composer-toggle-detailed" type="checkbox" style="width:18px;height:18px;margin:0"> <span><strong></strong><br><small style="color:var(--text-muted)"></small></span>';
                     const title=host.querySelector('h3');if(title)title.insertAdjacentElement('afterend',row);else host.prepend(row);
                     row.querySelector('input').addEventListener('change',e=>setSimpleComposerEnabled(e.target.checked));
                 }
@@ -6635,18 +6870,22 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 if(settings&&!document.getElementById('fb-simple-composer-setting-main')){
                     const row=document.createElement('label');row.id='fb-simple-composer-setting-main';
                     row.style.cssText='display:flex;gap:10px;align-items:center;margin:14px 0;padding:12px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-input);font-size:.9rem;';
-                    row.innerHTML='<input id="fb-simple-composer-toggle-settings" type="checkbox" style="width:18px;height:18px;margin:0;flex:0 0 auto"> <span><strong>Zjednodušené vytváranie príspevkov</strong><br><small style="color:var(--text-muted)">Zapnuté: rýchle vytvorenie statusu. Vypnuté: pôvodný podrobný editor.</small></span>';
+                    row.innerHTML='<input id="fb-simple-composer-toggle-settings" type="checkbox" style="width:18px;height:18px;margin:0;flex:0 0 auto"> <span><strong></strong><br><small style="color:var(--text-muted)"></small></span>';
                     const slots=document.getElementById('slots-container');if(slots&&slots.parentNode===settings)settings.insertBefore(row,slots);else settings.appendChild(row);
                     row.querySelector('input').addEventListener('change',e=>setSimpleComposerEnabled(e.target.checked));
                 }
+                fbApplyExtraLocale();
                 setSimpleComposerEnabled(window.fakebookSimpleComposerEnabled);
             }
             window.fakebookEnsureSimpleComposerSetting=ensureSimpleComposerSetting;
             function ensureSimpleComposerModal(){
-                if(document.getElementById('fb-simple-composer-modal'))return;
-                const modal=document.createElement('div');modal.id='fb-simple-composer-modal';modal.className='modal-overlay';
-                modal.innerHTML=`<div class="modal-content" style="max-width:560px"><button class="close-modal-btn" onclick="closeSimpleComposer()">×</button><h3>Čo chceš zverejniť?</h3><p style="color:var(--text-muted);margin-top:-7px">Napíš tému alebo nechaj pole prázdne a Fakebook vymyslí niečo náhodné.</p><textarea id="fb-simple-composer-topic" placeholder="O čom má byť status? (nepovinné)" style="width:100%;min-height:130px;background:var(--bg-input);color:var(--global-font-color);border:1px solid var(--border-color);border-radius:9px;padding:12px"></textarea><label style="display:flex;gap:8px;align-items:center;margin:10px 0 14px;font-size:.88rem"><input id="fb-simple-composer-toggle" type="checkbox" checked> Zjednodušený režim vytvárania statusov</label><div class="modal-actions"><button class="btn btn-secondary" onclick="closeSimpleComposer()">Zrušiť</button><button class="btn btn-primary" onclick="submitSimpleComposer()">Potvrdiť</button></div></div>`;
-                document.body.appendChild(modal);
+                let modal=document.getElementById('fb-simple-composer-modal');
+                if(!modal){
+                    modal=document.createElement('div');modal.id='fb-simple-composer-modal';modal.className='modal-overlay';
+                    modal.innerHTML=`<div class="modal-content" style="max-width:560px"><button class="close-modal-btn" onclick="closeSimpleComposer()">×</button><h3 id="fb-simple-composer-modal-title"></h3><p id="fb-simple-composer-modal-description" style="color:var(--text-muted);margin-top:-7px"></p><textarea id="fb-simple-composer-topic" style="width:100%;min-height:130px;background:var(--bg-input);color:var(--global-font-color);border:1px solid var(--border-color);border-radius:9px;padding:12px"></textarea><label style="display:flex;gap:8px;align-items:center;margin:10px 0 14px;font-size:.88rem"><input id="fb-simple-composer-toggle" type="checkbox" checked> <span id="fb-simple-composer-mode-label"></span></label><div class="modal-actions"><button id="fb-simple-composer-cancel" class="btn btn-secondary" onclick="closeSimpleComposer()"></button><button id="fb-simple-composer-confirm" class="btn btn-primary" onclick="submitSimpleComposer()"></button></div></div>`;
+                    document.body.appendChild(modal);
+                }
+                fbApplyExtraLocale();
             }
             window.setFakebookSimpleComposerEnabled=setSimpleComposerEnabled;
             window.closeSimpleComposer=()=>{const m=document.getElementById('fb-simple-composer-modal');if(m)m.style.display='none';};
@@ -6777,8 +7016,8 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                     card.style.cursor='pointer';card.onclick=()=>openSelectedFriendProfile(name);
                     card.querySelectorAll('button').forEach(b=>{if((b.textContent||'').includes('Pridať priateľa')||(b.textContent||'').includes('Add friend'))b.remove();});
                     if(!friendsList.some(f=>f.name.toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'))){
-                        const btn=document.createElement('button');btn.className='btn btn-primary fb-network-add';btn.style.cssText='margin:0 8px 9px;padding:6px 9px;font-size:.75rem;width:calc(100% - 16px)';btn.textContent='＋ Pridať priateľa';
-                        btn.onclick=e=>{e.stopPropagation();const catalog=SUGGESTED_PEOPLE_CATALOG.find(p=>p.name.toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));if(catalog)addSuggestedPerson(catalog.name);else alert('Táto osoba zatiaľ nie je v katalógu.');};card.appendChild(btn);
+                        const btn=document.createElement('button');btn.className='btn btn-primary fb-network-add';btn.style.cssText='margin:0 8px 9px;padding:6px 9px;font-size:.75rem;width:calc(100% - 16px)';btn.textContent=UI_TEXTS[appLanguage].suggestedAddFriend;
+                        btn.onclick=e=>{e.stopPropagation();const catalog=SUGGESTED_PEOPLE_CATALOG.find(p=>p.name.toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));if(catalog)addSuggestedPerson(catalog.name);else alert(UI_TEXTS[appLanguage].suggestedNotInCatalog);};card.appendChild(btn);
                     }
                 });
             };
@@ -6824,7 +7063,8 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 if(!friend){
                     const person=(typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG:[]).find(p=>String(p.name).toLocaleLowerCase('sk')===String(name).toLocaleLowerCase('sk'));
                     if(!person){if(originalOpenFriendProfile)originalOpenFriendProfile(name);return;}
-                    const temp={name:person.name,gender:person.gender,age:person.age,profileDescription:person.description||'',profilePhoto:'',profileCoverPhoto:'',friendList:(CATALOG_SOCIAL_GRAPH.get(person.name)||getCharacterConnections(person.name)||[]).slice(0,30),commonFriends:[]};
+                    const temp={name:person.name,gender:person.gender,age:person.age,profileDescription:fbGetCatalogDescription(person,appLanguage)||'',profileDescriptionIsDefault:true,profilePhoto:'',profileCoverPhoto:'',friendList:(CATALOG_SOCIAL_GRAPH.get(person.name)||getCharacterConnections(person.name)||[]).slice(0,30),commonFriends:[]};window.__fbTemporarySuggestedProfile=temp;
+                    const profileLanguage=appLanguage;fbEnsureCatalogDescriptions([person],profileLanguage).then(()=>{if(currentProfileFriendName===temp.name&&appLanguage===profileLanguage){temp.profileDescription=fbGetCatalogDescription(person,profileLanguage)||temp.profileDescription;renderProfileAbout(temp);}});
                     currentProfileFriendName=temp.name;profileReturnMode=null;profileReturnFriendName=null;profileReturnChatFriendName=null;
                     const modal=document.getElementById('user-profile-modal');modal.style.display='flex';pushModalState();
                     const av=document.getElementById('profile-avatar-large');av.innerText=temp.name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();av.style.backgroundImage='none';av.style.backgroundColor=generateColor(temp.name);
@@ -6832,27 +7072,27 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                     document.getElementById('profile-display-name').innerText=temp.name;
                     document.getElementById('profile-username-edit').style.display='none';document.getElementById('my-profile-settings-block').style.display='none';
                     const actionBar=document.querySelector('#user-profile-modal .profile-action-bar');
-                    if(actionBar){actionBar.style.display='flex';const addBtn=document.createElement('button');addBtn.id='fb-suggested-profile-add';addBtn.className='btn btn-primary';addBtn.textContent='＋ Pridať priateľa';addBtn.onclick=()=>{addSuggestedPerson(temp.name);openSelectedFriendProfile(temp.name);};actionBar.appendChild(addBtn);}
+                    if(actionBar){actionBar.style.display='flex';const addBtn=document.createElement('button');addBtn.id='fb-suggested-profile-add';addBtn.className='btn btn-primary';addBtn.textContent=UI_TEXTS[appLanguage].suggestedAddFriend;addBtn.onclick=async()=>{await addSuggestedPerson(temp.name);openSelectedFriendProfile(temp.name);};actionBar.appendChild(addBtn);}
                     ['profile-action-edit','profile-action-message','profile-action-friends','profile-cover-edit-btn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
                     document.getElementById('profile-nav-tabs').style.display='flex';
                     setProfileSummary(temp);renderProfileFriends(temp);renderProfileAbout(temp);renderProfilePhotos(temp);
                     document.getElementById('friend-profile-common-area').innerHTML='';
                     const activity=getFriendActivity(temp.name),notice=document.getElementById('private-profile-notice');
-                    if(!activity.length){notice.style.display='block';notice.innerHTML=`<div class="private-profile-card"><span class="private-profile-lock-icon">🔒</span><strong>Tento profil je zatiaľ súkromný</strong><p>Nie je tu zatiaľ žiadny verejný príspevok ani komentár.</p><button class="btn btn-primary" onclick="addSuggestedPerson(decodeURIComponent('${encodeURIComponent(temp.name)}'))">＋ Pridať priateľa</button></div>`;document.getElementById('shared-posts-container').innerHTML='';}
+                    if(!activity.length){notice.style.display='block';notice.innerHTML=`<div class="private-profile-card"><span class="private-profile-lock-icon">🔒</span><strong>${UI_TEXTS[appLanguage].suggestedPrivateTitle}</strong><p>${UI_TEXTS[appLanguage].suggestedPrivateDescription}</p><button class="btn btn-primary" onclick="addSuggestedPerson(decodeURIComponent('${encodeURIComponent(temp.name)}'))">${UI_TEXTS[appLanguage].suggestedPrivateAdd}</button></div>`;document.getElementById('shared-posts-container').innerHTML='';}
                     else{notice.style.display='none';notice.innerHTML='';renderProfilePosts(activity,document.getElementById('shared-posts-container'));}
-                    document.getElementById('profile-section-title').innerText='Aktivita používateľa '+temp.name;showProfileTab('posts');
+                    document.getElementById('profile-section-title').innerText=UI_TEXTS[appLanguage].suggestedActivityTitle+' '+temp.name;showProfileTab('posts');
                     return;
                 }
                 originalOpenFriendProfile(name);
                 const common=document.getElementById('friend-profile-common-area');
                 if(common){
                     const idx=friendsList.indexOf(friend),btn=document.createElement('button');
-                    btn.className='btn btn-secondary';btn.style.marginTop='8px';btn.textContent='⚙ Upraviť osobnosť a informácie';
+                    btn.className='btn btn-secondary';btn.style.marginTop='8px';btn.textContent=UI_TEXTS[appLanguage].friendSettingsDetailsBtn;
                     btn.onclick=()=>openFriendSettingsModal(idx);common.appendChild(btn);
                 }
                 const activity=getFriendActivity(friend.name),notice=document.getElementById('private-profile-notice');
                 if(!activity.length && !friend.profilePhoto && !friend.profileCoverPhoto){
-                    if(notice){notice.style.display='block';notice.innerHTML='<div class="private-profile-card"><span class="private-profile-lock-icon">🔒</span><strong>Tento profil je zatiaľ súkromný</strong><p>Profil sa odomkne, keď sa objaví aspoň jeden príspevok alebo komentár.</p></div>';}
+                    if(notice){notice.style.display='block';notice.innerHTML=`<div class="private-profile-card"><span class="private-profile-lock-icon">🔒</span><strong>${UI_TEXTS[appLanguage].suggestedPrivateTitle}</strong><p>${UI_TEXTS[appLanguage].suggestedPrivateUnlock}</p></div>`;}
                     document.getElementById('shared-posts-container').innerHTML='';
                 }else{
                     if(notice){notice.style.display='none';notice.innerHTML='';}
@@ -6872,25 +7112,45 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                     if(friendsList.some(f=>f.name.toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'))||card.querySelector('.fb-network-add,.fb-network-add-secondary'))return;
                     const person=(typeof SUGGESTED_PEOPLE_CATALOG!=='undefined'?SUGGESTED_PEOPLE_CATALOG:[]).find(p=>p.name.toLocaleLowerCase('sk')===name.toLocaleLowerCase('sk'));
                     const btn=document.createElement('button');btn.className='btn btn-primary fb-network-add-secondary';btn.style.cssText='margin:0 8px 9px;padding:6px 9px;font-size:.75rem;width:calc(100% - 16px)';
-                    btn.textContent='＋ Pridať priateľa';
-                    btn.onclick=e=>{e.stopPropagation();if(person)addSuggestedPerson(person.name);else alert('Táto osoba zatiaľ nie je v katalógu.');};
+                    btn.textContent=UI_TEXTS[appLanguage].suggestedAddFriend;
+                    btn.onclick=e=>{e.stopPropagation();if(person)addSuggestedPerson(person.name);else alert(UI_TEXTS[appLanguage].suggestedNotInCatalog);};
                     card.appendChild(btn);
                 });
+            };
+
+            const fbOriginalAddSuggestedPerson=window.addSuggestedPerson;
+            window.addSuggestedPerson=async function(name){
+                const person=SUGGESTED_PEOPLE_CATALOG.find(p=>String(p.name).toLocaleLowerCase('sk')===String(name||'').toLocaleLowerCase('sk'));
+                if(!person)return;
+                if(friendsList.some(f=>String(f.name||'').toLocaleLowerCase('sk')===person.name.toLocaleLowerCase('sk'))){alert(UI_TEXTS[appLanguage].suggestedAlreadyFriend);return;}
+                const language=appLanguage;
+                if(language!=='sk')await fbEnsureCatalogDescriptions([person],language);
+                fbOriginalAddSuggestedPerson(name);
+                const added=friendsList.find(f=>String(f.name).toLocaleLowerCase('sk')===person.name.toLocaleLowerCase('sk'));
+                if(added){added.profileDescription=fbGetCatalogDescription(person,language);added.profileDescriptionIsDefault=true;added.profileDescriptionLanguage=language;saveFriendsData();renderFriends();}
             };
 
             // Suggested-person cards open the person's profile, not just the add action.
             const originalSuggestedCards=window.renderSuggestedPeopleCards;
             window.renderSuggestedPeopleCards=function(host,people,mode='feed'){
-                originalSuggestedCards(host,people,mode);
-                if(!host)return;
-                host.querySelectorAll('.suggested-person-card').forEach(card=>{
-                    const name=card.querySelector('.suggested-person-info strong')?.textContent?.trim();
-                    const info=card.querySelector('.suggested-person-info');
-                    const profileBtn=document.createElement('button');profileBtn.textContent='Zobraziť profil';profileBtn.style.cssText='margin-left:5px;background:var(--nav-icon-bg)!important;color:var(--global-font-color)!important';
-                    profileBtn.onclick=()=>openSelectedFriendProfile(name);
-                    info?.appendChild(profileBtn);
-                    const avatar=card.querySelector('.suggested-person-avatar');if(avatar){avatar.style.cursor='pointer';avatar.title='Otvoriť profil';avatar.onclick=()=>openSelectedFriendProfile(name);}
-                });
+                if(!host||typeof originalSuggestedCards!=='function')return;
+                const language=appLanguage;
+                const renderLocalized=()=>{
+                    if(!host.isConnected || language!==appLanguage)return;
+                    const localizedPeople=(Array.isArray(people)?people:[]).map(person=>({...person,description:fbGetCatalogDescription(person,language)}));
+                    originalSuggestedCards(host,localizedPeople,mode);
+                    host.querySelectorAll('.suggested-person-card').forEach(card=>{
+                        const name=card.querySelector('.suggested-person-info strong')?.textContent?.trim();
+                        const info=card.querySelector('.suggested-person-info');
+                        if(!info || info.querySelector('.fb-suggested-open-profile'))return;
+                        const profileBtn=document.createElement('button');profileBtn.className='fb-suggested-open-profile';profileBtn.textContent=UI_TEXTS[appLanguage].suggestedViewProfile;profileBtn.style.cssText='margin-left:5px;background:var(--nav-icon-bg)!important;color:var(--global-font-color)!important';
+                        profileBtn.onclick=()=>openSelectedFriendProfile(name);
+                        info.appendChild(profileBtn);
+                        const avatar=card.querySelector('.suggested-person-avatar');if(avatar){avatar.style.cursor='pointer';avatar.title=UI_TEXTS[appLanguage].suggestedOpenProfile;avatar.onclick=()=>openSelectedFriendProfile(name);}
+                    });
+                };
+                renderLocalized();
+                if(language!=='sk')fbEnsureCatalogDescriptions(people,language).then(renderLocalized).catch(()=>{});
             };
 
             // Full-screen photo view with the corresponding post, likes and comments.
@@ -7125,18 +7385,18 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 };
 
                 const heading = isMyProfile ? UI_TEXTS[appLanguage].profileTabFriends : `${UI_TEXTS[appLanguage].profileFriendsOf} ${friend.name}`;
-                host.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;"><div><strong style="font-size:1.12rem;">${escapeHtml(heading)}</strong><div style="font-size:.84rem;color:var(--text-muted);margin-top:3px;">${profileCountText(unique.length, 'friends')}</div></div>${isMyProfile ? `<button class="btn btn-secondary" onclick="openFriendsModal()">${UI_TEXTS[appLanguage].profileShowAllFriends}</button>` : ''}</div><div class="profile-friends-grid" id="fb-profile-network-grid"></div>${!isMyProfile ? `<div class="profile-about-card" style="margin-top:16px;"><div style="font-weight:800;margin-bottom:5px;">Pridať mojich priateľov</div><div style="font-size:.82rem;color:var(--text-muted);margin-bottom:11px;">Vyber priateľov, ktorých chceš prepojiť s profilom ${escapeHtml(friend.name)}.</div><div class="profile-friends-grid" id="fb-profile-add-friends-grid"></div></div>` : ''}`;
+                host.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;"><div><strong style="font-size:1.12rem;">${escapeHtml(heading)}</strong><div style="font-size:.84rem;color:var(--text-muted);margin-top:3px;">${profileCountText(unique.length, 'friends')}</div></div>${isMyProfile ? `<button class="btn btn-secondary" onclick="openFriendsModal()">${UI_TEXTS[appLanguage].profileShowAllFriends}</button>` : ''}</div><div class="profile-friends-grid" id="fb-profile-network-grid"></div>${!isMyProfile ? `<div class="profile-about-card" style="margin-top:16px;"><div style="font-weight:800;margin-bottom:5px;">${UI_TEXTS[appLanguage].profileNetworkAddHeading}</div><div style="font-size:.82rem;color:var(--text-muted);margin-bottom:11px;">${fbFormatLocaleText(UI_TEXTS[appLanguage].profileNetworkAddDescription,{name:escapeHtml(friend.name)})}</div><div class="profile-friends-grid" id="fb-profile-add-friends-grid"></div></div>` : ''}`;
                 const grid = document.getElementById('fb-profile-network-grid');
                 unique.forEach(name => {
                     const self = fbNameKey(name) === fbNameKey(currentUsername);
                     const actual = friendsList.some(f => fbNameKey(f.name) === fbNameKey(name));
                     const catalog = SUGGESTED_PEOPLE_CATALOG.some(p => fbNameKey(p.name) === fbNameKey(name));
                     let action = null;
-                    let status = self ? 'Ty si priateľom tohto profilu' : (actual ? 'Tvoj priateľ' : '');
+                    let status = self ? UI_TEXTS[appLanguage].profileNetworkSelfStatus : (actual ? UI_TEXTS[appLanguage].profileNetworkExistingFriend : '');
                     if (!isMyProfile && !self && !actual && catalog) {
-                        action = { label: '＋ Pridať medzi mojich priateľov', run: () => {
+                        action = { label: UI_TEXTS[appLanguage].profileNetworkAddToMyFriends, run: () => {
                             const ok = fbAddFriendRelationship(ownerName, name);
-                            if (!ok) alert('Tohto človeka sa nepodarilo pridať.');
+                            if (!ok) alert(UI_TEXTS[appLanguage].profileNetworkAddPersonFailed);
                         }};
                     }
                     grid.appendChild(makeCard(name, {status, action}));
@@ -7147,13 +7407,13 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                     const candidates = friendsList.filter(f => fbNameKey(f.name) !== fbNameKey(friend.name) && !linked.has(fbNameKey(f.name)));
                     if (!candidates.length) {
                         const availableFriends = friendsList.filter(person => fbNameKey(person.name) !== fbNameKey(friend.name)).length;
-                        const message = availableFriends ? 'Všetci tvoji priatelia sú už prepojení s týmto profilom.' : 'Zatiaľ nemáš ďalších priateľov, ktorých by si mohol pridať.';
+                        const message = availableFriends ? UI_TEXTS[appLanguage].profileNetworkAllConnected : UI_TEXTS[appLanguage].profileNetworkNoFriendsToAdd;
                         addGrid.innerHTML = `<div class="profile-about-empty" style="grid-column:1/-1;">${message}</div>`;
                     } else {
                         candidates.forEach(person => addGrid.appendChild(makeCard(person.name, {
-                            status: 'Zatiaľ nie je priateľom tohto profilu',
-                            action: {label: `＋ Pridať ku ${friend.name}`, run: () => {
-                                if (!fbAddFriendRelationship(friend.name, person.name)) alert('Priateľa sa nepodarilo prepojiť.');
+                            status: UI_TEXTS[appLanguage].profileNetworkNotFriendYet,
+                            action: {label: fbFormatLocaleText(UI_TEXTS[appLanguage].profileNetworkAddToFriend,{name:friend.name}), run: () => {
+                                if (!fbAddFriendRelationship(friend.name, person.name)) alert(UI_TEXTS[appLanguage].profileNetworkLinkFailed);
                             }}
                         })));
                     }
@@ -7207,13 +7467,13 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 });
                 // Profile and cover images remain available, but are not mixed with post activity.
                 if (friend) {
-                    if (friend.profilePhoto) add(friend.profilePhoto, 'Profilová fotka', null, null, 'profile');
-                    if (friend.profileCoverPhoto) add(friend.profileCoverPhoto, 'Titulná fotka', null, null, 'cover');
+                    if (friend.profilePhoto) add(friend.profilePhoto, UI_TEXTS[appLanguage].photoViewerProfilePhoto, null, null, 'profile');
+                    if (friend.profileCoverPhoto) add(friend.profileCoverPhoto, UI_TEXTS[appLanguage].photoViewerCoverPhoto, null, null, 'cover');
                 } else {
                     const profilePhoto = getMyProfilePhoto();
                     const coverPhoto = getMyProfileCover();
-                    if (profilePhoto) add(profilePhoto, 'Profilová fotka', null, null, 'profile');
-                    if (coverPhoto) add(coverPhoto, 'Titulná fotka', null, null, 'cover');
+                    if (profilePhoto) add(profilePhoto, UI_TEXTS[appLanguage].photoViewerProfilePhoto, null, null, 'profile');
+                    if (coverPhoto) add(coverPhoto, UI_TEXTS[appLanguage].photoViewerCoverPhoto, null, null, 'cover');
                 }
                 return items;
             }
@@ -7226,10 +7486,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                     document.body.appendChild(modal);
                 }
                 modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:30000;background:rgba(0,0,0,.97);color:#fff;overflow-y:auto;overscroll-behavior:contain;';
-                modal.innerHTML = `<button type="button" id="fb-photo-close" aria-label="Zavrieť" style="position:fixed;right:14px;top:12px;z-index:4;border:0;border-radius:50%;width:44px;height:44px;background:rgba(50,50,50,.95);color:#fff;font-size:29px;cursor:pointer;">×</button><button type="button" id="fb-photo-prev" aria-label="Predchádzajúca fotografia" style="position:fixed;left:12px;top:40%;z-index:4;border:0;border-radius:50%;width:46px;height:46px;background:rgba(55,55,55,.9);color:#fff;font-size:28px;cursor:pointer;">‹</button><button type="button" id="fb-photo-next" aria-label="Ďalšia fotografia" style="position:fixed;right:12px;top:40%;z-index:4;border:0;border-radius:50%;width:46px;height:46px;background:rgba(55,55,55,.9);color:#fff;font-size:28px;cursor:pointer;">›</button><div id="fb-photo-viewer-body" style="min-height:100%;display:flex;flex-direction:column;align-items:center;padding:62px 66px 34px;box-sizing:border-box;"></div>`;
-                modal.querySelector('#fb-photo-close').onclick = () => window.closeFakebookPhotoViewer();
-                modal.querySelector('#fb-photo-prev').onclick = () => window.fbNavigatePhoto(-1);
-                modal.querySelector('#fb-photo-next').onclick = () => window.fbNavigatePhoto(1);
+                modal.innerHTML = `<div id="fb-photo-viewer-body"></div>`;
                 modal.onclick = event => { if (event.target === modal) window.closeFakebookPhotoViewer(); };
                 return modal;
             }
@@ -7254,7 +7511,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 const body = modal.querySelector('#fb-photo-viewer-body');
                 const post = item.post || null;
                 const text = Array.isArray(post?.content) ? post.content.join('\n\n') : String(post?.content || '');
-                const title = String(post?.title || item.label || 'Fotografia');
+                const title = String(post?.title || item.label || UI_TEXTS[appLanguage].photoViewerPhoto);
                 const comments = Array.isArray(post?.comments) ? post.comments : [];
                 let sourceLocation = null;
                 if (item.sourceId) {
@@ -7265,11 +7522,16 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 }
                 if (!sourceLocation && Number.isInteger(item.si) && Number.isInteger(item.pi) && feedData[item.si]?.posts?.[item.pi]) sourceLocation = {si:item.si, pi:item.pi};
                 const hasSource = !!sourceLocation;
-                body.innerHTML = `<div style="width:100%;max-width:1100px;text-align:center;color:#ddd;font-size:.84rem;margin-bottom:10px;">${index + 1} / ${items.length}</div><img id="fb-photo-viewer-image" src="${escapeHtmlAttr(item.url)}" alt="${escapeHtmlAttr(title)}" draggable="false" style="display:block;max-width:100%;max-height:70vh;object-fit:contain;border-radius:8px;user-select:none;-webkit-user-drag:none;"><div style="width:min(100%,760px);box-sizing:border-box;background:#202124;color:#fff;margin-top:16px;padding:17px;border-radius:12px;text-align:left;"><button type="button" id="fb-photo-open-post-title" style="display:block;border:0;background:none;color:#fff;padding:0;margin:0 0 10px;text-align:left;font-size:1.08rem;font-weight:800;cursor:${hasSource ? 'pointer' : 'default'};">${escapeHtml(title)}</button>${text ? `<div style="white-space:pre-wrap;line-height:1.55;color:#eee;">${escapeHtml(text)}</div>` : `<div style="color:#ccc;">${item.profileKind === 'profile' ? 'Profilová fotografia' : (item.profileKind === 'cover' ? 'Titulná fotografia' : 'K tomuto príspevku nie je uložený text.')}</div>`}<div style="margin-top:13px;color:#ccc;font-size:.88rem;">${post ? `👍 ${Number(post.likes) || 0} · ${comments.length} komentárov` : ''}</div>${hasSource ? `<button type="button" id="fb-photo-open-post" style="margin-top:14px;padding:10px 14px;border:0;border-radius:8px;background:#1877f2;color:#fff;font-weight:800;cursor:pointer;">Otvoriť celý príspevok a komentáre ↗</button>` : ''}</div>`;
+                const t=UI_TEXTS[appLanguage]||UI_TEXTS.sk;
+                body.innerHTML = `<div class="fb-photo-viewer-stage"><div class="fb-photo-viewer-count">${index + 1} / ${items.length}</div><button type="button" id="fb-photo-close" aria-label="${escapeHtmlAttr(t.photoViewerClose)}">×</button><button type="button" id="fb-photo-prev" aria-label="${escapeHtmlAttr(t.photoViewerPrevious)}">‹</button><button type="button" id="fb-photo-next" aria-label="${escapeHtmlAttr(t.photoViewerNext)}">›</button><img id="fb-photo-viewer-image" class="fb-photo-viewer-image" src="${escapeHtmlAttr(item.url)}" alt="${escapeHtmlAttr(title)}" draggable="false"></div><div class="fb-photo-viewer-post"><button type="button" id="fb-photo-open-post-title" class="fb-photo-viewer-post-title" style="cursor:${hasSource ? 'pointer' : 'default'};">${escapeHtml(title)}</button>${text ? `<div class="fb-photo-viewer-post-text">${escapeHtml(text)}</div>` : `<div style="color:#ccc;">${item.profileKind === 'profile' ? t.photoViewerProfilePhoto : (item.profileKind === 'cover' ? t.photoViewerCoverPhoto : t.photoViewerNoPostText)}</div>`}<div class="fb-photo-viewer-meta">${post ? `👍 ${Number(post.likes) || 0} · ${comments.length} ${t.photoViewerComments}` : ''}</div>${hasSource ? `<button type="button" id="fb-photo-open-post" style="margin-top:14px;padding:10px 14px;border:0;border-radius:8px;background:#1877f2;color:#fff;font-weight:800;cursor:pointer;">${t.photoViewerOpenPost} ↗</button>` : ''}</div>`;
+                modal.querySelector('#fb-photo-close').onclick = () => window.closeFakebookPhotoViewer();
+                modal.querySelector('#fb-photo-prev').onclick = () => window.fbNavigatePhoto(-1);
+                modal.querySelector('#fb-photo-next').onclick = () => window.fbNavigatePhoto(1);
                 const openSource = () => {
                     if (!hasSource) return;
                     window.closeFakebookPhotoViewer();
-                    openProfileActivityArticle(sourceLocation.si, sourceLocation.pi);
+                    if(item.profileKind==='feed') openPost(sourceLocation.si, sourceLocation.pi);
+                    else openProfileActivityArticle(sourceLocation.si, sourceLocation.pi);
                 };
                 const titleButton = modal.querySelector('#fb-photo-open-post-title');
                 if (titleButton && hasSource) titleButton.onclick = openSource;
@@ -7319,7 +7581,7 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 const language = appLanguage;
                 const title = language === 'en' ? 'Photos' : (language === 'sr' ? 'Fotografije' : 'Fotografie');
                 const empty = language === 'en' ? 'No photos yet.' : (language === 'sr' ? 'Još nema fotografija.' : 'Zatiaľ tu nie sú žiadne fotografie.');
-                host.innerHTML = `<div class="profile-about-card"><div class="profile-photos-heading"><strong>${title}</strong><span>${items.length}</span></div>${items.length ? `<div class="profile-photos-grid">${items.map((item, index) => `<button type="button" class="profile-photo-tile" data-fb-photo-index="${index}" aria-label="Otvoriť fotografiu ${index + 1}" style="display:block;width:100%;padding:0;border:0;text-align:inherit;background:var(--profile-inset,var(--bg-input));font:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;"><img src="${escapeHtmlAttr(item.url)}" alt="${escapeHtmlAttr(item.label)}" loading="lazy" decoding="async"><span>${escapeHtml(item.label)}</span></button>`).join('')}</div>` : `<div class="profile-about-empty">${empty}</div>`}</div>`;
+                host.innerHTML = `<div class="profile-about-card"><div class="profile-photos-heading"><strong>${title}</strong><span>${items.length}</span></div>${items.length ? `<div class="profile-photos-grid">${items.map((item, index) => `<button type="button" class="profile-photo-tile" data-fb-photo-index="${index}" aria-label="${escapeHtmlAttr(UI_TEXTS[appLanguage].photoViewerOpenPhoto)} ${index + 1}" style="display:block;width:100%;padding:0;border:0;text-align:inherit;background:var(--profile-inset,var(--bg-input));font:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;"><img src="${escapeHtmlAttr(item.url)}" alt="${escapeHtmlAttr(item.label)}" loading="lazy" decoding="async"><span>${escapeHtml(item.label)}</span></button>`).join('')}</div>` : `<div class="profile-about-empty">${empty}</div>`}</div>`;
                 host.querySelectorAll('[data-fb-photo-index]').forEach(tile => {
                     tile.addEventListener('click', () => window.openFakebookPhotoViewerFromItem(Number(tile.dataset.fbPhotoIndex)));
                 });
@@ -7382,6 +7644,41 @@ FRESH GENERATION: Create a completely new and unique Fakebook event. Do NOT reca
                 if (tab === 'photos') window.renderProfilePhotos(fbGetCurrentProfilePerson());
             };
 
+
+            // Feed photos use the exact same full-screen viewer as profile photos.
+            function fbBuildFeedPhotoItems() {
+                const entries=[];
+                (Array.isArray(feedData)?feedData:[]).forEach((slot,sIdx)=>{
+                    (Array.isArray(slot?.posts)?slot.posts:[]).forEach((post,pIdx)=>{if(post?.image_url)entries.push({slot,sIdx,post,pIdx});});
+                });
+                if(feedSortMode==='relevance') entries.sort((a,b)=>(countComments(b.post.comments)*3+(Number(b.post.likes)||0))-(countComments(a.post.comments)*3+(Number(a.post.likes)||0)));
+                else if(feedSortMode==='random'){
+                    let order=[];try{order=JSON.parse(localStorage.getItem('fb_random_feed_order')||'[]');}catch(_){}
+                    const keys=entries.map(e=>`${e.sIdx}:${e.pIdx}`);
+                    if(Array.isArray(order)&&order.length)entries.sort((a,b)=>{const ai=order.indexOf(`${a.sIdx}:${a.pIdx}`),bi=order.indexOf(`${b.sIdx}:${b.pIdx}`);return (ai<0?Number.MAX_SAFE_INTEGER:ai)-(bi<0?Number.MAX_SAFE_INTEGER:bi);});
+                } else entries.sort((a,b)=>(Number(b.post.createdAt||b.slot.timestamp)||0)-(Number(a.post.createdAt||a.slot.timestamp)||0));
+                return entries.map(({post,sIdx,pIdx})=>({url:post.image_url,label:post.title||UI_TEXTS[appLanguage].photoViewerPhoto,post,si:sIdx,pi:pIdx,sourceId:post.id||null,profileKind:'feed'}));
+            }
+            const fbFeedPhotoHost=document.getElementById('feed-container');
+            if(fbFeedPhotoHost&&!fbFeedPhotoHost.dataset.fbFeedPhotoHandler){
+                fbFeedPhotoHost.dataset.fbFeedPhotoHandler='1';
+                fbFeedPhotoHost.addEventListener('click',event=>{
+                    const image=event.target.closest('img[data-fb-feed-photo="1"]');
+                    if(!image||!fbFeedPhotoHost.contains(image))return;
+                    const sIdx=Number(image.dataset.fbSi),pIdx=Number(image.dataset.fbPi);
+                    const items=fbBuildFeedPhotoItems();
+                    const index=items.findIndex(item=>item.si===sIdx&&item.pi===pIdx);
+                    if(index<0)return;
+                    event.preventDefault();event.stopPropagation();
+                    window.__fbPhotoViewerItems=items;window.__fbPhotoViewerIndex=index;
+                    window.fbRenderPhotoViewer();
+                });
+                fbFeedPhotoHost.addEventListener('keydown',event=>{
+                    const image=event.target.closest('img[data-fb-feed-photo="1"]');
+                    if(!image||(event.key!=='Enter'&&event.key!==' '))return;
+                    event.preventDefault();image.click();
+                });
+            }
 
         })();
 
